@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.4.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -2463,8 +2463,8 @@ const SHOP_TEXT = {
   endToken: n => n === 1 ? 'You earned a token. Spend it in the Shop.' : `You earned ${n} tokens. Spend them in the Shop.`,
   starTokens: n => `New stars: +${n} ${n === 1 ? 'token' : 'tokens'} for the Shop.`,
   starsAtStart: n => `The Shop is open. Your challenge stars earned you ${n} ${n === 1 ? 'token' : 'tokens'}. Find it on the main menu.`,
-  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork' },
-  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box' },
+  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon' },
+  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain' },
   blurb: {
     classic: 'Clean squares and triangles, soft round tones. Always yours.',
     ember: 'A fire seen from afar. A banked hum and crackles that follow the fighting.',
@@ -2472,7 +2472,8 @@ const SHOP_TEXT = {
     pixel: 'Chunky pixels and scanlines. A four-channel console played by the battle.',
     nebula: 'Deep space. A drone, sonar pings and pads that swell with the fighting.',
     rime: 'A winter night. Frost grows over what you hold; glass and cracking ice.',
-    clockwork: 'Brass and springs. Gears that turn while you hold them; a room of clocks that ticks with the fighting.' }     // 49.4: placeholder words for Henry and WC
+    clockwork: 'Brass and springs. Gears that turn while you hold them; a room of clocks that ticks with the fighting.',     // 49.4: placeholder words for Henry and WC
+    neon: 'A city at night in the rain. Signs in your colour on wet streets; rain that grows heavy with the fighting.' }     // 49.5: placeholder words for Henry and WC
 };
 // Prices and earning. Only Classic earns: a win pays size x strength, a loss pays the size only; quits, Custom and Spectate pay nothing.
 // Each challenge star pays 1 token, once. curve: points needed for each token in turn; the last number repeats from then on.
@@ -2481,7 +2482,7 @@ const SHOP = { one: 3, pair: 5, curve: [1, 2, 2, 3, 3, 4, 4, 5],
 // The pairs, in Shop order. A new pair is one more line here (plus its name and blurb above, and the style itself).
 const SHOP_PAIRS = [{ id: 'classic', v: 'classic', s: 'simple', free: true }, { id: 'ember', v: 'ember', s: 'hearth' }, { id: 'atlas', v: 'atlas', s: 'drift' },
   { id: 'pixel', v: 'pixel', s: 'chip' }, { id: 'nebula', v: 'nebula', s: 'cosmos' }, { id: 'rime', v: 'rime', s: 'floe' },
-  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }];          // 49.4
+  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }];          // 49.4, 49.5
 let shopReal = null;      // while the Shop is open: the styles you actually have selected (the map may be showing a preview)
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
@@ -2614,13 +2615,13 @@ settings.sound = settings.sound !== false; settings.rivals = settings.rivals ===
 if (settings.tone === 'felt') settings.tone = 'soft'; else if (settings.tone === 'hum') settings.tone = 'drift';     // retired profiles move to their closest relative
 if (settings.tone === 'bright' || settings.tone === 'soft') settings.tone = 'simple';                                // Build 36: the two became Simple
 if (settings.tone === 'overdrive') settings.tone = 'hearth';                                                         // Build 48.2: Overdrive was replaced by Hearth
-if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox'].includes(settings.tone)) settings.tone = 'simple';
+if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain'].includes(settings.tone)) settings.tone = 'simple';
 delete settings.woods;                                                                                               // 48.9.7: the night-woods trial is gone
 settings.screen = 'auto';                                                                                            // 48.8: the Screen setting is gone, Auto (follow the phone's rotation lock) is baked in
 settings.menuSound = 'on';                                                                                           // 48.8: the Menu sound switch is gone; a saved Off must not silence the menus with nothing to turn it back on (the volume slider does the muting)
 if (settings.visual === 'spark') settings.visual = 'classic';
 if (settings.visual === 'overload') settings.visual = 'ember';                                                        // Build 48.1.5: Overload was replaced by Ember                                                        // Build 36: Spark was folded into Classic
-if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork'].includes(settings.visual)) settings.visual = 'classic';
+if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork', 'neon'].includes(settings.visual)) settings.visual = 'classic';
 // The Shop's save: tokens, progress toward the next one, how many have been earned by playing, stars already paid for, and what you own.
 // Kept apart from Stats like the unlocks, so resetting Stats never takes styles away. Test pages (?perf) with no Shop save own everything.
 const shop = (() => {
@@ -3136,6 +3137,7 @@ function drawClusterGlows(arr, img, strength) {
 function vfxHits(ev) {                               // sparks where hits land, flying the way the blow went
   if (isPixel() && !reduceMotion) { pxHits(ev); return; }
   if (isClock()) { if (!reduceMotion) clockHits(ev); return; }
+  if (isNeon()) { if (!reduceMotion) neonHits(ev); return; }
   if (!fxOn()) return;
   const OV = isOver(), LT = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), mult = OV ? 3 : 1;
   let budget = OV ? 16 : LT ? 6 : 10, numbers = 0;
@@ -3404,6 +3406,7 @@ function drawDeco(now) {
   if (isRime()) { drawRimeDeco(D); return; }
   if (isEmber()) { drawEmberDeco(D); return; }
   if (isClock()) { drawClockDeco(D); return; }
+  if (isNeon()) { drawNeonDeco(D); return; }
   if (D.kind === 'river') {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.strokeStyle = 'rgba(70,120,200,0.07)'; ctx.lineWidth = D.hw * 1.7; ctx.beginPath();
@@ -3440,10 +3443,10 @@ function drawBridges() {                             // crossties along every br
 function drawEdges(now) {
   const nodes = G.nodes, lw = Math.max(1.4, 1.1 / V.s) * (HC ? 1.35 : 1);
   const slow = reduceMotion ? 0 : -now * 3, fast = reduceMotion ? 0 : -now * 9;
-  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), DASH = NB || RM ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
+  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), DASH = NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
   for (let i = 0; i < 5; i++) { inner[i].length = 0; out[i].length = 0; }
-  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : lw;
-  ctx.strokeStyle = HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : 'rgba(255,255,255,0.17)';
+  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
+  ctx.strokeStyle = HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(140,160,200,0.15)' : 'rgba(255,255,255,0.17)';
   ctx.beginPath();
   for (const [a, b] of G.edges) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
@@ -3458,13 +3461,13 @@ function drawEdges(now) {
   for (let i = 0; i < 5; i++) {
     const L = inner[i];
     if (L.length) {
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
+      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.24 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       for (let j = 0; j < L.length; j += 2) { if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
       ctx.stroke();
     }
     const O = out[i];
     if (O.length) {   // drawn from the owner outward, so the dashes drift toward what they can attack
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : 1.25); ctx.beginPath();
+      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.5 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
@@ -3492,6 +3495,15 @@ function drawEdges(now) {
           ctx.drawImage(eg, P.x + (Q.x - P.x) * f * ph - 5, P.y + (Q.y - P.y) * f * ph - 5, 10, 10);
         }
         ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.setLineDash(DASH);
+      }
+      if (NO && !reduceMotion) {                     // Neon: a reflection of light slides out along each wet street line, toward what it can attack
+        ctx.globalCompositeOperation = 'lighter'; const gi = glow(TEAM_COLORS[i]);
+        for (let j = 0; j < O.length; j += 3) {
+          const P = O[j], Q = O[j + 1], f = O[j + 2], ph = (now * 0.35 + ((P.id * 7 + Q.id * 13) * 0.618) % 1) % 1;
+          ctx.globalAlpha = 0.75 * Math.sin(Math.PI * ph);
+          ctx.drawImage(gi, P.x + (Q.x - P.x) * f * ph - 6, P.y + (Q.y - P.y) * f * ph - 6, 12, 12);
+        }
+        ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       }
       if (RM && !reduceMotion) {                     // Rime: a tiny shard of light slides out along each way out
         ctx.setLineDash([]); ctx.fillStyle = '#eaf8ff';
@@ -3818,7 +3830,7 @@ function draw(now) {
   const OV = isOver(), dtD = Math.min(0.1, Math.max(0, now - lastDrawT)); lastDrawT = now;
   kick = OV ? beatKick(now) : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : '#000';   // Overload never fully clears, so everything leaves a smear
+  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : isNeon() ? NE_BG : '#000';   // Overload never fully clears, so everything leaves a smear
   ctx.fillRect(0, 0, cv.width, cv.height);
   if (!G || (mode === 'demo' && pvOnly)) return;      // setup screens show their map in the preview card instead
   const fogD = fogOn();
@@ -3836,7 +3848,7 @@ function draw(now) {
   ctx.beginPath(); ctx.rect(F.x, F.y, F.w, F.h); ctx.clip();
   applyView(sx, sy);
   updateVis();
-  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock();
+  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NE_ = isNeon();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   vfxFx(); stepParts();
   if (OV) drawOverloadBg(now, dtD);
@@ -3845,6 +3857,7 @@ function draw(now) {
   else if (RM) { drawRimeBack(now); applyView(sx, sy); }
   else if (EM) { drawEmberBack(now); applyView(sx, sy); }
   else if (CK) { drawClockBack(now); applyView(sx, sy); }
+  else if (NE_) { drawNeonBack(now); applyView(sx, sy); }
 
   if (isAtlas()) drawAtlasBack(now);
   if (PERF && window.__bgOnly) { ctx.restore(); return; }          // test hook: only the background, so tests can measure it alone
@@ -3894,6 +3907,7 @@ function draw(now) {
     else if (RM) drawCrystal(n, c, now);
     else if (EM) drawEmberBase(n, c, now);
     else if (CK) drawGear(n, c, now);
+    else if (NE_) drawNeonBase(n, c, now);
     else if (SP) {                                   // Overload's base: soft glow, a slowly turning frame, a breathing core
       const mv = reduceMotion ? 0 : 1, own = n.owner >= 0, cc = c;
       const br = (1 + 0.07 * Math.sin(now * 2.2 + n.id) * mv) * (OV ? 1 + 0.35 * kick : 1);
@@ -3939,9 +3953,9 @@ function draw(now) {
     } else {
       ctx.fillStyle = NEUTRAL_COLOR; ctx.fillRect(n.x - 5.5, n.y - 5.5, 11, 11);
     }
-    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK) && G.t - n.lastHitT < 0.07);
+    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK || NE_) && G.t - n.lastHitT < 0.07);
     if (n.crown) drawCrown(n, now);
-    if (!EM && !CK && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it)
+    if (!EM && !CK && !NE_ && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it; Neon's segments do)
       const f = Math.max(0, n.hp / n.maxHp), hit = G.t - n.lastHitT < 0.15;
       ctx.lineWidth = 2.2;
       ctx.strokeStyle = hit ? 'rgba(255,255,255,0.3)' : HC ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)';
@@ -4022,7 +4036,8 @@ function draw(now) {
     }
   }
   if (EM) drawEmberTroops(buckets);
-  for (let b = 0; b < 6 && !EM; b++) {
+  else if (NE_) drawNeonTroops(buckets);
+  for (let b = 0; b < 6 && !EM && !NE_; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
     ctx.fillStyle = b === 0 ? (NB && !HC ? '#9097ad' : NEUTRAL_COLOR) : TEAM_COLORS[b - 1];   // Nebula: empty bases' guards a shade dimmer than the stars they guard
     ctx.beginPath();
@@ -4053,6 +4068,7 @@ function draw(now) {
   else if (!reduceMotion && RM) drawRimeFx();
   else if (!reduceMotion && EM) drawEmberFx();
   else if (!reduceMotion && CK) drawClockFx(now);
+  else if (!reduceMotion && NE_) drawNeonFx(now);
   else if (!reduceMotion) {
     ctx.lineWidth = 1.1;
     for (const f of G.fx) {
@@ -4095,7 +4111,7 @@ function draw(now) {
     ctx.globalAlpha = 1;
   }
   if (isAtlas()) drawAtlasFront(now);
-  if (SP || CL || NB || RM || EM) drawParts();
+  if (SP || CL || NB || RM || EM || NE_) drawParts();
   for (let i = uiFx.length - 1; i >= 0; i--) {
     const f = uiFx[i], age = now - f.b;
     if (age > 0.5) { uiFx.splice(i, 1); continue; }
@@ -4114,6 +4130,7 @@ function draw(now) {
     ctx.restore();
   }
   ctx.restore();
+  if (NE_) drawNeonLift();
   if (OV) drawOverloadOverlay(now, dtD);
   if (fogD) drawFogOverlay();
   drawArrows(now);
@@ -4139,6 +4156,13 @@ function drawSelRing(sn, now, kk, al) {                       // called with the
     g.strokeStyle = hexA('#bfe6ff', 0.4 + 0.3 * flash); g.lineWidth = 1.3 * u; hexFrac(g, hx, hy, R, 1);
     g.strokeStyle = hexA(col, 1); g.lineWidth = 3.2 * u; hexFrac(g, hx, hy, R, f);
     g.fillStyle = hexA('#e8f6ff', 0.85); for (let i = 0; i < 6; i++) { const a = T + i * Math.PI / 3; g.beginPath(); g.arc(hx + Math.cos(a) * R, hy + Math.sin(a) * R, 1.8 * u, 0, TAU); g.fill(); }
+  } else if (isNeon()) {                              // a ring of neon tube: the lit stretch is the share you send, the rest is dark glass
+    g.strokeStyle = hexA('#8ea4c8', 0.25 + 0.25 * flash); g.lineWidth = 1.4 * u; arc(R, 0, TAU);
+    g.globalCompositeOperation = 'lighter';
+    g.strokeStyle = hexA(col, 0.2 + 0.15 * flash); g.lineWidth = 8 * u; arc(R, T, E);
+    g.strokeStyle = hexA(col, 0.85); g.lineWidth = 3 * u; arc(R, T, E);
+    g.globalCompositeOperation = 'source-over';
+    g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 1.1 * u; arc(R, T, E); cap(R, '#ffffff', 2.6);
   } else if (isClock()) {                             // a bezel of 30 teeth; the lit teeth are the share you send
     const N = 30, lit = Math.round(f * N);
     g.strokeStyle = hexA(CW_BRASS, 0.45 + 0.3 * flash); g.lineWidth = 1.1 * u; arc(R - 4 * u, 0, TAU);
@@ -4774,6 +4798,280 @@ function drawClockFx(now) {                           // notches, springs, captu
   ctx.globalAlpha = 1;
 }
 
+// ---- "Neon" (49.5): a city at night in the rain, drawn as signs on wet asphalt ----
+// Bases are rounded neon tubes in their holder's colour, each with a soft smeared reflection on the street below it. The tube is eight segments;
+// they go dark clockwise from the top as health drops, and a hurt tube flickers a little more the closer it is to falling (slow, small, never to
+// black). A capture: the tube goes dark for a beat, strikes on in the new colour with a short stutter, and its reflection catches up a moment
+// later; the light spills out across the wet ground. A base you lose sputters out in your colour, its reflection lingering. A lost troop is a
+// ripple in a puddle; a blow throws a little splash of droplets. A knockout lifts the whole map once, softly, like far lightning (never a white
+// flash), and the last sign of that colour goes out. Troops are points of light with short taillight streaks. Lines are wet street lines with
+// reflections sliding out along them. Rain falls fast and diagonally over the asphalt, heavier as the fighting grows, with puddle rings now and then.
+// Never: firelight or crackle, a starfield, hard pixel edges, glassy ice tones, or any flash brighter than a soft lift.
+// Reduce motion: no flicker, no stutter, no lift, still rain.
+const NE_BG = '#06070b', NE_RAIN = '#b8cbe6', NE_SEGS = 8;
+const NE = { own: new Map(), og: null, back: null, rain: null, rw: 0, rh: 0, rq: -1, heat: 0, hAt: 0, refl: new Map(), tube: null, lift: 0 };
+const isNeon = () => settings.visual === 'neon';
+function neReset() { if (NE.og !== G) { NE.og = G; NE.own.clear(); NE.heat = 0; } }
+function neTube() {                                    // the tube's path, once: a rounded square of half-side 1, corner 0.42, as 96 points evenly spaced, from the top middle clockwise
+  if (NE.tube) return NE.tube;
+  const s = 1, r = 0.42, e = s - r, P = [];
+  const segs = [[0, -s, e, -s], ['a', e, -e, -Math.PI / 2, 0], [s, -e, s, e], ['a', e, e, 0, Math.PI / 2], [e, s, -e, s], ['a', -e, e, Math.PI / 2, Math.PI], [-s, e, -s, -e], ['a', -e, -e, Math.PI, Math.PI * 1.5], [-e, -s, 0, -s]];
+  const len = g => g[0] === 'a' ? r * (g[4] - g[3]) : Math.hypot(g[2] - g[0], g[3] - g[1]), tot = segs.reduce((q, g) => q + len(g), 0), N = 96;
+  for (let i = 0; i <= N; i++) {
+    let d = i / N * tot, k = 0; while (k < segs.length - 1 && d > len(segs[k])) { d -= len(segs[k]); k++; }
+    const g = segs[k], u = Math.min(1, d / len(g));
+    if (g[0] === 'a') { const a = g[3] + (g[4] - g[3]) * u; P.push([g[1] + Math.cos(a) * r, g[2] + Math.sin(a) * r]); }
+    else P.push([g[0] + (g[2] - g[0]) * u, g[1] + (g[3] - g[1]) * u]);
+  }
+  return (NE.tube = P);
+}
+function neArc(x, y, s, a, b) {                        // the stretch of the tube from a to b (fractions of the way round), added to the current path
+  const P = neTube(), N = P.length - 1, i0 = a * N, i1 = b * N, at = q => { const i = Math.min(N - 1, Math.floor(q)), f = q - i; return [x + (P[i][0] + (P[i + 1][0] - P[i][0]) * f) * s, y + (P[i][1] + (P[i + 1][1] - P[i][1]) * f) * s]; };
+  let p = at(i0); ctx.moveTo(p[0], p[1]);
+  for (let i = Math.ceil(i0 + 1e-6); i < i1; i++) ctx.lineTo(x + P[i][0] * s, y + P[i][1] * s);
+  p = at(i1); ctx.lineTo(p[0], p[1]);
+}
+function neSegs(x, y, s, from, to) {                   // the segments (with their small gaps at the electrodes) between from and to, as path
+  const gap = 0.012;
+  for (let i = 0; i < NE_SEGS; i++) {
+    const a = Math.max(from, i / NE_SEGS + gap), b = Math.min(to, (i + 1) / NE_SEGS - gap);
+    if (b > a) neArc(x, y, s, a, b);
+  }
+}
+function neRefl(c) {                                   // a sign's reflection on the wet street: a soft vertical smear in its colour, made once per colour
+  let s = NE.refl.get(c); if (s) return s;
+  s = document.createElement('canvas'); s.width = 32; s.height = 96;
+  const g = s.getContext('2d'); g.setTransform(0.3, 0, 0, 1, 16, 0);
+  const gr = g.createRadialGradient(0, 4, 0, 0, 4, 92); gr.addColorStop(0, hexA(c, 0.75)); gr.addColorStop(0.35, hexA(c, 0.3)); gr.addColorStop(1, hexA(c, 0));
+  g.fillStyle = gr; g.fillRect(-60, 0, 120, 96);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'destination-out';            // the rain breaks the smear into bands
+  for (let y = 10; y < 96; y += 7) { g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, y, 32, 2); }
+  NE.refl.set(c, s); return s;
+}
+function neFlick(n, now, h) {                          // a hurt tube flickers: short dips in brightness, more of them the closer it is to falling; at most about two a second, never below half
+  if (reduceMotion || h > 0.92) return 1;
+  const d = 1 - h, r = 0.35 + 1.85 * d, c = now * r + emHash(n.id) * 7, k = Math.floor(c), q = c - k;
+  if (emHash(k * 31 + n.id * 7) > 0.35 + 0.55 * d) return 1;
+  return q < 0.07 * r ? 1 - (0.22 + 0.28 * d) : 1;
+}
+function neStrike(r, now) {                            // a capture: dark for a beat, then a short stutter on; returns [tube brightness, reflection share]
+  const a = now - r.t;
+  if (a < 0 || a > 0.75) return [1, 1];
+  const b = a < 0.16 ? 0.08 : a < 0.22 ? 0.9 : a < 0.27 ? 0.4 : a < 0.33 ? 1 : a < 0.36 ? 0.55 : 1;
+  return [b, Math.max(0, Math.min(1, (a - 0.3) / 0.35))];
+}
+function neGlowTube(x, y, s, c, k, b, from, to, lw0) {  // the lit glass: a wide faint stroke, a coloured body, a nearly white core
+  const lw = lw0 * (HC ? 1.35 : 1);
+  ctx.beginPath(); neSegs(x, y, s, from, to);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = hexA(c, 0.2 * b); ctx.lineWidth = lw * 3.6; ctx.stroke();
+  ctx.strokeStyle = hexA(c, (HC ? 0.95 : 0.75) * b); ctx.lineWidth = lw * 1.5; ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.strokeStyle = emCss(k.hot, 0.9 * b); ctx.lineWidth = lw * 0.55; ctx.stroke();
+}
+function drawNeonBase(n, c, now) {
+  neReset();
+  const own = n.owner >= 0, x = n.x, y = n.y, s = (own || n.kind ? 11 : 8) * (HC ? 1.1 : 1), h = Math.max(0, Math.min(1, n.hp / n.maxHp)), hurt = h < 0.995;
+  let r = NE.own.get(n.id);
+  if (!r) { r = { o: n.owner, t: -99 }; NE.own.set(n.id, r); }
+  else if (r.o !== n.owner) {                         // a change of hands: animate it only when a capture really was just seen there (fog can change what we show without one)
+    r.o = n.owner; r.t = !reduceMotion && G.fx.some(f => f.k === 'ring' && f.x === x && f.y === y && G.t - f.b < 0.6) ? now : -99;
+  }
+  ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 1;
+  if (!own) {                                         // an empty base: a sign that is not lit, grey glass; what has been knocked out of it goes darker still
+    ctx.strokeStyle = hexA(NEUTRAL_COLOR, HC ? 0.85 : 0.55); ctx.lineWidth = HC ? 1.8 : 1.3; ctx.beginPath(); neSegs(x, y, s, 0, h); ctx.stroke();
+    if (hurt) { ctx.strokeStyle = hexA(NEUTRAL_COLOR, 0.18); ctx.beginPath(); neSegs(x, y, s, h, 1); ctx.stroke(); }
+    if (SYM && !n.kind) { ctx.strokeStyle = NEUTRAL_COLOR; ctx.lineWidth = 2; ctx.strokeRect(x - 3.6, y - 3.6, 7.2, 7.2); }
+    return;
+  }
+  const k = emCol(c), [sb, rs] = neStrike(r, now), b = sb * neFlick(n, now, h) * (G.t - n.lastHitT < 0.07 ? 1.25 : 1);
+  ctx.globalCompositeOperation = 'lighter';
+  if (rs > 0) {                                       // the reflection on the street, broken up by the rain
+    const R = neRefl(c), wob = reduceMotion ? 0 : Math.sin(now * 2.1 + n.id) * 0.6;
+    ctx.save(); ctx.translate(x, y); if (V.rot) ctx.rotate(-Math.PI / 2);
+    ctx.globalAlpha = 0.55 * rs * Math.min(1, b) * (0.5 + 0.5 * h); ctx.drawImage(R, -s * 0.95 + wob, s + 1.5, s * 1.9, s * 4.4);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 0.5 * Math.min(1, b) * (0.55 + 0.45 * h); const gs = s * 5.2; ctx.drawImage(glow(c), x - gs / 2, y - gs / 2, gs, gs);       // the glow it throws around it
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(4,5,9,0.92)'; ctx.beginPath(); neArc(x, y, s * 0.92, 0, 1); ctx.fill();                                      // the dark sign behind the tube, so it reads over any glow
+  if (hurt) { ctx.strokeStyle = hexA(c, 0.13); ctx.lineWidth = (HC ? 1.8 : 1.3); ctx.beginPath(); neSegs(x, y, s, h, 1); ctx.stroke(); }  // the dark glass of the segments that have gone out
+  if (h > 0.002) neGlowTube(x, y, s, c, k, Math.min(1.25, b), 0, h, 1.9);
+  if (n.kind) return;                                 // a special keeps its glyph (drawn after this) inside the sign
+  if (SYM) { ctx.fillStyle = emCss(k.hot, 0.95 * Math.min(1, b)); ctx.beginPath(); symPath(ctx, symOf(n.owner), x, y, 4.8 * (HC ? 1.1 : 1)); ctx.fill(); return; }
+  ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5 * Math.min(1, b); ctx.drawImage(glow(c), x - 7, y - 7, 14, 14);         // a lit point in the middle of the sign
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = emCss(k.hot, 0.95 * Math.min(1, b)); ctx.beginPath(); ctx.arc(x, y, 1.9 * (HC ? 1.15 : 1), 0, 6.2832); ctx.fill();
+}
+function neonBack() {                                  // wet asphalt: grain, and the faint coloured sheen of a city's light on it, made once per map
+  if (NE.back && NE.back.g === G) return NE.back;
+  const BS = 1.25, cw = W * 1.1, ch = H * 1.1, ox = -W * 0.05, oy = -H * 0.05;
+  const bmp = document.createElement('canvas'); bmp.width = Math.ceil(cw * BS); bmp.height = Math.ceil(ch * BS);
+  const g = bmp.getContext('2d'); g.setTransform(BS, 0, 0, BS, -ox * BS, -oy * BS);
+  let sd = (G.seed | 0) ^ 0x5bd1e995; const rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
+  const tints = ['200,70,255', '40,200,220', '255,150,60', '70,100,255', '255,60,140'];
+  for (let i = 0; i < 6; i++) {                       // the sheen: a few wide, very faint pools of coloured light on the wet street
+    const x = ox + rnd() * cw, y = oy + rnd() * ch, R = Math.min(cw, ch) * (0.25 + rnd() * 0.3), gr = g.createRadialGradient(x, y, 0, x, y, R);
+    gr.addColorStop(0, 'rgba(' + tints[i % tints.length] + ',0.05)'); gr.addColorStop(1, 'rgba(' + tints[i % tints.length] + ',0)'); g.fillStyle = gr; g.fillRect(ox, oy, cw, ch);
+  }
+  const n = Math.round(cw * ch / 70);                 // the grain of the asphalt
+  for (let i = 0; i < n; i++) { const a = rnd(); g.fillStyle = a < 0.5 ? 'rgba(170,180,200,0.05)' : a < 0.85 ? 'rgba(120,130,150,0.06)' : 'rgba(0,0,0,0.3)'; const z = 0.7 + rnd() * 0.9; g.fillRect(ox + rnd() * cw, oy + rnd() * ch, z, z); }
+  const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(cw, ch) * 0.55);        // the edges fall away into the dark
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.5)'); g.fillStyle = vg; g.fillRect(ox, oy, cw, ch);
+  NE.back = { g: G, bmp, ox, oy, cw, ch }; return NE.back;
+}
+function drawNeonBack(now) {                           // called with the world transform in place; leaves the screen transform behind
+  neReset();
+  const B = neonBack();
+  bgCache(NE_BG, 'neon', B, g => g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ms = performance.now(), dt = Math.min(0.25, Math.max(0, (ms - NE.hAt) / 1000)); NE.hAt = ms;
+  NE.heat += ((1 - Math.exp(-shotRate / 30)) - NE.heat) * (1 - Math.exp(-dt / 2.5));          // the rain gets heavier as the fighting grows (smoothed over a few seconds)
+  const w = Math.ceil(F.w) + 40, h = Math.ceil(F.h) + 60, mv = reduceMotion ? 0 : 1, cap = [120, 90, 60, 36][quality];
+  if (!NE.rain || NE.rw !== w || NE.rh !== h || NE.rq !== quality) {
+    const out = []; for (let i = 0; i < cap; i++) out.push({ x: Math.random() * w, y: Math.random() * h, v: 520 + Math.random() * 260, l: 9 + Math.random() * 9, a: i % 3 });
+    NE.rain = out; NE.rw = w; NE.rh = h; NE.rq = quality;
+  }
+  const use = Math.round(NE.rain.length * (0.5 + 0.5 * NE.heat)), SL = 0.26;           // a streak leans a quarter of its length: fast and diagonal, never drifting like snow
+  ctx.lineCap = 'round'; ctx.lineWidth = 1;
+  for (let a = 0; a < 3; a++) {
+    ctx.strokeStyle = NE_RAIN; ctx.globalAlpha = [0.09, 0.14, 0.2][a]; ctx.beginPath();
+    for (let i = a; i < use; i += 3) {
+      const p = NE.rain[i], yy = p.y + now * p.v * mv, x = F.x - 20 + ((p.x + yy * SL) % w + w) % w, y = F.y - 40 + (yy % h + h) % h;
+      ctx.moveTo(x, y); ctx.lineTo(x - p.l * SL, y - p.l);
+    }
+    ctx.stroke();
+  }
+  if (mv) {                                           // and now and then a ring opens in a puddle
+    ctx.strokeStyle = NE_RAIN;
+    for (let i = 0; i < 7; i++) {
+      const P = 1.6 + emHash(i + 900) * 1.6, c = (now + emHash(i + 950) * 9) / P, cyc = Math.floor(c), q = c - cyc;
+      const px = F.x + emHash(cyc * 13 + i * 101) * F.w, py = F.y + emHash(cyc * 17 + i * 103) * F.h, rx = 1.5 + q * 9;
+      ctx.globalAlpha = (1 - q) * 0.13; ctx.beginPath(); ctx.ellipse(px, py, rx, rx * 0.38, 0, 0, 6.2832); ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function drawNeonDeco(D) {                             // terrain as a city: a river is a dark canal with reflections in it, islands are city blocks across dark water, the ring is a ring road round a dark park
+  ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const t = reduceMotion ? 0 : performance.now() / 1000;
+  if (D.kind === 'river') {
+    const path = () => { ctx.beginPath(); D.line.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); };
+    path(); ctx.strokeStyle = 'rgba(130,150,190,0.16)'; ctx.lineWidth = D.hw * 1.9; ctx.stroke();         // the embankments
+    ctx.strokeStyle = '#020307'; ctx.lineWidth = D.hw * 1.9 - 2.4; ctx.stroke();                            // black water
+    ctx.lineDashOffset = -t * 6; ctx.lineWidth = 1.4;                                                       // signs reflected in it, shivering downstream
+    ctx.strokeStyle = 'rgba(200,90,255,0.13)'; ctx.setLineDash([4, 23]); ctx.stroke();
+    ctx.strokeStyle = 'rgba(60,210,230,0.11)'; ctx.setLineDash([3, 31]); ctx.lineDashOffset = -t * 8 + 11; ctx.stroke();
+    ctx.setLineDash([]); ctx.lineDashOffset = 0;
+  } else if (D.kind === 'islands') {
+    for (const h of islandHulls()) {
+      ctx.beginPath(); h.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+      ctx.fillStyle = 'rgba(150,160,190,0.035)'; ctx.fill(); ctx.strokeStyle = 'rgba(140,160,200,0.16)'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.save(); ctx.clip();                         // its streets: a faint grid of blocks inside
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const [x, y] of h) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      ctx.strokeStyle = 'rgba(140,160,200,0.045)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let x = Math.ceil(x0 / 28) * 28; x < x1; x += 28) { ctx.moveTo(x, y0); ctx.lineTo(x, y1); }
+      for (let y = Math.ceil(y0 / 28) * 28; y < y1; y += 28) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
+      ctx.stroke(); ctx.restore();
+    }
+  } else if (D.kind === 'ring') {
+    ctx.beginPath(); ctx.ellipse(D.cx, D.cy, D.rx - 9, D.ry - 9, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fill();       // the park: darker than the street
+    ctx.beginPath(); ctx.ellipse(D.cx, D.cy, D.rx, D.ry, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(140,160,200,0.06)'; ctx.lineWidth = 16; ctx.stroke();                          // the road
+    ctx.strokeStyle = 'rgba(240,210,120,0.13)'; ctx.lineWidth = 1.2; ctx.setLineDash([7, 9]); ctx.stroke(); ctx.setLineDash([]);   // its centre line
+  }
+}
+function neonHits(ev) {                                // a blow throws a little splash of droplets up from where it lands
+  let budget = 8;
+  for (const e of ev) {
+    if (budget-- <= 0 || e.tx === undefined) break;
+    if (e.base) emit(e.tx, e.ty, Math.random() < 0.6 ? '#d6e8ff' : colorOf(e.team), 2, 58, 0.38, 1.3, 0, 0, -1, 2.4, 240);
+    else if (Math.random() < 0.4) emit(e.tx, e.ty, '#cfe2ff', 1, 46, 0.3, 1.0, 0, 0, -1, 2.0, 220);
+  }
+}
+function drawNeonTroops(buckets) {                     // points of light, each with a short taillight streak behind it, softened by the rain
+  if (!reduceMotion) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (!arr.length) continue; ctx.fillStyle = hexA(TEAM_COLORS[b - 1], 0.42); trailPath(arr, 8, 1.05); }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  const sc = 0.72 * (HC ? 1.2 : 1);
+  for (let b = 1; b < 6; b++) {
+    const arr = buckets[b]; if (!arr.length) continue;
+    ctx.fillStyle = emCss(emCol(TEAM_COLORS[b - 1]).tr, 1); ctx.beginPath();
+    const kind = SYM ? symOf(b - 1) : 'circle', kk = SYM ? sc * 1.2 : sc;
+    for (const t of arr) troopShape(ctx, kind, t.x, t.y, t.nx, t.ny, kk);
+    ctx.fill();
+  }
+  if (buckets[0].length) {                            // neutral guards: dull grey
+    ctx.fillStyle = 'rgba(140,148,165,0.6)'; ctx.beginPath();
+    for (const t of buckets[0]) troopShape(ctx, 'circle', t.x, t.y, t.nx, t.ny, 0.6);
+    ctx.fill();
+  }
+  if (quality < 3) {                                  // a hot white speck in each, like a lamp
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.beginPath();
+    for (let b = 1; b < 6; b++) for (const t of buckets[b]) ctx.rect(t.x - 0.45, t.y - 0.45, 0.9, 0.9);
+    ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+  }
+}
+function neSputter(x, y, s, c, age, len) {             // a sign going out: it stutters, dimmer each time, and is gone by len
+  const q = age / len; if (q >= 1) return;
+  const st = reduceMotion ? 1 : (Math.floor(age * 22) % 3 === 1 ? 0.35 : 1);
+  neGlowTube(x, y, s, c, emCol(c), (1 - q) * (1 - q) * st, 0, 1, 1.5);
+}
+function drawNeonFx(now) {                             // puddle rings, the light of a capture spilling over the street, signs going out, taillights streaking away
+  const fogD = fogOn(), flat = V.rot ? Math.PI / 2 : 0;
+  ctx.setLineDash([]); ctx.lineCap = 'round';
+  for (const f of G.fx) {
+    const age = G.t - f.b;
+    if (f.x === undefined || (fogD && !seenXY(f.x, f.y))) continue;
+    if (f.k === 'pop' && age < 0.5) {                 // a lost troop: a ring opens in a puddle
+      const p = age / 0.5, rx = 1.5 + p * 8;
+      ctx.globalAlpha = (1 - p) * 0.6; ctx.strokeStyle = emCss(emMix(emCol(colorOf(f.c)).c, [220, 232, 255], 0.35), 1); ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.ellipse(f.x, f.y, rx, rx * 0.42, flat, 0, 6.2832); ctx.stroke();
+    } else if (f.k === 'ring' && age < 1.1) {         // a capture: the new sign's light spills out over the wet ground
+      const p = Math.min(1, age / 0.8), e = 1 - Math.pow(1 - p, 2.2), c = colorOf(f.c), rx = 14 + e * 34;
+      if (p < 1) {
+        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - p) * 0.55; ctx.strokeStyle = c; ctx.lineWidth = 1.7;
+        ctx.beginPath(); ctx.ellipse(f.x, f.y, rx, rx * 0.42, flat, 0, 6.2832); ctx.stroke();
+        ctx.globalAlpha = (1 - p) * 0.22; ctx.lineWidth = 5; ctx.stroke(); ctx.globalCompositeOperation = 'source-over';
+      }
+      if (lostMine(f)) {                              // the sign you held: it sputters out in your colour, and its reflection lingers a little longer
+        const mine = colorOf(PLAYER), s = 11 * (HC ? 1.1 : 1);
+        neSputter(f.x, f.y, s, mine, age, 0.6);
+        if (age < 1.1) { ctx.save(); ctx.translate(f.x, f.y); if (V.rot) ctx.rotate(-Math.PI / 2); ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = 0.3 * (1 - age / 1.1); ctx.drawImage(neRefl(mine), -s * 0.9, s + 1.5, s * 1.8, s * 3.6); ctx.restore(); }
+      }
+    } else if (f.k === 'elim' && age > 0.35 && age < 2.0) {          // knocked out: the last sign of that colour goes out where they last stood
+      const e0 = age - 0.35, c = colorOf(f.c), s = 15;
+      neSputter(f.x, f.y, s, c, e0, 1.3);
+      ctx.save(); ctx.translate(f.x, f.y); if (V.rot) ctx.rotate(-Math.PI / 2); ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.32 * Math.max(0, 1 - e0 / 1.65); ctx.drawImage(neRefl(c), -s * 0.9, s + 1.5, s * 1.8, s * 3.6); ctx.restore();
+    } else if (f.k === 'retreat' && age < 1.0) {      // called off: taillights turning and streaking away toward home
+      const p = age / 1.0, g = rtSeg(f, p, 34);
+      if (g) {
+        const c = colorOf(f.c); ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = (1 - p) * 0.3; ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(g[0], g[1]); ctx.lineTo(g[2], g[3]); ctx.stroke();
+        ctx.globalAlpha = (1 - p) * 0.9; ctx.lineWidth = 1.3; ctx.stroke();
+        ctx.fillStyle = '#ffffff'; ctx.globalAlpha = (1 - p) * 0.8; ctx.beginPath(); ctx.arc(g[2], g[3], 1.3, 0, 6.2832); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+function drawNeonLift() {                              // a knockout: the whole map lifts once, softly, like lightning far off. One soft rise and fall, never a flash (screen transform)
+  if (reduceMotion || !G) return;
+  let a = 0;
+  for (const f of G.fx) {
+    if (f.k !== 'elim') continue; const e = G.t - f.b - 0.2; if (e < 0 || e > 1.4) continue;
+    a = Math.max(a, e < 0.25 ? e / 0.25 : Math.pow(1 - (e - 0.25) / 1.15, 2));          // the strongest of any at once: two knockouts together are still one lift
+  }
+  NE.lift = a; if (a <= 0.001) return;
+  ctx.save(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.045 * a; ctx.fillStyle = '#c8d8ff'; ctx.fillRect(F.x, F.y, F.w, F.h); ctx.restore();
+}
+
 // ---- "Pixel": the battlefield as an 8-bit console would have drawn it ----
 // The world is painted onto a coarse grid of its own (about three world units to a pixel, never finer than two screen pixels or
 // coarser than six), every shape lands on whole pixels, and the grid is then blown up without smoothing, with faint scanlines
@@ -5178,6 +5476,7 @@ const PF_STYLE = {
   nebula:   { n: 44, kind: 'dust', cols: ['#ffffff', '#cfe0ff', '#ffe6c4', '#b8ccff'], v: [24, 80], life: [1.2, 2.0], flare: true },
   rime:     { n: 22, kind: 'shard', cols: ['#bfe6ff', '#e8f6ff', '#8fd0ff'], v: [90, 220], life: [1.0, 1.5], hex: true },
   clockwork: { n: 22, kind: 'cog', cols: [CW_BRASS, CW_LIGHT, '#b08a48'], v: [80, 200], life: [0.8, 1.3], key: true },
+  neon:     { n: 20, kind: 'streak', cols: ['#bfe3ff', '#ffffff', '#8fc8ff'], w: 1.2, v: [70, 170], life: [0.5, 0.9], len: 0.05, add: true, arrow: true },
   ember:    { n: 30, kind: 'streak', cols: ['#ffd9a8', '#ff9a4a', '#fff1dc'], w: 1.6, v: [60, 170], life: [0.8, 1.4], len: 0.06, add: true }
 };
 const pfRnd = (a, b) => a + Math.random() * (b - a);
@@ -5226,6 +5525,7 @@ function ptsChime(N, t) {                              // N: the running (or pre
     case 'cosmos': csPing(N, t, csMidi(14), 0.05, 0, 1.5); csPing(N, t + 0.13, csMidi(18), 0.05, 0, 1.8); break;
     case 'floe': { const b = 1150 * (0.9 + 0.45 * share); flTink(N, t, b, 0.055, 0, 0.9, 0, true); flTink(N, t + 0.12, b * 1.5, 0.055, 0, 0.9, 0, true); break; }
     case 'musicbox': mbRatchet(N, t, 2, 0.3, 0); mbTine(N, t + 0.1, 2349.32, 0.05, 0, 0, true); break;      // two ratchet clicks, then one bright tine
+    case 'rain': rnTransformer(N, t); break;                                                                // a transformer hum swells and resolves to one bright tone
     default: {
       const m = ROOT[PLAYER] - 12 + 4;
       ptsOsc(hz(m), t, 0.16, 0.05, 0.012, hz(m) * 0.99); ptsOsc(hz(m + 5), t + 0.1, 0.3, 0.05, 0.012, hz(m + 5) * 0.99); ptsOsc(hz(m + 17), t + 0.1, 0.2, 0.007, 0.012);
@@ -5234,8 +5534,8 @@ function ptsChime(N, t) {                              // N: the running (or pre
 }
 function ptsSound() {                                  // an upgrade point was earned in a match you are playing
   if (!AC || !settings.sound || !audible() || awatch() || AC.state !== 'running') return;
-  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes })[settings.tone];
-  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox'].includes(settings.tone)) return;     // that style's sound is not up yet
+  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes, rain: RN.nodes })[settings.tone];
+  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain'].includes(settings.tone)) return;     // that style's sound is not up yet
   try { ptsChime(N || null, AC.currentTime + 0.01); PF.chimes.push({ tone: settings.tone, at: performance.now() }); if (PF.chimes.length > 40) PF.chimes.shift(); } catch (e) { /* a missing voice must never stop the game */ }
 }
 let lastChimePrev = 0;
@@ -5252,6 +5552,7 @@ function ptsPreview() {                                // the "Hear it" button i
       case 'cosmos': N = csBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 5000); break;
       case 'floe': N = flBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); break;
       case 'musicbox': N = mbBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
+      case 'rain': N = rnBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
     }
     ptsChime(N, t); if (off) off();
   } finally { previewing = false; }
@@ -5281,6 +5582,7 @@ function pfSpawn(merged) {
     if (st.flare) add({ k: 'flare', dur: 0.9 });
     if (st.hex) add({ k: 'hex', dur: 0.9 });
     if (st.key) add({ k: 'key', dur: 1.0 });
+    if (st.arrow) add({ k: 'arrow', dur: 1.1 });
   }
   if (!PF.raf) { PF.t2 = 0; PF.raf = requestAnimationFrame(pfTick); }
 }
@@ -5311,6 +5613,15 @@ function pfTick(ts) {
       g.globalAlpha = Math.min(1, f * 6) * Math.max(0, 1 - Math.max(0, f - 0.75) / 0.25); g.strokeStyle = '#f4dca4'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath();
       let p = P(-5, 0); g.moveTo(p[0] + 3 * s, p[1]); g.arc(p[0], p[1], 3 * s, 0, 6.2832); p = P(-2, 0); g.moveTo(p[0], p[1]); p = P(6, 0); g.lineTo(p[0], p[1]);
       p = P(6, 2.5); g.lineTo(p[0], p[1]); p = P(4.4, 2.5); g.lineTo(p[0], p[1]); g.stroke();
+    } else if (o.k === 'arrow') {                     // Neon: a small neon arrow over the counter buzzes on, holds, and goes out
+      const on = f < 0.06 ? 0 : f < 0.1 ? 0.8 : f < 0.13 ? 0.3 : f < 0.2 ? 1 : f < 0.23 ? 0.55 : 1, out = Math.max(0, 1 - Math.max(0, f - 0.7) / 0.3), a = on * out, s = 1.35 * o.gain, cy = o.cy - 26;
+      if (a > 0) {
+        const col = TEAM_COLORS[PLAYER]; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath();
+        g.moveTo(o.cx - 7 * s, cy + 3 * s); g.lineTo(o.cx, cy - 4 * s); g.lineTo(o.cx + 7 * s, cy + 3 * s); g.moveTo(o.cx, cy - 3 * s); g.lineTo(o.cx, cy + 9 * s);
+        g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.25 * a; g.strokeStyle = col; g.lineWidth = 7; g.stroke();
+        g.globalAlpha = 0.9 * a; g.lineWidth = 2.6; g.stroke(); g.globalCompositeOperation = 'source-over';
+        g.globalAlpha = 0.95 * a; g.strokeStyle = '#ffffff'; g.lineWidth = 1; g.stroke();
+      }
     } else if (o.k === 'hex') {                       // Rime: a hexagon of ice racing outward from the counter
       const e = 1 - (1 - f) * (1 - f), rad = (14 + 70 * e) * o.gain;
       g.globalAlpha = Math.max(0, 1 - f) * 0.95; g.strokeStyle = '#d8f0ff'; g.lineWidth = 2.4; g.beginPath();
@@ -5474,7 +5785,7 @@ const pick = a => a[(Math.random() * a.length) | 0];
 // volume slider is perceptual (squared). "Simple" (the old Bright and Soft, folded together) sits an octave low, rounds off each blip's start and filters the top end
 const MASTER_BOOST = 2;                              // +6 dB: a 70% slider now sounds like the old 100%
 const soundGain = () => settings.sound ? MASTER_BOOST * Math.pow(settings.volume / 100, 2) : 0;
-const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000 })[settings.tone] || 1500;
+const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000, rain: 6000 })[settings.tone] || 1500;
 let kickT = 0, lostSince = 0, lostToast = false, hushed = false;
 function audioKick() {                                // the phone can pause or interrupt web audio (a text, another app, the screen): ask for the sound back
   if (!AC || !settings.sound || document.hidden || hushed) return;
@@ -5557,6 +5868,7 @@ function playSfx(nowMs, dt) {
   if (settings.tone === 'cosmos') { cosmosHits(ev); return; }
   if (isFloe()) { floeHits(ev); return; }
   if (isMusicBox()) { musicboxHits(ev); return; }
+  if (isRain()) { rainHits(ev); return; }
   if (isHearth()) { heHits(ev); return; }
   if (nowMs - lastBloop > 150) {              // base hits: a low, round bloop that drops in pitch
     const e = h.baseMine || h.base;
@@ -6617,6 +6929,260 @@ function musicboxPreview() {                          // wind, two ticks, the ta
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7000);
 }
 
+// ---- "Rain": a city at night in the rain, in sound, for Neon (49.5) ----
+// The bed is the rain itself, never a tune: a light drizzle when the map is quiet, a downpour with the gutters running in the final battles.
+// It is low-passed and grows wider as it grows heavier (the Cosmos rule), and it never fully stops during a match. A troop hit is one heavy drop
+// plinking on a metal awning, pitched by team; a base hit is rain drumming on a car roof, with a dull thunk now and then. A base losing another
+// quarter of its health buzzes like a failing sign. Taking a base is a sign striking on: a click, a buzz and a warm two-note hum rising into tune.
+// Losing one is your sign shorting out: a pop, then the hum falls a fifth and dies. A rival's capture is a distant sign clicking on, muffled by the
+// rain. A knockout is thunder rolling far off. Your actions own the sound: hits are split into three budgets, as in Music Box since 49.4.1
+// (yours, a rival on one of your bases, everyone else). The ending is the last sign: its hum detunes and crackles as your last base falls.
+const RN_LEVEL = 1.6, RN_BED = 0.07;                   // the style's level, and the rain's under it
+const RN_TEAMF = [2150, 1480, 1750, 1300, 1950];                                         // each colour's drop on the awning
+const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', bufs: null, ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0 };
+const isRain = () => settings.tone === 'rain';
+function rnBufs() {                                    // the rain, made once: a light layer (sparse bright drops over a soft hiss, nearly the same in both ears) and a heavy one (dense, darker, wide)
+  if (RN.bufs && RN.bufs.sr === AC.sampleRate) return RN.bufs;
+  const sr = AC.sampleRate, len = Math.floor(sr * 3.2);
+  const make = (rate, f0, f1, d0, d1, hiss, hlp, spread) => {
+    const b = AC.createBuffer(2, len, sr), L = b.getChannelData(0), R = b.getChannelData(1);
+    for (const [ch, seed] of [[L, 0], [R, 1]]) {
+      let l = 0; for (let i = 0; i < len; i++) { l += (Math.random() * 2 - 1 - l) * hlp; ch[i] = l * hiss; }       // the hiss under the drops
+      const n = Math.floor(rate * len / sr);
+      for (let k = 0; k < n; k++) {                  // each drop: a tiny ringing burst, wrapped round the end so the loop has no seam
+        const at = Math.floor(Math.random() * len), f = f0 * Math.pow(f1 / f0, Math.random()), dec = (d0 + Math.random() * (d1 - d0)) * sr, a = Math.pow(Math.random(), 2.2) * (seed && spread < 1 ? 1 : 1);
+        const w = 2 * Math.PI * f / sr, m = Math.min(len, Math.floor(dec * 5));
+        for (let j = 0; j < m; j++) ch[(at + j) % len] += a * Math.sin(w * j) * Math.exp(-j / dec);
+      }
+    }
+    if (spread < 1) for (let i = 0; i < len; i++) { const m = (L[i] + R[i]) * 0.5; L[i] = m + (L[i] - m) * spread; R[i] = m + (R[i] - m) * spread; }   // narrow: mostly the same in both ears
+    let s = 0; for (let i = 0; i < len; i++) s += L[i] * L[i] + R[i] * R[i];
+    const k = 0.25 / Math.sqrt(s / (2 * len) + 1e-12); for (let i = 0; i < len; i++) { L[i] *= k; R[i] *= k; }
+    return b;
+  };
+  return (RN.bufs = { sr, light: make(260, 2400, 6500, 0.0012, 0.0035, 0.35, 0.3, 0.25), heavy: make(1500, 800, 4200, 0.0018, 0.006, 0.9, 0.18, 1) });
+}
+function rnIR() {                                       // a wet street: short, dark reflections off the walls either side
+  if (RN.ir && RN.ir.sampleRate === AC.sampleRate) return RN.ir;
+  const sr = AC.sampleRate, len = Math.floor(sr * 0.7), b = AC.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let l = 0; for (let i = 0; i < len; i++) { l += (Math.random() * 2 - 1 - l) * 0.25; d[i] = l * Math.exp(-i / (sr * 0.16)) * (1 - Math.exp(-i / (sr * 0.008))); } }
+  return (RN.ir = b);
+}
+function rnBuild(withBed) {
+  const t = AC.currentTime, q = AQ(), N = { srcs: [], tier: q };
+  N.out = AC.createGain(); N.out.gain.value = 0.0001; N.out.gain.setTargetAtTime(RN_LEVEL, t, withBed ? 0.5 : 0.01); N.out.connect(outBus());
+  N.comp = AC.createDynamicsCompressor(); N.comp.threshold.value = -18; N.comp.ratio.value = 3; N.comp.connect(N.out);
+  N.dry = AC.createGain(); N.dry.gain.value = 1; N.dry.connect(N.comp);
+  N.rev = AC.createConvolver(); N.rev.buffer = rnIR(); const rg = AC.createGain(); rg.gain.value = 0.3; N.rev.connect(rg); rg.connect(N.comp);
+  N.wet = AC.createGain(); N.wet.gain.value = 1; N.wet.connect(N.rev);
+  if (withBed) {                                      // the rain: drizzle always, the downpour and the gutters joining as the fighting grows
+    const B = rnBufs(); N.bed = AC.createGain(); N.bed.gain.value = RN_BED; N.bed.connect(N.comp);
+    const layer = (buf, off, type, f, g0) => { const s = AC.createBufferSource(), lp = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = buf; s.loop = true; lp.type = type; lp.frequency.value = f; lp.Q.value = 0.5; g.gain.value = g0; s.connect(lp); lp.connect(g); g.connect(N.bed); s.start(t, off); N.srcs.push(s); return { lp, g }; };
+    N.light = layer(B.light, Math.random() * 3, 'lowpass', 3600, 0.16);
+    N.heavy = layer(B.heavy, Math.random() * 3, 'lowpass', 1500, 0.02);
+    if (q < 2) N.gutter = layer(B.heavy, Math.random() * 3, 'lowpass', 420, 0.05);
+  }
+  return N;
+}
+function rnOut(N, g, pan, wet) {                       // pan, then dry, and a share into the street
+  let o = g; if (pan && AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); o = p; }
+  o.connect(N.dry); if (wet) { const w = AC.createGain(); w.gain.value = wet; o.connect(w); w.connect(N.wet); }
+}
+function rnNoise(N, t, type, f, Q, peak, len, pan, wet, f2) {   // a short burst of filtered noise
+  const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noise(); bp.type = type; bp.frequency.setValueAtTime(f, t); if (f2) bp.frequency.exponentialRampToValueAtTime(f2, t + len); bp.Q.value = Q;
+  g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  s.connect(bp); bp.connect(g); rnOut(N, g, pan, wet); s.start(t, Math.random() * 0.3, len + 0.02);
+}
+function rnPlink(N, t, f, peak, pan, dull) {           // a heavy drop on a metal awning: a quick falling ping with a tin edge
+  if (RN.v > [14, 9, 6][AQ()]) return; RN.v++; setTimeout(() => { RN.v--; }, 200); RN.plinks++;
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
+  o.frequency.setValueAtTime(f * 1.3, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.012); o2.frequency.value = f * 2.76;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
+  g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.3, t + 0.002); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+  lp.type = 'lowpass'; lp.frequency.value = dull ? 1600 : 9000; o.connect(g); o2.connect(g2); g.connect(lp); g2.connect(lp); rnOut(N, lp, pan, 0.25);
+  o.start(t); o2.start(t); o.stop(t + 0.1); o2.stop(t + 0.05);
+}
+function rnThunk(N, t, peak, pan, lite) {              // rain drumming hard on a car roof: a quick patter, and (not lite) a short dull thunk under it
+  RN.thunks++;
+  for (let i = 0; i < 3; i++) rnNoise(N, t + i * 0.014 + Math.random() * 0.004, 'bandpass', 1000 + Math.random() * 300, 1.2, peak * (1 - i * 0.2), 0.012, pan, 0.2);
+  if (lite) return;
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.5, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+  o.connect(g); rnOut(N, g, pan, 0.4); o.start(t); o.stop(t + 0.13);
+  rnNoise(N, t, 'lowpass', 420, 0.7, peak * 0.5, 0.04, pan, 0.3);
+}
+function rnBuzz(N, t, peak, pan, len) {                // a sign failing: a mains buzz that stutters
+  const o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 120;
+  bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = 2.5; const L = len || 0.12;
+  g.gain.setValueAtTime(0.0001, t);
+  for (let i = 0, n = Math.max(2, Math.round(L / 0.04)); i < n; i++) { const a = t + i * L / n; g.gain.setValueAtTime(i % 2 ? peak * 0.25 : peak, a); }
+  g.gain.setValueAtTime(peak * 0.5, t + L); g.gain.exponentialRampToValueAtTime(0.0001, t + L + 0.02);
+  o.connect(bp); bp.connect(g); rnOut(N, g, pan, 0.2); o.start(t); o.stop(t + L + 0.05);
+}
+function rnHumVoice(N, t, f, peak, att, len, glide, lpf, pan) {   // one warm hum note: a triangle and its octave, with a slow mains beat
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), o3 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
+  o.type = 'triangle'; for (const [x, r] of [[o, 1], [o2, 2], [o3, 1.004]]) { x.frequency.setValueAtTime(f * r * (glide ? glide[0] : 1), t); if (glide) x.frequency.exponentialRampToValueAtTime(f * r * glide[1], t + glide[2]); }
+  g2.gain.value = 0.3; o2.connect(g2); g2.connect(g); o.connect(g); o3.connect(g);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + att); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  lp.type = 'lowpass'; lp.frequency.value = lpf || 1800; g.connect(lp); rnOut(N, lp, pan, 0.35);
+  for (const x of [o, o2, o3]) { x.start(t); x.stop(t + len + 0.05); }
+}
+const rnShare = () => (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
+function rnStrike(N, t, share, mine, pan) {            // a sign striking on: a click, a stuttering buzz, then two warm notes rising into tune (brighter the more of the map is yours)
+  const k = mine ? 1 : 0.55;
+  rnNoise(N, t, 'bandpass', 3400, 2, 0.22 * k, 0.006, pan, 0.2);
+  rnBuzz(N, t + 0.01, 0.02 * k, pan, 0.12);
+  const lpf = 1400 + 1400 * Math.min(1, share * 1.6);
+  rnHumVoice(N, t + 0.12, 293.66, 0.04 * k, 0.12, 1.15, [0.965, 1, 0.3], lpf, pan);
+  rnHumVoice(N, t + 0.15, 440, 0.028 * k, 0.12, 1.05, [0.965, 1, 0.3], lpf, pan);
+}
+function rnShort(N, t, pan, big) {                     // your sign shorting out: a pop, a crackle, and the hum falling a fifth as it dies
+  const k = big ? 1.4 : 1;
+  rnNoise(N, t, 'bandpass', 900, 0.8, 0.32 * k, 0.03, pan, 0.4);
+  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(55, t + 0.06);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12 * k, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08); o.connect(g); rnOut(N, g, pan, 0.3); o.start(t); o.stop(t + 0.1);
+  for (let i = 0; i < 3; i++) rnNoise(N, t + 0.04 + Math.random() * 0.14, 'bandpass', 4200, 1.5, 0.12 * k, 0.003, pan + (Math.random() - 0.5) * 0.3, 0.1);
+  rnHumVoice(N, t + 0.02, 293.66, 0.045 * k, 0.01, big ? 1.4 : 0.95, [1, 2 / 3, big ? 1.2 : 0.75], 1500, pan);
+  rnHumVoice(N, t + 0.02, 440, 0.03 * k, 0.01, big ? 1.3 : 0.85, [1, 2 / 3, big ? 1.1 : 0.7], 1500, pan);
+}
+function rnFar(N, t, pan) {                            // a rival's sign clicking on somewhere across the city, muffled by the rain
+  const clk = AC.currentTime; RN.rc = RN.rc.filter(x => clk - x < 2); if (RN.rc.length >= 3) return; RN.rc.push(clk);
+  rnNoise(N, t, 'bandpass', 1700, 1.5, 0.07, 0.006, pan * 0.7, 0.5);
+  rnHumVoice(N, t + 0.05, 146.83, 0.014, 0.08, 0.45, [0.97, 1, 0.2], 520, pan * 0.7);
+}
+function rnThunder(N, t, peak) {                       // a colour is out: thunder rolling far off, a few slow swells of a deep rumble
+  const s = AC.createBufferSource(), lp = AC.createBiquadFilter(), lp2 = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = noise(); s.loop = true;
+  lp.type = lp2.type = 'lowpass'; lp.frequency.value = 340; lp2.frequency.value = 520; lp.Q.value = lp2.Q.value = 0.6;
+  const steps = 24, c = new Float32Array(steps); let e = 0;
+  for (let i = 0; i < steps; i++) { const x = i / (steps - 1), bump = 0.55 + 0.45 * Math.abs(Math.sin(x * 9.5 + Math.random())); e = x < 0.08 ? x / 0.08 : Math.pow(1 - (x - 0.08) / 0.92, 1.6); c[i] = 0.0001 + peak * e * bump; }
+  g.gain.setValueAtTime(0.0001, t); g.gain.setValueCurveAtTime(c, t, 3.8);
+  s.connect(lp); lp.connect(lp2); lp2.connect(g); rnOut(N, g, 0, 0.5); s.start(t, Math.random() * 0.3); s.stop(t + 4);
+}
+function rnTyres(N, t, pan) {                          // a retreat: tyres hissing past on the wet road and away
+  if (!rtOK('rn', 2)) return;
+  const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = noise(); s.loop = true;
+  bp.type = 'bandpass'; bp.Q.value = 1.4; bp.frequency.setValueAtTime(2600, t); bp.frequency.exponentialRampToValueAtTime(800, t + 1.1);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.22); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.15);
+  let o = g; if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.setValueAtTime(Math.max(-0.8, Math.min(0.8, pan)), t); p.pan.linearRampToValueAtTime(Math.max(-0.8, Math.min(0.8, -pan * 0.8)), t + 1.1); g.connect(p); o = p; }
+  s.connect(bp); bp.connect(g); o.connect(N.dry); s.start(t, Math.random() * 0.3); s.stop(t + 1.2);
+}
+function rnSplash(N, t, k) {                           // your order: a small footstep splash
+  rnNoise(N, t, 'bandpass', 1300, 1, 0.14 + 0.05 * k, 0.045, 0, 0.2, 650);
+  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(2300, t + 0.01); o.frequency.exponentialRampToValueAtTime(1500, t + 0.03);
+  g.gain.setValueAtTime(0.0001, t + 0.01); g.gain.exponentialRampToValueAtTime(0.02, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04); o.connect(g); rnOut(N, g, 0, 0.1); o.start(t + 0.01); o.stop(t + 0.05);
+}
+function rnTransformer(N, t) {                         // an upgrade point: a transformer hum swells and resolves to one clean, bright tone
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), lp = AC.createBiquadFilter(), g = AC.createGain(); o.type = o2.type = 'sawtooth'; o.frequency.value = 120; o2.frequency.value = 180;
+  lp.type = 'lowpass'; lp.frequency.setValueAtTime(300, t); lp.frequency.exponentialRampToValueAtTime(1800, t + 0.32);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.018, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  o.connect(lp); o2.connect(lp); lp.connect(g); rnOut(N, g, 0, 0.2); o.start(t); o2.start(t); o.stop(t + 0.45); o2.stop(t + 0.45);
+  const s = AC.createOscillator(), s2 = AC.createOscillator(), sg = AC.createGain(), sg2 = AC.createGain(); s.frequency.value = 880; s2.frequency.value = 1760; sg2.gain.value = 0.2;
+  sg.gain.setValueAtTime(0.0001, t + 0.3); sg.gain.exponentialRampToValueAtTime(0.05, t + 0.32); sg.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+  s2.connect(sg2); sg2.connect(sg); s.connect(sg); rnOut(N, sg, 0, 0.35); s.start(t + 0.3); s2.start(t + 0.3); s.stop(t + 1); s2.stop(t + 1);
+}
+function rnCrackle(N, t, n, peak, pan) {               // a few sparks of a failing sign
+  for (let i = 0; i < n; i++) rnNoise(N, t + Math.random() * 0.3, 'bandpass', 3000 + Math.random() * 2500, 1.5, peak * (0.5 + Math.random() * 0.5), 0.003, pan + (Math.random() - 0.5) * 0.3, 0.1);
+}
+function rnHum(g, kind, rel) {                         // the ending's sign: one held hum. Loss: it detunes as your last base falls. Win: every sign settling into one steady chord
+  const c = AC ? AC.currentTime : 0, N = RN.nodes, H = RN.hum;
+  if (H && (rel || H.N !== N || H.kind !== kind || g < 0.03)) {
+    RN.hum = null; try { H.g.gain.cancelScheduledValues(c); H.g.gain.setTargetAtTime(0.0001, c, 0.25); } catch (_) {}
+    setTimeout(() => { try { for (const o of H.oscs) o.stop(); H.g.disconnect(); } catch (_) {} }, 1500);
+  }
+  if (rel || !N || g < 0.03) return;
+  if (!RN.hum) {
+    const w = kind === 'win', fs = w ? [146.83, 220, 293.66] : [146.83, 220], o = { N, kind, oscs: [], det: [], g: AC.createGain(), lp: AC.createBiquadFilter() };
+    o.g.gain.value = 0.0001; o.lp.type = 'lowpass'; o.lp.frequency.value = 900; o.lp.Q.value = 0.5;
+    for (const f of fs) { for (const r of [1, 1]) { const x = AC.createOscillator(); x.type = 'triangle'; x.frequency.value = f * r; x.connect(o.lp); x.start(c); o.oscs.push(x); o.det.push(x); } }
+    o.lp.connect(o.g); rnOut(N, o.g, 0, 0.3); RN.hum = o;
+  }
+  const o = RN.hum, lvl = (kind === 'win' ? 0.03 : 0.026) * Math.pow(g, 1.2);
+  const cents = kind === 'win' ? 25 * Math.max(0, 1 - g / 0.8) : 4 + 36 * g;          // a win settles into tune; a loss slides out of it
+  o.g.gain.setTargetAtTime(lvl, c, 0.3); o.lp.frequency.setTargetAtTime(kind === 'win' ? 900 + 900 * g : 1100 - 400 * g, c, 0.3);
+  for (let i = 0; i < o.det.length; i++) if (i % 2) o.det[i].detune.setTargetAtTime(cents * (i % 4 === 1 ? 1 : -1), c, 0.3);
+}
+function rainHits(ev) {
+  if (!RN.nodes) return;
+  const N = RN.nodes, t = AC.currentTime + 0.004 + Math.random() * 0.012, nowMs = performance.now(), h = HITS, w = awatch();
+  // the same three budgets as Music Box (49.4.1): yours, a rival on one of YOUR bases, everyone else; watching keeps a livelier pace
+  const e = h.baseMine || h.base;
+  if (e) {
+    const mine = isMine(e), nd = G.nodes[e.ni], threat = !w && !mine && nd && nd.owner === PLAYER;
+    const lane = mine || w ? 'a' : threat ? 'b' : 'c', gap = (w ? [190, 250, 330] : { a: [260, 340, 440], b: [420, 520, 650], c: [900, 1100, 1400] }[lane])[AQ()];
+    if (nowMs - RN.cAt[lane] > gap) {
+      const pan = screenPan(e.x, e.y), hf = e.hf === undefined ? 1 : e.hf, knock = (mine || w) && RN.kn++ % (w ? 2 : 3) === 0;
+      rnThunk(N, t, mine ? 0.16 : w ? 0.15 : threat ? 0.1 : 0.045, pan, !knock);
+      if (lane !== 'c') {                              // another quarter of the base gone: its sign buzzes
+        const st = Math.floor((1 - hf) * 4), r = RN.st[e.ni] || (RN.st[e.ni] = { t: -9, s: -1 });
+        if (nowMs - r.t > 1600) r.s = -1;
+        r.t = nowMs;
+        if (st > r.s && st > 0) { r.s = st; rnBuzz(N, t + 0.01, mine ? 0.016 : w ? 0.012 : 0.009, pan, 0.08 + 0.04 * st); }
+      }
+      RN.cAt[lane] = nowMs + Math.random() * 60;
+    }
+  }
+  if (h.shotMine && !w && nowMs - RN.tAt.a > [200, 260, 340][AQ()]) {               // your troop hits: a bright drop on the awning, on a sparse beat of its own
+    const s2 = h.shotMine; rnPlink(N, t, (RN_TEAMF[s2.team] || 1800) * (0.96 + Math.random() * 0.08), 0.06, screenPan(s2.x, s2.y), false);
+    RN.tAt.a = nowMs + Math.random() * 90;
+  }
+  const o2 = h.shot;                                   // everyone else's: much fewer, softer, and muffled by the rain
+  if (o2 && !(o2.team === PLAYER && !w) && nowMs - RN.tAt.c > (w ? [110, 150, 210] : [520, 700, 900])[AQ()]) {
+    rnPlink(N, t, (RN_TEAMF[o2.team] || 1800) * (0.96 + Math.random() * 0.08), w ? 0.05 : 0.02, screenPan(o2.x, o2.y), !w);
+    RN.tAt.c = nowMs + Math.random() * 160;
+  }
+}
+function rainOff() {
+  if (!RN.nodes) return;
+  const N = RN.nodes, t = AC.currentTime; RN.nodes = null; RN.ft = 0; rnHum(0, 'loss', true);
+  N.out.gain.cancelScheduledValues(t); N.out.gain.setTargetAtTime(0.0001, t, 0.3); for (const s of N.srcs) { try { s.stop(t + 1.5); } catch (_) {} }
+  setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000);
+}
+function rainTick() {
+  const want = AC && AC.state === 'running' && settings.sound && isRain() && audible() && G && (!G.over || ftLive());
+  if (RN.nodes && (!want || RN.nodes.tier !== AQ())) rainOff();
+  if (!want) { RN.st = {}; return; }
+  if (!RN.nodes) RN.nodes = rnBuild(true);
+  if (RN.og !== G) { RN.og = G; RN.fadeAt = 0; RN.heat = 0; }
+  const N = RN.nodes, now = AC.currentTime, ms = performance.now(), dt = Math.min(0.25, Math.max(0.001, (ms - RN.at) / 1000)); RN.at = ms;
+  RN.heat += ((1 - Math.exp(-shotRate / 30)) - RN.heat) * (1 - Math.exp(-dt / 2.5));          // the weight of the rain follows the fighting, smoothed over a few seconds
+  let h = RN.heat;
+  if (RN.ft > 0) h = RN.ftKind === 'win' ? h * (1 - 0.8 * RN.ft) : Math.max(h, 0.4 + 0.6 * RN.ft);   // the ending: the rain thickens round your last sign (a win: it eases)
+  const fade = RN.fadeAt && now > RN.fadeAt;          // a win: the rain eases away and the hum is the last thing you hear
+  N.bed.gain.setTargetAtTime(fade ? 0.0001 : RN_BED, now, fade ? 1.1 : 0.3);
+  N.light.g.gain.setTargetAtTime(0.16 - 0.03 * h, now, 0.4);
+  N.heavy.g.gain.setTargetAtTime(0.015 + 0.3 * Math.pow(h, 1.3), now, 0.4); N.heavy.lp.frequency.setTargetAtTime(1300 + 1700 * h, now, 0.4);
+  if (N.gutter) N.gutter.g.gain.setTargetAtTime(0.03 + 0.28 * h, now, 0.6);
+  for (const f of G.fx) {                             // captures, knockouts and retreats
+    if (f.rn) continue; f.rn = 1; if (f.ftq) continue;
+    if (G.t - f.b > 1.5 || (fogOn() && f.x !== undefined && !seenXY(f.x, f.y))) continue;
+    if (f.k === 'ring') {
+      const pan = screenPan(f.x, f.y);
+      if (lostMine(f)) rnShort(N, now + 0.02, pan, false);
+      else if (awatch() || f.c === PLAYER) rnStrike(N, now + 0.02, rnShare(), !awatch() && f.c === PLAYER, pan);
+      else rnFar(N, now + 0.02, pan);
+    }
+    else if (f.k === 'elim') { if (rtOK('rnth', 2.5)) rnThunder(N, now + 0.25, 0.16); }
+    else if (f.k === 'retreat') rnTyres(N, now + 0.02, f.x !== undefined ? screenPan(f.x, f.y) : 0);
+  }
+}
+function rainPreview() {                               // the rain swells, a sign buzzes on, a drop plinks, then a sign shorts out
+  const N = rnBuild(true), t = AC.currentTime + 0.05;
+  N.light.g.gain.setValueAtTime(0.1, t); N.light.g.gain.linearRampToValueAtTime(0.15, t + 1);
+  N.heavy.g.gain.setValueAtTime(0.015, t); N.heavy.g.gain.linearRampToValueAtTime(0.28, t + 1.1); N.heavy.g.gain.linearRampToValueAtTime(0.12, t + 3.6);
+  N.heavy.lp.frequency.setValueAtTime(1300, t); N.heavy.lp.frequency.linearRampToValueAtTime(2600, t + 1.1);
+  rnStrike(N, t + 1.1, 0.4, true, 0);
+  rnPlink(N, t + 2.2, RN_TEAMF[0], 0.06, 0.2, false);
+  rnShort(N, t + 2.7, 0, false);
+  N.out.gain.setTargetAtTime(0.0001, t + 4.2, 0.4); for (const s of N.srcs) s.stop(t + 6.5);
+  setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7500);
+}
+function mvRain(t, back) {                             // a single drip, dry
+  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(back ? 650 : 850, t); o.frequency.exponentialRampToValueAtTime(back ? 1400 : 1900, t + 0.018);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(back ? 0.03 : 0.036, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o.connect(g); g.connect(pbus); o.start(t); o.stop(t + 0.08);
+}
+
 // ---- "Hearth": a banked fire, in sound, for Ember ----
 // The approved clip made live. A low warm bed (D with a fifth, slightly detuned so it breathes) that gets louder and brighter as the fighting does. Crackles: a base
 // losing another tenth of its health may throw a short run of snaps (thinned to a calm rate, loudest first); a thin share of the real hits are tiny snaps too, panned
@@ -6940,7 +7506,7 @@ function menuVoice(kind) {                                 // kind: 'tap' or 'ba
   if (mode !== 'play' && settings.menuSound === 'off') return;
   audioOn(); if (!AC || AC.state !== 'running') return;
   const ms = performance.now(); if (ms - MV.t < 70) return; MV.t = ms;
-  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox }[settings.tone] || mvSimple;
+  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox, rain: mvRain }[settings.tone] || mvSimple;
   try { f(AC.currentTime + 0.005, kind === 'back'); } catch (e) { /* a missing voice must never stop the menus */ }
 }
 document.addEventListener('click', e => {                   // every button in the menus and on the play screen's rail; the map, the upgrade panel and the sound-style row have sounds of their own
@@ -6974,12 +7540,13 @@ function orderTap(moved) {                                 // your order was sen
     else if (settings.tone === 'cosmos') { if (CS.nodes) csPing(CS.nodes, t, csMidi(4 + Math.round(k * 2)), 0.05, 0, 0.7); }
     else if (isFloe()) { if (FL.nodes) flTink(FL.nodes, t, 780 + 120 * k, 0.04, 0, 0.6, 2200, true); }
     else if (isMusicBox()) { if (MB.nodes) mbTick(MB.nodes, t, 3600 + 300 * k, 0.32, 0, 0.009); }      // one ratchet click
+    else if (isRain()) { if (RN.nodes) rnSplash(RN.nodes, t, k); }                                      // a small footstep splash
     else if (settings.tone === 'simple' || !settings.tone) mvNoteOn(t, hz(72), hz(71), 0.06, 0.04 + 0.01 * k, 0);
   } catch (e) { /* a missing voice must never stop an order */ }
 }
 function previewSound() {                       // a sample bleep and bloop so you can hear the setting
   const now = performance.now();
-  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600 })[settings.tone] || 140;
+  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600, rain: 5000 })[settings.tone] || 140;
   if (!AC || AC.state !== 'running' || !soundGain() || now - lastPreview < gap && lastPreviewTone === settings.tone) return;
   const fresh = lastPreviewTone !== settings.tone;
   lastPreview = now; lastPreviewTone = settings.tone;
@@ -6991,6 +7558,7 @@ function previewSound() {                       // a sample bleep and bloop so y
     if (settings.tone === 'cosmos') { cosmosPreview(); return; }
     if (isFloe()) { floePreview(); return; }
     if (isMusicBox()) { musicboxPreview(); return; }
+    if (isRain()) { rainPreview(); return; }
     const f = hz(ROOT[PLAYER] - 12 + pick(PENTA));
     tone(f, f * 0.94, 0.1, 0.055, 'sine', 0, 0.018); tone(f * 2, f * 1.88, 0.07, 0.009, 'sine', 0, 0.012);
   } finally { previewing = false; }
@@ -7020,11 +7588,13 @@ const SETTINGS_INFO = {
   tone: { simple: 'Soft, round tones, low and warm. Pairs with Classic.', hearth: 'A banked fire: a low warm hum, crackles that follow the fighting, and a soft chord when you take a base. Pairs with Ember.', drift: 'Gentle plucked notes in a big quiet room. Pairs with Atlas.',
     chip: 'A four-channel console played by the battle: combo runs, buzzy crunches and little fanfares. Pairs with Pixel.', cosmos: 'A deep drone, sonar pings and pads that swell with the fighting. Pairs with Nebula.',
     floe: 'Soft glass, cracking ice and low groans in a long cold echo, played by the fighting. Pairs with Rime.',
-    musicbox: 'Ticking clocks, ratchets and the tines of a music box comb, dry and close, played by the fighting. Pairs with Clockwork.' },
+    musicbox: 'Ticking clocks, ratchets and the tines of a music box comb, dry and close, played by the fighting. Pairs with Clockwork.',
+    rain: 'Rain on a city at night: a drizzle that becomes a downpour as the fighting grows, drops on awnings, and signs buzzing on and shorting out. Pairs with Neon.' },
   visual: { classic: 'Clean squares and triangles, with soft glows, light trails and sparks.', ember: 'A fire seen from afar at night: bases burn in their color, crack with orange light when hurt, a capture is a new fire catching. Pairs with Hearth.', atlas: 'A surveyor\'s chart: influence washes and plotted courses.',
     pixel: 'Chunky pixels and scanlines, like an old console. Pairs with Chip.', nebula: 'Deep space: suns, drifting stars and supernova captures. Pairs with Cosmos.',
     rime: 'A winter night: frost grows over what you hold, bases are crystals, and a capture freezes over. Pairs with Floe.',
-    clockwork: 'Brass and springs: bases are gears that turn while you hold them, lines are chains, and a capture clicks a gear one notch. Pairs with Music Box.' },
+    clockwork: 'Brass and springs: bases are gears that turn while you hold them, lines are chains, and a capture clicks a gear one notch. Pairs with Music Box.',
+    neon: 'A city at night in the rain: bases are neon signs with their reflections on the wet street, they flicker as they weaken, and a capture strikes a sign on. Pairs with Rain.' },
   menuSound: { on: 'Plays the background match quietly behind the menus.', off: 'Menus stay silent.' },
   colors: { standard: 'Blue, red, green, yellow and purple.', safe: 'Blue, orange, teal, yellow and magenta, chosen to stay distinct for color-blind players.', contrast: 'Brighter colors, bolder lines and stronger text.' },
   symbols: { off: 'Teams are shown by color only.', on: 'Each color also gets its own shape. Empty bases are hollow squares.' },
@@ -7871,7 +8441,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.4.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.5 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -8591,6 +9161,28 @@ FTS.musicbox = {                                          // the room of clocks 
   end(kind, t) { const N = MB.nodes; if (!N) return; MB.quietUntil = AC.currentTime + 8; mbTick(N, t, 2200, 0.26, 0, 0.016); mbSpring(N, t + 0.6, 0.05, 0, 1.4); },
   relief(t) { const N = MB.nodes; if (N) { mbRatchet(N, t, 4, 0.28, 0); mbTine(N, t + 0.2, 1760, 0.035, 0, 0, true); } }
 };
+FTS.rain = {                                              // the last sign: built from your last base's sign and the rain, nothing else. Loss: its hum detunes and crackles, the rain thickens; at the fall it shorts out and only the rain is left. Win: every sign settles into one chord and the rain eases away
+  holdIv: 2.0,
+  drone(g, dt, rel) { RN.ft = rel ? 0 : g; RN.ftKind = FT.kind || 'loss'; try { rnHum(rel ? 0 : g, RN.ftKind, rel); } catch (_) { /* a missing layer must never stop a match */ } },
+  pulse(g, t, kind) {
+    const N = RN.nodes; if (!N) return 1.5;
+    if (kind === 'win') { rnNoise(N, t, 'bandpass', 3000, 2, 0.08 + 0.08 * g, 0.006, (Math.random() - 0.5) * 0.8, 0.3); return 1.6 - 0.8 * g; }        // another of your signs clicking on, somewhere
+    rnCrackle(N, t, 1 + Math.round(3 * g), 0.06 + 0.1 * g, 0); if (g > 0.3) rnBuzz(N, t + 0.05, 0.008 + 0.018 * g, 0, 0.06 + 0.1 * g);              // the sign sparks and stutters, more as it fails
+    return 1.5 - 0.9 * g;
+  },
+  peak(kind, t, hold) {
+    const N = RN.nodes; if (!N) return;
+    if (kind === 'win') {                                 // the last sign strikes on, the hums settle into one chord that holds, and the rain eases away under it
+      rnStrike(N, t, 1, true, 0); RN.fadeAt = AC.currentTime + 0.5;
+      for (const [f, a, d] of [[146.83, 0.03, 0.2], [220, 0.026, 0.25], [293.66, 0.03, 0.3], [440, 0.016, 0.35]]) rnHumVoice(N, t + d, f, a, 0.5, 4.2, null, 1600, 0);
+      return;
+    }
+    rnShort(N, t, 0, true); rnCrackle(N, t + 0.35, 4, 0.12, 0);                                     // it shorts out; then only the rain
+  },
+  hold(t) { const N = RN.nodes; if (N) rnBuzz(N, t, 0.01, 0, 0.35); },                              // troops still out there: a thin electrical buzz
+  end(kind, t) { const N = RN.nodes; if (!N) return; rnBuzz(N, t, 0.012, 0, 0.2); rnCrackle(N, t + 0.25, 2, 0.08, 0); },
+  relief(t) { const N = RN.nodes; if (N) rnStrike(N, t, 0.2, true, 0); }                             // a base won back: a sign strikes on
+};
 let pauseDrawMs = 8;                                 // how long one paused draw takes (smoothed), which sets how often the pause screen redraws
 function frame(nowMs) {
   const dt = Math.min(0.1, (nowMs - last) / 1000); last = nowMs;
@@ -8618,7 +9210,7 @@ function frame(nowMs) {
   stepFling(dt);
   if (G && fogOn()) computeFog();
   if (G) playSfx(nowMs, dt);
-  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); heTick(); mixTick(); if (G) ftTick(dt); }
+  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); rainTick(); heTick(); mixTick(); if (G) ftTick(dt); }
   const fsw = G ? fogSwap() : null;                 // under fog, bases out of sight are drawn as last seen
   const gap = mode === 'paused' ? Math.min(250, Math.max(33, pauseDrawMs * 4)) : mode === 'demo' ? 28 : 0;      // paused: the slow decoration (snow, stars, drift) moves at up to about 30 a second, but never uses more than about a quarter of the time, so a slow phone backs off toward the old 4 a second; the demo behind the menus shows at about 30 a second
   if (!gap || drawDirty || nowMs - lastDrawAt >= gap) {
@@ -8646,6 +9238,7 @@ if (PERF) window.__bg = () => ({ miss: BGC.miss, drawn: lastDrawAt, dirty: drawD
 if (PERF) { window.__own = (id, o) => { G.nodes[id].owner = o; }; window.__tick = d => { G.t += d; }; window.__orders = () => (G ? G._orders | 0 : 0); window.__nodes = () => G.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, o: n.owner })); window.__ring = () => ({ sel: selBase, valid: selValid(), ringNew, flashed: performance.now() - selFlash < 400, ghost: !!selGhost }); }
 if (PERF) window.__chip = () => ({ on: !!CH.nodes, busy: CH.nodes ? Object.values(CH.nodes.ch).filter(c => c.off > AC.currentTime).length : 0 });   // sound-test hook
 if (PERF) window.__hearth = () => ({ on: !!HE.nodes, v: HE.v, I: HE.I, Is: HE.Is, rr: HE.rr, phrases: HE.phrases, caps: HE.caps, losses: HE.losses, taps: HE.taps, rcaps: HE.rcaps, rskip: HE.rskip, snaps: HE.snaps, drop: HE.drop, gain: HE.nodes ? HE.nodes.out.gain.value : 0 });   // sound-test hook
+if (PERF) window.__rn = () => ({ on: !!RN.nodes, v: RN.v, heat: RN.heat, ft: RN.ft, plinks: RN.plinks, thunks: RN.thunks, hum: !!RN.hum, fade: RN.fadeAt });   // sound-test hook
 if (PERF) window.__mb = () => ({ on: !!MB.nodes, v: MB.v, ticks: MB.ticks, ft: MB.ft, quiet: MB.quietUntil });   // sound-test hook
 if (PERF) window.__floe = () => ({ on: !!FL.nodes, v: FL.v, gain: FL.nodes ? FL.nodes.out.gain.value : 0 });   // sound-test hook
 if (PERF) { window.__xl = () => XL.log; window.__xlDl = xlDownload; window.__core = { newGame, update, command, setLock, upgrade, getG: () => G, atBase, STEP }; window.__wfr = watchFrameRate; window.__qs = () => ({ quality, ceilQ, calmSince, slowSince, start: startQ(), aq: AQ() }); window.__qset = q => { quality = q; layout(); }; window.__box = () => ({ box: boxUV(), view: mapView(), s0, W, H, rot }); window.__ios = () => IOS; window.__ir = () => ({ dr: DR.ir && DR.ir.duration, cs: CS.ir && CS.ir.duration, fl: Object.fromEntries(Object.entries(FL.ir).map(([k, v]) => [k, v.duration])), nodes: { dr: DR.nodes && DR.nodes.tier, cs: CS.nodes && CS.nodes.tier, fl: FL.nodes && FL.nodes.tier } }); window.__aq = () => AQ(); window.__hwset = ms => { HW.list = [ms, ms, ms]; HW.ms = ms; HW.done = true; save('ice-hw', { v: 3, list: HW.list }); if (qualFix < 0 && mode !== 'play') { quality = startQ(); layout(); } syncQual(); }; window.__hw = () => ({ ms: HW.ms, done: HW.done, tier: hwTier(), quality, aq: AQ(), audFix }); }

@@ -515,7 +515,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #shopDot { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12.5px; font-weight: 500; color: var(--dim); font-style: normal; }          /* 49.3: the token count, where the blue dot was */
 #menu.shopOn { background: none; touch-action: none; }
 #menu.shopOn * { touch-action: none; }                   /* 49.2.1: no pinch-zoom of the page over the Shop; the strip handles its own swipes */
-body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles from Pause: the match shows, its controls do not */
+body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles opened mid-match: the match shows, its controls do not */
 #scrShop { position: fixed; inset: 0; width: auto; margin: 0; gap: 0; pointer-events: none;
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   background: linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,0) 120px), linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.6) 34%, rgba(0,0,0,0) 52%); }
@@ -571,10 +571,10 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   .shopnav { margin-top: 4px; }
   .shopnote { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(350px + max(16px, env(safe-area-inset-right, 0px))); bottom: max(14px, env(safe-area-inset-bottom, 0px)); margin: 0; text-align: left; text-shadow: 0 1px 3px #000; }
 }
-@media (orientation: landscape) and (max-height: 500px) {      /* 49.3: five Pause buttons do not fit one under another on a short screen */
+@media (orientation: landscape) and (max-height: 500px) {      /* 49.3: the Pause buttons do not fit one under another on a short screen */
   #scrPause { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; width: min(100%, 520px); }
   #scrPause header, #scrPause #bResume { grid-column: 1 / -1; }
-  #scrPause #bPauseSave[hidden] ~ #bQuit { grid-column: 1 / -1; }
+  #scrPause #bPauseSave:not([hidden]) ~ #bQuit { grid-column: 1 / -1; }      /* 49.5.3: Settings and Save and quit share a row, Quit under them; with no save to offer, Settings and Quit share it */
 }
 </style>
 </head>
@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.3 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -812,6 +812,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p class="specintro">Sound weight: Full is the whole sound. Light and Lite use a shorter echo, fewer notes at once and fewer layers, for slower phones. Auto follows the picture level.</p>
     <div class="seg tight" id="audRow"><button data-a="-1">Auto</button><button data-a="0">Full</button><button data-a="1">Light</button><button data-a="2">Lite</button></div>
     <p class="specintro" id="hwNow" role="status" aria-live="polite"></p>
+    <p class="specintro">Rain level (Neon + Rain only): the faint rain under the city's hum. Off is the plain hum. Each tap plays a short sample if Rain is your sound style; in a match the rain follows the fighting and dips round your own actions.</p>
+    <div class="seg tight" id="rainRow"><button data-r="0">Off</button><button data-r="1">Faint</button><button data-r="2">Medium</button><button data-r="3">Loud</button></div>
     <button id="hwRun" class="ghost small">Run the phone check again</button>
     <button id="bUnlockAll" class="ghost small">Unlock everything</button>
   </section>
@@ -847,7 +849,6 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <header><h2>Paused</h2></header>
     <button id="bResume" class="primary big">Resume</button>
     <button class="ghost big2" data-go="scrSettings">Settings</button>
-    <button id="bPauseShop" class="ghost big2">Styles</button>
     <button id="bPauseSave" class="ghost big2" hidden>Save and quit</button>
     <button id="bLogP" class="ghost big2">Save match log</button>
     <button id="bQuit" class="ghost big2">Quit to menu</button>
@@ -2721,6 +2722,7 @@ function hwBench() {                                   // best of three short ru
 let quality = startQ(), slowSince = 0, frameAvg = 16.7, calmSince = 0, ceilQ = 0, lastUpAt = -1e9;     // calmSince: smooth since when; ceilQ: highest level (lowest number) Auto may use after a step up bounced back
 const IOS = /iP(hone|od|ad)/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);     // iPhone, iPod, or an iPad that calls itself a Mac
 let audFix = (() => { try { const v = JSON.parse(localStorage.getItem('ice-audio')); return v && Number.isInteger(v.a) && v.a >= 0 && v.a < 3 ? v.a : -1; } catch (e) { return -1; } })();   // -1 = Auto
+let rainLvl = (() => { try { const v = JSON.parse(localStorage.getItem('ice-audio')); return v && Number.isInteger(v.r) && v.r >= 0 && v.r <= 3 ? v.r : 1; } catch (e) { return 1; } })();   // 49.5.3: the rain's tester level (0 Off, 1 Faint, 2 Medium, 3 Loud)
 const AQ = () => audFix >= 0 ? audFix : quality >= 3 ? 2 : quality >= 2 ? 1 : 0;       // sound weight: 0 Full, 1 Light, 2 Lite (Auto follows the picture level)
 const AQ_IR = [1, 0.55, 0.35];                         // how long the echo tails are, against Full
 function watchFrameRate(frameMs, nowMs) {
@@ -6967,18 +6969,21 @@ function musicboxPreview() {                          // wind, two ticks, the ta
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7000);
 }
 
-// ---- "Rain": a city at night in the rain, in sound, for Neon (49.5; reworked in 49.5.1) ----
-// The fighting is the rain. There is no rain bed: every troop hit is one water drop falling into a puddle (a quick rising "plip"), so a quiet map is
-// a few drops and a big battle is a downpour, made of the real hits. A base hit is a heavier drop with a soft low synth thump on every third of yours.
-// Under it all is the hum of the city: a faint electrical hum and the air of a city far off, a little fuller in big fights, never a tune.
+// ---- "Rain": a city at night in the rain, in sound, for Neon (49.5; reworked in 49.5.1 and again in 49.5.3) ----
+// The sound is the neon's, not water's: every hit is electrical. A troop hit is one spark (a tube snapping once: a short bright buzz that falls in pitch with a tick of
+// crackle on its front, pitched to the hum's harmonics by team); a base hit is a relay clack and a transformer buzz, with a low thump under every third of yours; menu
+// taps are a relay click with a small chirp. Under it is the hum of the city (a faint electrical hum and the air of a city far off) and, since 49.5.3, a faint rain:
+// not filtered noise but a dense scatter of tiny separate ticks and pings, so it reads as rain and cannot read as a drone; it follows the fighting, dips for a moment
+// round your own actions, and has a tester level (Off / Faint / Medium / Loud) on the hidden Picture quality screen.
 // The neon is the music of the events: taking a base is a warm, slightly detuned synth brass swell, opening like a sign striking on; losing one is
 // that swell bending down and warbling like old tape; a rival's capture is the same swell far off, muffled; a knockout is one huge, low synth hit
 // rolling off into distant thunder. A base losing another quarter of its health buzzes like a failing sign. Your actions own the sound: the same
 // three hit budgets as Music Box since 49.4.1 (yours, a rival on one of your bases, everyone else). The ending is the last sign: its hum detunes and
-// crackles and the drops come thicker as your last base falls; a win settles every hum into one chord as the city goes quiet under it.
+// crackles and the sparks come thicker as your last base falls; a win settles every hum into one chord as the city goes quiet under it.
 const RN_LEVEL = 1.6, RN_BED = 0.008;                   // the style's level, and the city's hum under it
-const RN_TEAMF = [1150, 820, 960, 740, 1060];                                            // each colour's drop: where its rising plip starts
-const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0, swells: 0 };
+const RN_TEAMF = [1080, 840, 960, 720, 1200];                                            // each colour's spark: a harmonic of the 120 Hz hum (9th, 7th, 8th, 6th, 10th), so the ticks ride the city's own hum
+const RN_RAIN = [0, 0.055, 0.12, 0.3];                                                  // the rain's level for the tester setting: Off, Faint, Medium, Loud (set by the measurements in t_rain3.py)
+const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0, swells: 0, rb: null };
 const isRain = () => settings.tone === 'rain';
 function rnIR() {                                       // a wet street: short, dark reflections off the walls either side
   if (RN.ir && RN.ir.sampleRate === AC.sampleRate) return RN.ir;
@@ -7003,6 +7008,7 @@ function rnBuild(withBed) {
       for (const pan of [-0.6, 0.6]) { const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), lp = AC.createBiquadFilter(); s.buffer = noise(); s.loop = true; bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 0.6; lp.type = 'lowpass'; lp.frequency.value = 700;
         s.connect(bp); bp.connect(lp); let o = lp; if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = pan; lp.connect(p); o = p; } o.connect(N.air); s.start(t, Math.random() * 0.4); N.srcs.push(s); }
     }
+    rnRainBed(N, t, q);
   }
   return N;
 }
@@ -7016,13 +7022,42 @@ function rnNoise(N, t, type, f, Q, peak, len, pan, wet, f2) {   // a short burst
   g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
   s.connect(bp); bp.connect(g); rnOut(N, g, pan, wet); s.start(t, Math.random() * 0.3, len + 0.02);
 }
-function rnPlink(N, t, f, peak, pan, dull) {           // one water drop into a puddle: a quick rising "plip" with a little body under it
+function rnZap(N, t, f, peak, pan, dull) {             // one spark: a tube snapping once. A short bright buzz that falls in pitch, with a tick of crackle on its front; yours bright and close, a rival's duller and further off
   if (RN.v > [14, 9, 6][AQ()]) return; RN.v++; setTimeout(() => { RN.v--; }, 200); RN.plinks++;
-  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(), d = 0.035 + Math.random() * 0.02;
-  o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * (2.2 + Math.random() * 0.6), t + d);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.003); g.gain.exponentialRampToValueAtTime(peak * 0.35, t + d * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.02);
-  lp.type = 'lowpass'; lp.frequency.value = dull ? 1500 : 7000; o.connect(g); g.connect(lp); rnOut(N, lp, pan, dull ? 0.5 : 0.3);
-  o.start(t); o.stop(t + d + 0.04);
+  const d = 0.024 + Math.random() * 0.012, o = AC.createOscillator(), g = AC.createGain(), bp = AC.createBiquadFilter();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(f * 1.9, t); o.frequency.exponentialRampToValueAtTime(f, t + d * 0.6);
+  bp.type = 'bandpass'; bp.frequency.value = dull ? f * 1.1 : f * 2.2; bp.Q.value = dull ? 1.1 : 2.4;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.0015); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(bp); bp.connect(g); rnOut(N, g, pan, dull ? 0.45 : 0.2); o.start(t); o.stop(t + d + 0.02);
+  if (!dull && AQ() < 2) rnNoise(N, t, 'highpass', 4500, 0.7, peak * 0.6, 0.004, pan, 0.1);              // the tick of crackle on its front
+}
+function rnDuck(N, t) {                                // the rain steps back for a moment round your own actions
+  if (!N.rainD) return;
+  try { N.rainD.gain.cancelScheduledValues(t); N.rainD.gain.setTargetAtTime(0.5, t, 0.015); N.rainD.gain.setTargetAtTime(1, t + 0.1, 0.22); } catch (_) {}
+}
+function rnRainLayer(len, rate, pingRate, amp) {       // one stretch of rain: tiny separate ticks (mostly very quiet, a few louder), and a few tiny high pings
+  const sr = AC.sampleRate, n = Math.floor(sr * len), b = AC.createBuffer(2, n, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    for (let i = 0, k = Math.floor(rate * len); i < k; i++) {
+      const pos = Math.floor(Math.random() * n), a = Math.pow(Math.random(), 2.2) * amp, tl = Math.floor(sr * (0.0008 + Math.random() * 0.0016));
+      for (let j = 0; j < tl && pos + j < n; j++) d[pos + j] += a * (Math.random() * 2 - 1) * Math.exp(-j / (tl * 0.35));
+    }
+    for (let i = 0, k = Math.floor(pingRate * len); i < k; i++) {
+      const pos = Math.floor(Math.random() * n), a = (0.25 + Math.random() * 0.75) * amp * 0.5, f = 2200 + Math.random() * 3200, tl = Math.floor(sr * (0.006 + Math.random() * 0.01));
+      for (let j = 0; j < tl && pos + j < n; j++) d[pos + j] += a * Math.sin(6.2832 * f * j / sr) * Math.exp(-j / (tl * 0.3));
+    }
+  }
+  return b;
+}
+function rnRainBed(N, t, q) {                          // the faint rain: two stretches of ticks of different lengths, so the pattern never repeats to the ear; made once and kept
+  if (!RN.rb || RN.rb.sr !== AC.sampleRate) RN.rb = { sr: AC.sampleRate, a: rnRainLayer(3.7, 60, 6, 0.5), b: rnRainLayer(5.3, 60, 6, 0.5), lite: rnRainLayer(4.3, 90, 0, 0.5) };
+  N.rainD = AC.createGain(); N.rainD.gain.value = 1; N.rainD.connect(N.comp);
+  N.rainG = AC.createGain(); N.rainG.gain.value = RN_RAIN[rainLvl]; N.rainG.connect(N.rainD);
+  const hp = AC.createBiquadFilter(), lp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1700; lp.type = 'lowpass'; lp.frequency.value = 9000; hp.connect(lp); N.rainU = AC.createGain(); N.rainU.gain.value = 1; lp.connect(N.rainU); N.rainU.connect(N.rainG);
+  const bufs = q >= 2 ? [RN.rb.lite] : [RN.rb.a, RN.rb.b];
+  for (const buf of bufs) { const s = AC.createBufferSource(); s.buffer = buf; s.loop = true; s.connect(hp); s.start(t, Math.random() * buf.duration); N.srcs.push(s); }
+  const lfo = AC.createOscillator(), ld = AC.createGain(); lfo.frequency.value = 0.07; ld.gain.value = 0.1; lfo.connect(ld); ld.connect(N.rainU.gain); lfo.start(t); N.srcs.push(lfo);        // gusts: it swells and eases a little (a tenth either way of its own level, on its own gain so it never swamps a quiet level)
 }
 function rnSwell(N, t, notes, peak, att, hold, rel, lpTop, pan, bend, wow) {   // the neon's voice: a warm synth brass swell, two detuned saws a note, a filter opening like a sign striking on
   RN.swells++;
@@ -7039,14 +7074,18 @@ function rnSwell(N, t, notes, peak, att, hold, rel, lpTop, pan, bend, wow) {   /
     o.connect(sum); o.start(t); o.stop(end);
   }
 }
-function rnThunk(N, t, peak, pan, lite) {              // a base hit: a heavier, lower drop; and (not lite) a soft low synth thump under it
-  RN.thunks++;
-  rnPlink(N, t, 520 + Math.random() * 80, peak * 0.5, pan, lite && peak < 0.1);
+function rnThunk(N, t, peak, pan, lite) {              // a base hit: a relay clack and a short transformer buzz; and (not lite) a soft low thump under it
+  RN.thunks++; RN.plinks++;
+  rnNoise(N, t, 'bandpass', 1800, 1.2, peak * 0.9, 0.012, pan, 0.25);                                     // the clack
+  const o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 120;
+  bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 1.6;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.7, t + 0.004); g.gain.setValueAtTime(peak * 0.3, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.085);
+  o.connect(bp); bp.connect(g); rnOut(N, g, pan, 0.3); o.start(t); o.stop(t + 0.1);
   if (lite) return;
-  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(62, t + 0.12);
+  const o2 = AC.createOscillator(), g2 = AC.createGain(), lp = AC.createBiquadFilter(); o2.type = 'sawtooth'; o2.frequency.setValueAtTime(110, t); o2.frequency.exponentialRampToValueAtTime(62, t + 0.12);
   lp.type = 'lowpass'; lp.frequency.setValueAtTime(700, t); lp.frequency.exponentialRampToValueAtTime(160, t + 0.12);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.28, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-  o.connect(lp); lp.connect(g); rnOut(N, g, pan, 0.4); o.start(t); o.stop(t + 0.2);
+  g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.28, t + 0.01); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o2.connect(lp); lp.connect(g2); rnOut(N, g2, pan, 0.4); o2.start(t); o2.stop(t + 0.2);
 }
 function rnBuzz(N, t, peak, pan, len) {                // a sign failing: a mains buzz that stutters
   const o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 120;
@@ -7097,8 +7136,8 @@ function rnTyres(N, t, pan) {                          // a retreat: tyres hissi
   let o = g; if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.setValueAtTime(Math.max(-0.8, Math.min(0.8, pan)), t); p.pan.linearRampToValueAtTime(Math.max(-0.8, Math.min(0.8, -pan * 0.8)), t + 1.1); g.connect(p); o = p; }
   s.connect(bp); bp.connect(g); o.connect(N.dry); s.start(t, Math.random() * 0.3); s.stop(t + 1.2);
 }
-function rnSplash(N, t, k) {                           // your order: one soft drop close by
-  rnPlink(N, t, 1300 + 150 * k, 0.045, 0, false);
+function rnSplash(N, t, k) {                           // your order: one soft spark close by
+  rnZap(N, t, [840, 960, 1080, 1200][Math.min(3, Math.round(k * 3))], 0.055, 0, false);
 }
 function rnTransformer(N, t) {                         // an upgrade point: a transformer hum swells and resolves to one clean, bright tone
   const o = AC.createOscillator(), o2 = AC.createOscillator(), lp = AC.createBiquadFilter(), g = AC.createGain(); o.type = o2.type = 'sawtooth'; o.frequency.value = 120; o2.frequency.value = 180;
@@ -7140,7 +7179,7 @@ function rainHits(ev) {
     const lane = mine || w ? 'a' : threat ? 'b' : 'c', gap = (w ? [190, 250, 330] : { a: [260, 340, 440], b: [420, 520, 650], c: [900, 1100, 1400] }[lane])[AQ()];
     if (nowMs - RN.cAt[lane] > gap) {
       const pan = screenPan(e.x, e.y), hf = e.hf === undefined ? 1 : e.hf, knock = (mine || w) && RN.kn++ % (w ? 2 : 3) === 0;
-      rnThunk(N, t, mine ? 0.16 : w ? 0.15 : threat ? 0.1 : 0.045, pan, !knock);
+      rnThunk(N, t, mine ? 0.16 : w ? 0.15 : threat ? 0.1 : 0.045, pan, !knock); if (mine || w) rnDuck(N, t);
       if (lane !== 'c') {                              // another quarter of the base gone: its sign buzzes
         const st = Math.floor((1 - hf) * 4), r = RN.st[e.ni] || (RN.st[e.ni] = { t: -9, s: -1 });
         if (nowMs - r.t > 1600) r.s = -1;
@@ -7151,12 +7190,12 @@ function rainHits(ev) {
     }
   }
   if (h.shotMine && !w && nowMs - RN.tAt.a > [200, 260, 340][AQ()]) {               // your troop hits: a bright drop on the awning, on a sparse beat of its own
-    const s2 = h.shotMine; rnPlink(N, t, (RN_TEAMF[s2.team] || 1800) * (0.96 + Math.random() * 0.08), 0.06, screenPan(s2.x, s2.y), false);
+    const s2 = h.shotMine; rnZap(N, t, (RN_TEAMF[s2.team] || 960) * (0.97 + Math.random() * 0.06), 0.1, screenPan(s2.x, s2.y), false); rnDuck(N, t);
     RN.tAt.a = nowMs + Math.random() * 90;
   }
   const o2 = h.shot;                                   // everyone else's: much fewer, softer, and muffled by the rain
   if (o2 && !(o2.team === PLAYER && !w) && nowMs - RN.tAt.c > (w ? [110, 150, 210] : [520, 700, 900])[AQ()]) {
-    rnPlink(N, t, (RN_TEAMF[o2.team] || 1800) * (0.96 + Math.random() * 0.08), w ? 0.05 : 0.02, screenPan(o2.x, o2.y), !w);
+    rnZap(N, t, (RN_TEAMF[o2.team] || 960) * (0.97 + Math.random() * 0.06), w ? 0.078 : 0.031, screenPan(o2.x, o2.y), !w);
     RN.tAt.c = nowMs + Math.random() * 160;
   }
 }
@@ -7178,6 +7217,7 @@ function rainTick() {
   if (RN.ft > 0) h = RN.ftKind === 'win' ? h * (1 - 0.8 * RN.ft) : Math.max(h, 0.4 + 0.6 * RN.ft);   // the ending: the city leans in round your last sign (a win: it goes quiet)
   const fade = RN.fadeAt && now > RN.fadeAt;          // a win: the city goes quiet and the chord is the last thing you hear
   N.bed.gain.setTargetAtTime(fade ? 0.0001 : RN_BED, now, fade ? 1.1 : 0.3);
+  if (N.rainG) N.rainG.gain.setTargetAtTime(fade || !RN_RAIN[rainLvl] ? 0.0001 : RN_RAIN[rainLvl] * (0.6 + 0.8 * h), now, fade ? 1.1 : 0.5);     // the rain: faint, a little fuller as the fighting grows
   N.hum.gain.setTargetAtTime(0.45 + 0.4 * h, now, 0.6);                              // the city hums a little fuller in a big fight
   if (N.air) N.air.gain.setTargetAtTime(0.18 + 0.5 * h, now, 0.8);
   for (const f of G.fx) {                             // captures, knockouts and retreats
@@ -7196,17 +7236,20 @@ function rainTick() {
 function rainPreview() {                               // the city's hum, a few drops, a sign's swell as you take a base, then a sign bending away as you lose one
   const N = rnBuild(true), t = AC.currentTime + 0.05;
   N.bed.gain.setValueAtTime(0.0001, t); N.bed.gain.linearRampToValueAtTime(RN_BED * 1.2, t + 0.8);
-  [[0.25, 1150, -0.3], [0.5, 900, 0.3], [0.62, 1060, 0.1], [0.9, 760, -0.2]].forEach(([d, f, pan]) => rnPlink(N, t + d, f, 0.05, pan, false));
+  [[0.25, 1080, -0.3], [0.5, 840, 0.3], [0.62, 960, 0.1], [0.9, 720, -0.2]].forEach(([d, f, pan]) => rnZap(N, t + d, f, 0.09, pan, false));
   rnStrike(N, t + 1.1, 0.4, true, 0);
-  rnPlink(N, t + 2.3, RN_TEAMF[0], 0.05, 0.2, false);
+  rnZap(N, t + 2.3, RN_TEAMF[0], 0.09, 0.2, false);
   rnShort(N, t + 2.7, 0, false);
   N.out.gain.setTargetAtTime(0.0001, t + 4.4, 0.4); for (const s2 of N.srcs) s2.stop(t + 6.5);
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7500);
 }
-function mvRain(t, back) {                             // a single drip, dry
-  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(back ? 650 : 850, t); o.frequency.exponentialRampToValueAtTime(back ? 1400 : 1900, t + 0.018);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(back ? 0.03 : 0.036, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-  o.connect(g); g.connect(pbus); o.start(t); o.stop(t + 0.08);
+function mvRain(t, back) {                             // a relay click and a small chirp, like a ballast clicking on; taps step through the hum's harmonics so they are never quite the same
+  const f = [840, 960, 1080][MV.rn = ((MV.rn | 0) + 1) % 3] * (back ? 0.8 : 1);
+  const s = AC.createBufferSource(), hp = AC.createBiquadFilter(), cg = AC.createGain(); s.buffer = noise(); hp.type = 'highpass'; hp.frequency.value = 3000;
+  cg.gain.setValueAtTime(0.1, t); cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.006); s.connect(hp); hp.connect(cg); cg.connect(pbus); s.start(t, Math.random() * 0.3, 0.02);
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(back ? f * 1.25 : f, t + 0.004); o.frequency.exponentialRampToValueAtTime(back ? f : f * 1.25, t + 0.034);
+  g.gain.setValueAtTime(0.0001, t + 0.004); g.gain.exponentialRampToValueAtTime(0.03, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  o.connect(g); g.connect(pbus); o.start(t + 0.004); o.stop(t + 0.09);
 }
 
 // ---- "Hearth": a banked fire, in sound, for Ember ----
@@ -7739,6 +7782,7 @@ function syncQual() {
   for (const b of $('qualRow').children) b.setAttribute('aria-pressed', String(+b.dataset.q === qualFix));
   $('qualNow').textContent = qualFix < 0 ? 'Auto: the game picks the level.' : 'Held at ' + QNAMES[qualFix] + ' (' + Math.round(QUALITY[qualFix] * 100) + '% sharpness).';
   for (const b of $('audRow').children) b.setAttribute('aria-pressed', String(+b.dataset.a === audFix));
+  for (const b of $('rainRow').children) b.setAttribute('aria-pressed', String(+b.dataset.r === rainLvl));
   $('hwNow').textContent = 'Phone check: ' + (HW.done ? HW.ms.toFixed(1) + ' ms (last readings ' + HW.list.map(x => x.toFixed(0)).join(', ') + ')' : 'not run yet') + (HW.mem ? ', ' + HW.mem + ' GB memory' : '') + (HW.cores ? ', ' + HW.cores + ' cores' : '') + '. Auto starts at ' + QNAMES[[0, 2, 3][hwTier()]] + '. Now: picture ' + QNAMES[quality] + ', sound ' + ['Full', 'Light', 'Lite'][AQ()] + '.';
   $('qualNote').hidden = qualFix < 0; $('qualNote').textContent = qualFix < 0 ? '' : 'Picture quality held at ' + QNAMES[qualFix];
 }
@@ -7746,7 +7790,8 @@ for (const b of $('qualRow').children) b.addEventListener('click', () => {
   qualFix = +b.dataset.q; save('ice-quality', { q: qualFix });
   quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); syncQual();
 });
-for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix }); syncQual(); });
+for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix, r: rainLvl }); syncQual(); });
+for (const b of $('rainRow').children) b.addEventListener('click', () => { rainLvl = +b.dataset.r; save('ice-audio', { a: audFix, r: rainLvl }); syncQual(); if (isRain() && settings.sound && AC && AC.state === 'running') { try { rainPreview(); } catch (_) {} } });     // 49.5.3: a short preview of Rain at the new level
 function runPhoneCheck() {                            // the speed test: on every start (a moment after launch), or again from the hidden screen; the last five readings are kept
   HW.list = [...HW.list, hwBench()].slice(-5); HW.ms = hwMedian(HW.list); HW.done = true; save('ice-hw', { v: 3, list: HW.list });
   if (qualFix < 0 && mode !== 'play') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
@@ -7806,7 +7851,7 @@ function go(id) { stack.push(id); showScreen(id); armBack(); }
 function back() { if (!$('shopInfo').hidden) { shopInfoClose(); return true; } if (!$('shopConfirm').hidden) { shopAskClose(); return true; } if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
 function resetStack(root) { stack = [root]; showScreen(root); }
 // ---- the Shop: a strip of style pairs over the live map; the centered pair is previewed on the map, chips buy or select ----
-// Opened from Home (everything, with prices) or from Pause as "Styles" (only what you own, nothing to buy).
+// Opened from Home (everything, with prices) or from Settings > Styles mid-match (only what you own, nothing to buy).
 const DIA = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg>';
 let shopIdx = 0, shopOwnedOnly = false, shopNextOwned = false, shopList = SHOP_PAIRS, shopToneT = 0, shopAskFn = null, shopSwipe = null, shopSwiped = 0;
 const shopLand = () => matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
@@ -7933,8 +7978,7 @@ $('scNo').addEventListener('click', shopAskClose);
 $('tokPill').addEventListener('click', shopInfo); $('stOk').addEventListener('click', shopInfoClose);
 $('shopInfo').addEventListener('click', e => { if (e.target === $('shopInfo')) shopInfoClose(); });
 $('scYes').addEventListener('click', () => { const f = shopAskFn; shopAskClose(); if (f) f(); });
-$('bPauseShop').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });
-$('bSetStyles').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });      // 49.3: Settings opens the same owned-only view the Pause menu does
+$('bSetStyles').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });      // 49.5.3: Styles lives in Settings only (the Pause menu no longer has its own button)
 window.addEventListener('resize', () => { if (shopReal) placeShop(); });
 // ---- the challenge ladder ----
 let curScen = null, briefId = null, nextScen = null, curPrac = null, coach = null;
@@ -8467,7 +8511,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.5.2 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.5.3 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9194,7 +9238,7 @@ FTS.rain = {                                              // the last sign: buil
     const N = RN.nodes; if (!N) return 1.5;
     if (kind === 'win') { rnNoise(N, t, 'bandpass', 3000, 2, 0.08 + 0.08 * g, 0.006, (Math.random() - 0.5) * 0.8, 0.3); return 1.6 - 0.8 * g; }        // another of your signs clicking on, somewhere
     rnCrackle(N, t, 1 + Math.round(3 * g), 0.06 + 0.1 * g, 0); if (g > 0.3) rnBuzz(N, t + 0.05, 0.008 + 0.018 * g, 0, 0.06 + 0.1 * g);              // the sign sparks and stutters, more as it fails
-    for (let i = 0, n = 2 + Math.round(5 * g); i < n; i++) rnPlink(N, t + Math.random() * 1.0, 700 + Math.random() * 500, 0.018 + 0.02 * g, (Math.random() - 0.5) * 1.2, true);   // and the drops come thicker round it
+    for (let i = 0, n = 2 + Math.round(5 * g); i < n; i++) rnZap(N, t + Math.random() * 1.0, 720 + Math.random() * 480, 0.02 + 0.022 * g, (Math.random() - 0.5) * 1.2, true);   // and the sparks come thicker round it
     return 1.5 - 0.9 * g;
   },
   peak(kind, t, hold) {

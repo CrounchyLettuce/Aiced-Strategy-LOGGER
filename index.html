@@ -4922,8 +4922,8 @@ function neonBack() {                                  // wet asphalt: grain, an
   const g = bmp.getContext('2d'); g.setTransform(BS, 0, 0, BS, -ox * BS, -oy * BS);
   let sd = (G.seed | 0) ^ 0x5bd1e995; const rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
   const tints = ['200,70,255', '40,200,220', '255,150,60', '70,100,255', '255,60,140'];
-  for (let i = 0; i < 8; i++) {                       // the sheen: wide, faint pools of coloured light on the wet street (the picture's edge fade below thins them out at its border)
-    const x = ox + rnd() * cw, y = oy + rnd() * ch, R = Math.min(cw, ch) * (0.25 + rnd() * 0.3), gr = g.createRadialGradient(x, y, 0, x, y, R);
+  for (let i = 0; i < 8; i++) {                       // the sheen: wide, faint pools of coloured light on the wet street
+    const R = Math.min(cw, ch) * (0.16 + rnd() * 0.2), x = ox + R + rnd() * (cw - 2 * R), y = oy + R + rnd() * (ch - 2 * R), gr = g.createRadialGradient(x, y, 0, x, y, R);   // 49.5.2: each pool sits wholly inside the picture and fades to nothing on its own, so no pool is ever cut off by an edge
     gr.addColorStop(0, 'rgba(' + tints[i % tints.length] + ',0.075)'); gr.addColorStop(1, 'rgba(' + tints[i % tints.length] + ',0)'); g.fillStyle = gr; g.fillRect(ox, oy, cw, ch);
   }
   const n = Math.round(cw * ch / 70);                 // the grain of the asphalt

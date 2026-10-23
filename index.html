@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.4.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -6440,10 +6440,10 @@ function floePreview() {                              // three notes, a chirp wi
 // little lower: the spring running down. Taking a base is a rising three-note phrase on the comb; losing one lets a spring go and leaves one detuned
 // tine; a rival's capture is one muted low tine. A knockout is a mantel clock striking once (a struck rod, not a bell). Every sound is tied to an
 // event in the match: nothing plays on its own as music.
-const MB_LEVEL = 0.9;
+const MB_LEVEL = 1.5;                                  // 49.4.1: raised from 0.9 (in two steps) to make up for the thinner hits (the balance inside the style is what changed)
 const MB_SCALE = [1174.66, 1318.51, 1479.98, 1760, 1975.53, 2349.32, 2637.02, 2959.96, 3520];     // D major pentatonic on the comb, from D6
 const MB_TEAMF = [4300, 2650, 3050, 2350, 3450];                                                    // each colour's tick
-const MB = { nodes: null, v: 0, tAt: 0, cAt: 0, st: {}, clocks: [], ft: 0, ftKind: 'loss', quietUntil: 0, box: null, ticks: 0 };
+const MB = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, clocks: [], ft: 0, ftKind: 'loss', quietUntil: 0, box: null, ticks: 0 };
 const isMusicBox = () => settings.tone === 'musicbox';
 function mbBox() {                                    // the box: a fifth of a second of dense reflections that die fast
   if (MB.box && MB.box.sampleRate === AC.sampleRate) return MB.box;
@@ -6483,11 +6483,13 @@ function mbTick(N, t, f, peak, pan, len) {             // an escapement tick: a 
   g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + L);
   s.connect(bp); bp.connect(g); mbOut(N, g, pan, 0.3); s.start(t, Math.random() * 0.3, L + 0.01); MB.ticks++;
 }
-function mbTock(N, t, peak, pan) {                     // a heavier tock: a darker tick over a low knock
+function mbTock(N, t, peak, pan, lite) {               // a heavier tock: a darker tick over a low knock; "lite" is the tick alone (no knock), for fights that aren't yours
   mbTick(N, t, 1300, peak, pan, 0.02);
-  const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(190, t + 0.05);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.35, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
-  o.connect(g); mbOut(N, g, pan, 0.4); o.start(t); o.stop(t + 0.09);
+  if (lite) return;
+  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(); o.type = 'triangle'; o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(200, t + 0.07);
+  lp.type = 'lowpass'; lp.frequency.value = 520; lp.Q.value = 0.3;                // the knock is rounded off and rings into the box, so it ends softly instead of stopping
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.2, t + 0.007); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+  o.connect(lp); lp.connect(g); mbOut(N, g, pan, 0.8); o.start(t); o.stop(t + 0.13);
 }
 function mbRatchet(N, t, n, peak, pan, back) {        // a ratchet: n quick clicks; turned backwards they slow, fall in pitch and fade
   for (let i = 0; i < n; i++) mbTick(N, t + i * (back ? 0.07 : 0.045), back ? 3400 - i * 380 : 2900 + i * 120, peak * (back ? 1 - i / (n + 1) : 1), pan, 0.008);
@@ -6526,7 +6528,7 @@ function mbRetreat(N, t, pan) { if (!rtOK('mb', 2)) return; mbRatchet(N, t, 3, 0
 function mbClocks(N, now, heat) {                      // the room of clocks: how many tick follows the fighting; the ending runs them down (or, for a win, into step)
   if (!MB.clocks.length) for (let i = 0; i < 6; i++) MB.clocks.push({ per: [0.5, 0.57, 0.44, 0.63, 0.53, 0.47][i], next: 0, n: 0, pan: [0, -0.5, 0.55, -0.25, 0.3, -0.7][i], f: [3100, 2600, 3500, 2300, 2850, 3900][i] });
   const g = MB.ft, loss = MB.ftKind !== 'win';
-  let want = 1 + Math.round(heat * 5);
+  let want = 1 + Math.round(heat * 2);                                               // at most three clocks, however hard the fighting
   if (g > 0 && loss) want = Math.max(1, Math.round(want * (1 - g)));              // your last base is falling: the clocks drop out one by one
   if (now < MB.quietUntil) want = 0;
   const level = 0.17 / Math.sqrt(Math.max(1, want)), ahead = now + 0.12;            // more clocks, each a little quieter: wider, not louder
@@ -6545,26 +6547,38 @@ function mbClocks(N, now, heat) {                      // the room of clocks: ho
 }
 function musicboxHits(ev) {
   if (!MB.nodes) return;
-  const N = MB.nodes, t = AC.currentTime + 0.004 + Math.random() * 0.012, nowMs = performance.now(), h = HITS;
-  if (nowMs - MB.cAt > [110, 150, 200][AQ()]) {                                     // base hits: a tock, and a tine a little lower at each quarter of the base's health lost
-    const e = h.baseMine || h.base;
-    if (e) {
-      const mine = isMine(e), pan = screenPan(e.x, e.y), hf = e.hf === undefined ? 1 : e.hf;
-      mbTock(N, t, mine ? 0.5 : awatch() ? 0.35 : 0.22, pan);
-      const st = Math.floor((1 - hf) * 4), r = MB.st[e.ni] || (MB.st[e.ni] = { t: -9, s: -1 });
-      if (nowMs - r.t > 1600) r.s = -1;
-      r.t = nowMs;
-      if (st > r.s && st > 0) { r.s = st; mbTine(N, t + 0.01, 1760 * Math.pow(2, -(st * 2.35) / 12), mine ? 0.04 : awatch() ? 0.028 : 0.016, pan, mine ? 0 : 2400, false); }
-      MB.cAt = nowMs + Math.random() * 40;
+  const N = MB.nodes, t = AC.currentTime + 0.004 + Math.random() * 0.012, nowMs = performance.now(), h = HITS, w = awatch();
+  // Your actions own the sound. Hits are split into three budgets so a big match's rival fights can't crowd yours out or set the pace:
+  // yours (the full tock and tick), rivals hitting one of YOUR bases (a lighter tick, now and then), and every other fight (one faint tick every so often).
+  // Watching a match (no player), everything counts as "yours", at a calmer rate.
+  const e = h.baseMine || h.base;
+  if (e) {
+    const mine = isMine(e), nd = G.nodes[e.ni], threat = !w && !mine && nd && nd.owner === PLAYER;
+    const lane = mine || w ? 'a' : threat ? 'b' : 'c', gap = (w ? [190, 250, 330] : { a: [260, 340, 440], b: [420, 520, 650], c: [900, 1100, 1400] }[lane])[AQ()];   // watching has no "you" to protect, so it keeps a livelier pace
+    if (nowMs - MB.cAt[lane] > gap) {
+      const pan = screenPan(e.x, e.y), hf = e.hf === undefined ? 1 : e.hf;
+      const knock = (mine || w) && MB.kn++ % (w ? 2 : 3) === 0;                    // only every third hit of yours (every second, watching) carries the low knock; the rest are the tick alone
+      mbTock(N, t, mine ? 0.28 : w ? 0.3 : threat ? 0.15 : 0.07, pan, !knock);
+      if (lane !== 'c') {                                                          // and a tine, a little lower at each quarter of the base's health lost
+        const st = Math.floor((1 - hf) * 4), r = MB.st[e.ni] || (MB.st[e.ni] = { t: -9, s: -1 });
+        if (nowMs - r.t > 1600) r.s = -1;
+        r.t = nowMs;
+        if (st > r.s && st > 0) { r.s = st; mbTine(N, t + 0.01, 1760 * Math.pow(2, -(st * 2.35) / 12), mine ? 0.034 : w ? 0.024 : 0.014, pan, mine ? 0 : 2400, false); }
+      }
+      MB.cAt[lane] = nowMs + Math.random() * 60;
     }
   }
-  if (nowMs - MB.tAt > [70, 100, 140][AQ()]) {                                      // troop hits: a tiny dry tick in the hitting colour's pitch; yours brightest
-    const e = pickShot(h, 0.65);
-    if (e) {
-      const mine = isMine(e), f = (MB_TEAMF[e.team] || 3000) * (0.97 + Math.random() * 0.06);
-      mbTick(N, t, f, mine ? 0.42 : awatch() ? 0.3 : 0.16, screenPan(e.x, e.y), 0.007);
-      MB.tAt = nowMs + Math.random() * 30;
-    }
+  const f0 = h.shotMine && !w;                                                     // troop hits: a tiny dry tick in the hitting colour's pitch. Yours get their own, sparser, beat
+  if (f0 && nowMs - MB.tAt.a > [200, 260, 340][AQ()]) {
+    const s2 = h.shotMine, f = (MB_TEAMF[s2.team] || 3000) * (0.97 + Math.random() * 0.06);
+    mbTick(N, t, f, 0.36, screenPan(s2.x, s2.y), 0.007);
+    MB.tAt.a = nowMs + Math.random() * 90;
+  }
+  const o2 = h.shot;                                                               // everyone else's: much fewer, much softer, so they read as a room and not as a patter
+  if (o2 && !(o2.team === PLAYER && !w) && nowMs - MB.tAt.c > (w ? [110, 150, 210] : [520, 700, 900])[AQ()]) {
+    const f = (MB_TEAMF[o2.team] || 3000) * (0.97 + Math.random() * 0.06);
+    mbTick(N, t, f, w ? 0.3 : 0.09, screenPan(o2.x, o2.y), 0.007);
+    MB.tAt.c = nowMs + Math.random() * 160;
   }
 }
 function musicboxOff() {
@@ -6587,7 +6601,7 @@ function musicboxTick() {
       const pan = screenPan(f.x, f.y);
       if (lostMine(f)) mbLose(N, now + 0.02, pan);
       else if (awatch() || f.c === PLAYER) mbPhrase(N, now + 0.02, mbShare(), !awatch() && f.c === PLAYER, pan);
-      else mbTine(N, now + 0.02, 587.33, 0.026, pan, 1400, true);               // a rival took a base: one muted, low tine
+      else mbTine(N, now + 0.02, 587.33, 0.016, pan, 1200, true);               // a rival took a base: one muted, low tine
     }
     else if (f.k === 'elim') { mbStrike(N, now + 0.02, 196, 0.085, 0); MB.quietUntil = Math.max(MB.quietUntil, now + 1.4); }   // the room holds its breath for the strike
     else if (f.k === 'retreat') mbRetreat(N, now + 0.02, f.x !== undefined ? screenPan(f.x, f.y) : 0);
@@ -7857,7 +7871,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.4 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.4.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

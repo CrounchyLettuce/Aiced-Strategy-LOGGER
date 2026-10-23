@@ -504,14 +504,15 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .shopbtn { position: relative; }
 #shopDot { position: absolute; right: 14px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 2px #000; }
 #shopDot[hidden] { display: none; }
-#menu.shopOn { background: none; }
+#menu.shopOn { background: none; touch-action: none; }
+#menu.shopOn * { touch-action: none; }                   /* 49.2.1: no pinch-zoom of the page over the Shop; the strip handles its own swipes */
 body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles from Pause: the match shows, its controls do not */
 #scrShop { position: fixed; inset: 0; width: auto; margin: 0; gap: 0; pointer-events: none;
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   background: linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,0) 120px), linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.6) 34%, rgba(0,0,0,0) 52%); }
 #scrShop > *, #scrShop .shopdeck > * { pointer-events: auto; }
 #scrShop header { width: min(100%, 560px); align-self: center; }
-.tokpill { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.tokpill { margin-left: auto; min-height: 44px; padding: 2px 4px; border-radius: var(--rc); display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .tokpill .tk { display: flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 700; color: var(--blue); }
 .tokpill .tk svg { width: 14px; height: 14px; }
 .tokpill .tk small { font-size: 12px; font-weight: 500; color: var(--dim); }
@@ -522,7 +523,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .shopdeck { margin-top: auto; width: min(100%, 560px); align-self: center; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
 .strip { position: relative; width: 100%; height: 252px; touch-action: pan-y; }
 .scard { position: absolute; top: 0; left: 50%; width: 244px; margin-left: -122px; box-sizing: border-box; padding: 14px; border-radius: var(--rk);
-  background: rgba(10,10,14,.92); border: 1px solid var(--faint); text-align: left; transition: transform .25s ease, opacity .25s ease; cursor: pointer; }
+  background: rgba(10,10,14,.92); border: 1px solid var(--faint); text-align: left; transition: transform .25s ease, opacity .18s ease; cursor: pointer; }
 .scard.cur { border-color: rgba(255,255,255,.5); cursor: default; }
 .scard .k { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .scard .n { font-size: 19px; font-weight: 700; margin: 2px 0 3px; }
@@ -541,7 +542,11 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .sdots i { display: block; width: 7px; height: 7px; border-radius: 4px; background: var(--faint); transition: width .2s, background .2s; }
 .sdots i.on { width: 18px; background: var(--blue); }
 .shopnote { margin: 8px 0 0; min-height: 17px; font-size: 12.5px; text-align: center; color: var(--ink); }
-#shopConfirm { z-index: 30; background: rgba(0,0,0,.72); }
+#shopConfirm, #shopInfo { z-index: 30; background: rgba(0,0,0,.72); touch-action: none; }
+#shopInfo .screen { width: min(100%, 360px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 10px; }
+#shopInfo h2 { margin: 0; font-size: 18px; }
+#stX p { margin: 0 0 8px; font-size: 14px; line-height: 1.45; color: var(--dim); }
+#stX p:last-child { color: var(--ink); margin: 2px 0 4px; }
 #shopConfirm .screen { width: min(100%, 340px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 12px; }
 #shopConfirm h2 { margin: 0; font-size: 18px; }
 #shopConfirm p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--dim); }
@@ -627,7 +632,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.2.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot" hidden></i></button>
@@ -813,7 +818,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 
   <section class="screen shop" id="scrShop" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="shopTitle">Shop</h2>
-      <div class="tokpill" id="tokPill"><span class="tk"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg><b id="tokN">0</b><small id="tokWord">tokens</small></span><span class="tkrow"><small id="tokNextL">next</small><span class="tkbar"><i id="tokBar"></i></span></span></div>
+      <button class="tokpill" id="tokPill" aria-label="What are tokens?"><span class="tk"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg><b id="tokN">0</b><small id="tokWord">tokens</small></span><span class="tkrow"><small id="tokNextL">next</small><span class="tkbar"><i id="tokBar"></i></span></span></button>
     </header>
     <div class="shopdeck">
       <div class="strip" id="shopStrip"></div>
@@ -855,6 +860,9 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 </div>
 <div id="shopConfirm" class="overlay" role="dialog" aria-modal="true" aria-labelledby="scT" hidden>
   <div class="screen"><h2 id="scT"></h2><p id="scX"></p><div class="btns"><button id="scNo" class="ghost">Cancel</button><button id="scYes" class="primary"></button></div></div>
+</div>
+<div id="shopInfo" class="overlay" role="dialog" aria-modal="true" aria-labelledby="stT" hidden>
+  <div class="screen"><h2 id="stT"></h2><div id="stX"></div><button id="stOk" class="primary big2"></button></div>
 </div>
 <div id="toast" role="status" aria-live="polite"><i id="toastSw"></i><span id="toastT"></span></div>
 
@@ -2382,6 +2390,13 @@ const SHOP_TEXT = {
   confirmOne: (name, left) => [`Buy ${name}?`, `It is put in use right away, and you can switch back any time. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
   confirmPair: (name, left) => [`Buy ${name}?`, `Both the visuals and the sound, put in use right away. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
   cancel: 'Cancel', spend: n => `Spend ${n}`,
+  infoTitle: 'Tokens',
+  info: [
+    'Tokens buy styles here. A visual or a sound costs 3 tokens, and a pair bought together costs 5.',
+    'Play Classic to earn them. Every finished match fills the bar a little; a win fills it more on bigger maps and against stronger rivals. Quitting a match earns nothing.',
+    'Every challenge star gives 1 token, once.',
+    'Custom and Spectate matches do not earn tokens.' ],
+  infoNext: (have, need) => `Next token: ${have} of ${need}.`, infoOk: 'Got it',
   bought: 'Bought, and now in use.',
   ownedOnly: 'Only the styles you own show here. Buy more in the Shop on the main menu.',
   endProgress: (gain, have, need) => `Shop: +${gain} toward your next token (${have} of ${need}).`,
@@ -5168,6 +5183,11 @@ function pvNew() {
   if (PERF) (window.__pvAll = window.__pvAll || []).push(pvCur);
   return pvCur;
 }
+function pvStop() {                                // fade the current style preview out quickly (leaving the Shop); later notes of it see a new stage and stay silent
+  if (!AC || !pvCur) return; const t = AC.currentTime, old = pvCur; pvCur = null;
+  try { old.gain.cancelScheduledValues(t); old.gain.setTargetAtTime(0.0001, t, 0.08); } catch (_) {}
+  setTimeout(() => { try { old.disconnect(); } catch (_) {} }, 1200);
+}
 const outBus = () => previewing ? (pvCur || pbus) : bus;
 const awatch = () => watching || mode === 'demo';                // the match behind the menus is AI vs AI: nobody's hits are "yours"
 const bgHidden = () => mode === 'demo' && pvOnly;               // setup screens run the match unseen, for the ears only
@@ -6738,7 +6758,7 @@ function showScreen(id) {
   const f = $(id).querySelector('.primary, .back, button'); if (f) f.focus({ preventScroll: true });
 }
 function go(id) { stack.push(id); showScreen(id); armBack(); }
-function back() { if (!$('shopConfirm').hidden) { shopAskClose(); return true; } if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
+function back() { if (!$('shopInfo').hidden) { shopInfoClose(); return true; } if (!$('shopConfirm').hidden) { shopAskClose(); return true; } if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
 function resetStack(root) { stack = [root]; showScreen(root); }
 // ---- the Shop: a strip of style pairs over the live map; the centered pair is previewed on the map, chips buy or select ----
 // Opened from Home (everything, with prices) or from Pause as "Styles" (only what you own, nothing to buy).
@@ -6777,7 +6797,7 @@ function openShop(ownedOnly) {
 }
 function closeShop() {                              // leaving puts back whatever you actually have selected
   const r = shopReal; if (!r) return;
-  clearTimeout(shopToneT); shopReal = null; shopAskClose();
+  clearTimeout(shopToneT); shopReal = null; shopAskClose(); shopInfoClose(); pvStop();
   if (settings.visual !== r.visual) applyStyle('visual', r.visual);
   if (settings.tone !== r.tone) applyStyle('tone', r.tone, true);
   save('ice-settings', settings);
@@ -6809,10 +6829,10 @@ function renderShop() {
 function placeShop() {
   const land = shopLand();
   for (const c of $('shopStrip').children) {
-    const off = +c.dataset.i - shopIdx, ab = Math.abs(off), sc = off === 0 ? 1 : ab === 1 ? 0.8 : 0.62;
+    const o0 = +c.dataset.i - shopIdx, off = Math.max(-2, Math.min(2, o0)), ab = Math.abs(off), sc = off === 0 ? 1 : ab === 1 ? 0.8 : 0.62;     // cards further out wait just past the neighbours, unseen
     if (land) { const H = c.offsetHeight || 222; c.style.transformOrigin = off > 0 ? 'center top' : off < 0 ? 'center bottom' : 'center'; c.style.transform = `translateY(${off === 0 ? 0 : Math.sign(off) * (H + 8 + (ab - 1) * 60)}px) scale(${sc})`; }      // neighbors peek above and below
     else { const W = c.offsetWidth || 244; c.style.transformOrigin = 'center top'; c.style.transform = `translateX(${off * W * 0.86}px) scale(${sc})`; }
-    c.style.opacity = off === 0 ? 1 : ab === 1 ? 0.55 : ab === 2 ? 0.2 : 0; c.style.pointerEvents = ab <= 1 ? 'auto' : 'none'; c.style.zIndex = 10 - ab;
+    c.style.opacity = off === 0 ? 1 : ab === 1 ? 0.55 : 0; c.style.pointerEvents = ab <= 1 ? 'auto' : 'none'; c.style.zIndex = 10 - ab;
   }
 }
 function shopGo(i) {
@@ -6829,6 +6849,12 @@ function shopAsk(title, text, cost, fn) {
   shopAskFn = fn; $('shopConfirm').hidden = false; try { $('scYes').focus({ preventScroll: true }); } catch (_) {}
 }
 function shopAskClose() { shopAskFn = null; $('shopConfirm').hidden = true; }
+function shopInfo() {
+  const T = SHOP_TEXT; $('stT').textContent = T.infoTitle; $('stOk').textContent = T.infoOk;
+  $('stX').innerHTML = ''; for (const line of [...T.info, T.infoNext(shopNum(shop.prog), shopNeed())]) { const p = document.createElement('p'); p.textContent = line; $('stX').appendChild(p); }
+  $('shopInfo').hidden = false; try { $('stOk').focus({ preventScroll: true }); } catch (_) {}
+}
+function shopInfoClose() { $('shopInfo').hidden = true; }
 function shopBuy(items, cost) {
   shop.tok -= cost; for (const [k, v] of items) shop.own[(k === 'visual' ? 'v:' : 's:') + v] = true; saveShop();
   shopUse(items); $('shopNote').textContent = SHOP_TEXT.bought; buzz('press');
@@ -6859,6 +6885,8 @@ $('shopStrip').addEventListener('pointercancel', () => { shopSwipe = null; });
 $('shopPrev').addEventListener('click', () => shopGo(shopIdx - 1));
 $('shopNext').addEventListener('click', () => shopGo(shopIdx + 1));
 $('scNo').addEventListener('click', shopAskClose);
+$('tokPill').addEventListener('click', shopInfo); $('stOk').addEventListener('click', shopInfoClose);
+$('shopInfo').addEventListener('click', e => { if (e.target === $('shopInfo')) shopInfoClose(); });
 $('scYes').addEventListener('click', () => { const f = shopAskFn; shopAskClose(); if (f) f(); });
 $('bPauseShop').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });
 window.addEventListener('resize', () => { if (shopReal) placeShop(); });
@@ -7331,7 +7359,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.2 LOGGER', started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.2.1 LOGGER', started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

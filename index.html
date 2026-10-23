@@ -21,6 +21,7 @@
 :root {
   --bg: #000000; --ink: #ececee; --dim: #85858c; --faint: rgba(255,255,255,.13); --hair: rgba(255,255,255,.07);
   --blue: #3577ff; --blue-soft: rgba(53,119,255,.16);
+  --rc: 8px; --rk: 12px;     /* Build 49.2: menu corner radius, controls / cards (the Shop look) */
   color-scheme: dark;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -143,11 +144,11 @@ body:has(#end:not([hidden])) #hud { opacity: 0; transition: opacity .25s; }
 .screen.wide { width: min(100%, 560px); }
 .screen header { display: flex; align-items: center; gap: 12px; min-height: 44px; }
 .screen h2 { margin: 0; font-size: 22px; font-weight: 600; }
-.back { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.back { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: var(--rc); background: rgba(0,0,0,.35); }
 .back svg { width: 16px; height: 16px; }
-.big { min-height: 56px; border-radius: 4px; font-size: 18px; font-weight: 600; }
-.big2 { min-height: 50px; border-radius: 4px; font-size: 16px; font-weight: 600; }
-.small { min-height: 44px; border-radius: 4px; font-size: 14px; color: var(--dim); }
+.big { min-height: 56px; border-radius: var(--rc); font-size: 18px; font-weight: 600; }
+.big2 { min-height: 50px; border-radius: var(--rc); font-size: 16px; font-weight: 600; }
+.small { min-height: 44px; border-radius: var(--rc); font-size: 14px; color: var(--dim); }
 .mark { display: flex; align-items: center; gap: 14px; }
 .mark svg { width: 44px; height: 44px; flex: none; }
 .mark h1 { margin: 0; font-size: 64px; line-height: .9; font-weight: 700; letter-spacing: .06em; }
@@ -180,17 +181,17 @@ html:root[data-colors="contrast"] .panel, html:root[data-colors="contrast"] .ctl
 html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color: rgba(255,255,255,.5); }
 .opt > span { flex: 0 0 96px; font-size: 13px; color: var(--dim); }
 .opt > .seg, .opt > #vol { flex: 1; min-width: 0; }
-.seg { display: flex; border: 1px solid var(--faint); border-radius: 3px; overflow: hidden; }
-.seg button { flex: 1; min-height: 44px; font-size: 14px; font-weight: 500; color: var(--dim); border-left: 1px solid var(--faint); }
+.seg { display: flex; border: 1px solid var(--faint); border-radius: var(--rc); overflow: hidden; }
+.seg button { flex: 1; min-height: 48px; font-size: 14px; font-weight: 500; color: var(--dim); border-left: 1px solid var(--faint); }
 .seg button:first-child { border-left: 0; }
 .seg.five button { flex: 1 1 0; min-width: 0; padding: 0 2px; font-size: 13px; }
 .opt.stack { flex-direction: column; align-items: stretch; gap: 6px; } .opt.stack > span { flex: none; }
 #scrSettings .opt.stack > span { font-weight: 700; font-size: 13.5px; color: var(--ink); }
 #scrSettings .opt.sep { border-top: 1px solid var(--hair); padding-top: 12px; margin-top: 2px; }
-.screen:not(.side) .hintline { background: rgba(0,0,0,.7); padding: 6px 9px; border-radius: 4px; }
+.screen:not(.side) .hintline { background: rgba(0,0,0,.7); padding: 6px 9px; border-radius: var(--rc); }
 .hintline, .blurb { box-sizing: border-box; }
 #unlockPop { z-index: 30; background: rgba(0,0,0,.78); }
-#unlockPop .screen { background: rgba(10,10,14,.94); border: 1px solid var(--faint); border-radius: 6px; padding: 18px 16px; gap: 12px; }
+#unlockPop .screen { background: rgba(10,10,14,.94); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 12px; }
 #unlockPop h2 { margin: 0; font-size: 18px; }
 #unlockPop ul { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.4; }
 @media (max-width: 340px) { #scrSettings .seg.five button { font-size: 11px; padding: 0 1px; } }
@@ -208,11 +209,18 @@ html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color
 .seg button .lk { display: none; width: 8px; height: 10px; margin-left: 4px; vertical-align: -1px; }
 .seg button.lockd { opacity: .6; }
 .seg button.lockd .lk { display: inline-block; }
+/* Build 49.2: two-line chip (small label over a bigger value), first used by the Shop */
+.chip2 { flex: 1; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1px solid var(--faint); border-radius: var(--rc); background: rgba(0,0,0,.35); color: var(--ink); }
+.chip2 small { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
+.chip2 span { font-size: 15px; font-weight: 600; }
+.chip2[aria-pressed="true"] { color: #fff; background: rgba(53,119,255,.42); box-shadow: inset 0 0 0 1.5px var(--blue), inset 0 -3px 0 var(--blue); border-color: transparent; }
+.chip2[aria-pressed="true"] small { color: #fff; opacity: .8; }
+.chip2.locked { border-style: dashed; color: var(--blue); }
 .btns { display: flex; gap: 8px; }
-.btns button { flex: 1; min-height: 50px; border-radius: 4px; font-size: 16px; font-weight: 600; }
+.btns button { flex: 1; min-height: 50px; border-radius: var(--rc); font-size: 16px; font-weight: 600; }
 .primary { background: var(--blue); color: #fff; }
 .primary:active { filter: brightness(.9); }
-.rollbtn { margin-left: auto; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--faint); border-radius: 3px; background: rgba(0,0,0,.35); font-size: 13px; color: var(--dim); }
+.rollbtn { margin-left: auto; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--faint); border-radius: var(--rc); background: rgba(0,0,0,.35); font-size: 13px; color: var(--dim); }
 .rollbtn svg { width: 16px; height: 16px; }
 .ghost { border: 1px solid var(--faint); background: rgba(0,0,0,.35); }
 .how { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; line-height: 1.45; color: var(--dim); }
@@ -234,7 +242,7 @@ html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color
 .updrow .ghost { flex: none; }
 #newsBody { display: flex; flex-direction: column; gap: 14px; }
 #newsBody h3 { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: var(--ink); }
-.aboutcard { margin: 0; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.45); max-height: max(120px, calc(100vh - 230px)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.aboutcard { margin: 0; padding: 10px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.45); max-height: max(120px, calc(100vh - 230px)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 @media (orientation: landscape) and (max-height: 430px) { .aboutcard { max-height: max(110px, calc(100vh - 190px)); padding: 8px 10px; } .aboutcard.about { font-size: 11.5px; line-height: 1.35; } }
 .aboutcard[hidden] { display: none; }
 .linkbtn { margin-left: auto; background: none; border: 0; color: var(--ink); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; padding: 0 4px; cursor: pointer; }
@@ -271,7 +279,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #statsBody { display: flex; flex-direction: column; gap: 10px; }
 #statsBody h3 { margin: 6px 0 0; font-size: 13px; font-weight: 500; color: var(--dim); }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-.tile { display: flex; flex-direction: column; gap: 3px; padding: 9px 10px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.tile { display: flex; flex-direction: column; gap: 3px; padding: 9px 10px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .tile b { font-size: 20px; font-weight: 600; }
 .tile span { font-size: 11.5px; color: var(--dim); }
 .bars { display: grid; grid-template-columns: 10px 1fr auto; gap: 7px 10px; align-items: center; }
@@ -320,10 +328,10 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #vol::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 2px; background: var(--blue); }
 #vol:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
-.modbtn { flex: 1; min-width: 0; min-height: 44px; border-radius: 3px; font-size: 14px; text-align: left; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; }
+.modbtn { flex: 1; min-width: 0; min-height: 44px; border-radius: var(--rc); font-size: 14px; text-align: left; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; }
 .modbtn::after { content: ''; width: 7px; height: 7px; border-right: 1.6px solid var(--dim); border-top: 1.6px solid var(--dim); transform: rotate(45deg); }
 .mods { display: flex; flex-direction: column; gap: 8px; }
-.modrow { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.modrow { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .modrow b { font-size: 15px; font-weight: 600; }
 .modrow span { grid-column: 1; font-size: 12.5px; color: var(--dim); line-height: 1.35; }
 .modrow .sw2 { grid-row: 1 / span 2; grid-column: 2; width: 44px; height: 24px; border-radius: 12px; border: 1px solid var(--faint); position: relative; }
@@ -356,7 +364,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .obj .kbar i { display: block; height: 100%; width: 0; background: var(--blue); }
 .ladder { display: flex; flex-direction: column; gap: 8px; }
 .tier { margin: 8px 0 0; font-size: 12.5px; color: var(--dim); display: flex; justify-content: space-between; gap: 10px; }
-.chcard { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.chcard { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .chcard b { font-size: 15px; font-weight: 600; }
 .chcard .d { grid-column: 1; font-size: 12.5px; color: var(--dim); line-height: 1.35; }
 .chcard .stars { grid-row: 1 / span 3; grid-column: 2; display: flex; gap: 3px; }
@@ -379,20 +387,20 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
   #scrBrief { width: min(100%, 560px); }
 }
 .modes { display: grid; gap: 8px; }
-.mode { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 12px 14px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
-.mode b { font-size: 16px; font-weight: 600; }
+.mode { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 14px 16px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
+.mode b { font-size: 17px; font-weight: 600; }
 .mode .lk { display: none; width: 8px; height: 10px; margin-left: 6px; vertical-align: -1px; }
 .mode.lockd { opacity: .6; }
 .mode.lockd .lk { display: inline-block; }
 .mode span { font-size: 12.5px; color: var(--dim); line-height: 1.35; }
-.catrow { display: grid; grid-template-columns: 78px 1fr auto; gap: 10px; align-items: center; text-align: left; min-height: 48px; padding: 8px 12px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.catrow { display: grid; grid-template-columns: 78px 1fr auto; gap: 10px; align-items: center; text-align: left; min-height: 48px; padding: 8px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .catrow span { font-size: 13px; color: var(--dim); }
 .catrow b { font-size: 14px; font-weight: 500; line-height: 1.3; }
 .catrow::after { content: ''; width: 7px; height: 7px; border-right: 1.6px solid var(--dim); border-top: 1.6px solid var(--dim); transform: rotate(45deg); }
 .mode:active, .catrow:active { background: rgba(40,40,44,.8); }
 .blurb { margin: -5px 0 0 108px; font-size: 12px; line-height: 1.35; color: var(--dim); min-height: 1.35em; }
 .chcard .best { grid-column: 1; font-size: 11.5px; color: var(--dim); }
-.screen.side { background: rgba(0,0,0,.74); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid var(--hair); border-radius: 6px; padding: 12px 14px; }
+.screen.side { background: rgba(0,0,0,.74); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid var(--hair); border-radius: var(--rk); padding: 12px 14px; }
 @media (orientation: portrait) { .screen.side { margin: auto 0 0 0; width: 100%; } }
 @media (orientation: landscape) {
   .screen.side { margin: auto auto auto 6px; width: min(56%, 460px); }
@@ -452,7 +460,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .info { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 5px; padding: 0; border: 1px solid var(--dim); border-radius: 50%; font-size: 11px; font-weight: 600; color: var(--dim); background: transparent; vertical-align: middle; }
 .specintro { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--dim); }
 .speclist { display: flex; flex-direction: column; gap: 8px; }
-.spec { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.35); }
+.spec { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .spec svg { width: 28px; height: 28px; fill: none; stroke: #e8e8ec; stroke-width: 1.6; }
 .spec b { display: block; font-size: 15px; font-weight: 600; }
 .spec em { font-style: normal; font-size: 12.5px; font-weight: 600; color: #ffcd30; }
@@ -491,6 +499,64 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #toast.on { opacity: 1; transform: translate(-50%, 0); }
 #toast i { width: 10px; height: 10px; display: block; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- Build 49.2: the Shop (styles bought with tokens; the live map behind is the preview) ---------- */
+.shopbtn { position: relative; }
+#shopDot { position: absolute; right: 14px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 2px #000; }
+#shopDot[hidden] { display: none; }
+#menu.shopOn { background: none; }
+body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles from Pause: the match shows, its controls do not */
+#scrShop { position: fixed; inset: 0; width: auto; margin: 0; gap: 0; pointer-events: none;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,0) 120px), linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.6) 34%, rgba(0,0,0,0) 52%); }
+#scrShop > *, #scrShop .shopdeck > * { pointer-events: auto; }
+#scrShop header { width: min(100%, 560px); align-self: center; }
+.tokpill { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.tokpill .tk { display: flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 700; color: var(--blue); }
+.tokpill .tk svg { width: 14px; height: 14px; }
+.tokpill .tk small { font-size: 12px; font-weight: 500; color: var(--dim); }
+.tokpill .tkrow { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+.tkbar { display: block; width: 64px; height: 5px; border-radius: 3px; background: var(--faint); overflow: hidden; }
+.tkbar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .3s; }
+#scrShop.owned .tokpill { display: none; }
+.shopdeck { margin-top: auto; width: min(100%, 560px); align-self: center; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.strip { position: relative; width: 100%; height: 252px; touch-action: pan-y; }
+.scard { position: absolute; top: 0; left: 50%; width: 244px; margin-left: -122px; box-sizing: border-box; padding: 14px; border-radius: var(--rk);
+  background: rgba(10,10,14,.92); border: 1px solid var(--faint); text-align: left; transition: transform .25s ease, opacity .25s ease; cursor: pointer; }
+.scard.cur { border-color: rgba(255,255,255,.5); cursor: default; }
+.scard .k { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.scard .n { font-size: 19px; font-weight: 700; margin: 2px 0 3px; }
+.scard .d { margin: 0; font-size: 12.5px; line-height: 1.35; color: var(--dim); min-height: 34px; }
+.scard .chips { display: flex; gap: 8px; margin-top: 10px; }
+.scard .chip2 svg, .pairbtn svg { width: 11px; height: 11px; margin-right: 3px; vertical-align: -1px; }
+.pairbtn { width: 100%; min-height: 44px; margin-top: 8px; border-radius: var(--rc); font-size: 15px; font-weight: 700; }
+.scard .sst { margin-top: 8px; font-size: 12px; color: var(--blue); }
+.scard:not(.cur) .chips, .scard:not(.cur) .pairbtn { display: none; }
+.scard.cur .sst { display: none; }
+.shopnav { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+.snav { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--faint); background: rgba(0,0,0,.5); display: grid; place-items: center; }
+.snav svg { width: 14px; height: 14px; }
+.snav:disabled { opacity: .35; }
+.sdots { display: flex; gap: 7px; }
+.sdots i { display: block; width: 7px; height: 7px; border-radius: 4px; background: var(--faint); transition: width .2s, background .2s; }
+.sdots i.on { width: 18px; background: var(--blue); }
+.shopnote { margin: 8px 0 0; min-height: 17px; font-size: 12.5px; text-align: center; color: var(--ink); }
+#shopConfirm { z-index: 30; background: rgba(0,0,0,.72); }
+#shopConfirm .screen { width: min(100%, 340px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 12px; }
+#shopConfirm h2 { margin: 0; font-size: 18px; }
+#shopConfirm p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--dim); }
+@media (orientation: landscape) and (max-height: 500px) {
+  #scrShop { left: auto; width: calc(330px + max(16px, env(safe-area-inset-right, 0px))); padding-left: 14px;
+    background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,.88) 14%); }
+  #scrShop header { width: 100%; }
+  .shopdeck { margin-top: 6px; width: 100%; flex: 1; min-height: 0; }
+  .strip { flex: 1; min-height: 0; height: auto; overflow: hidden; touch-action: pan-x; }
+  .scard { top: 50%; left: 50%; width: 270px; height: 222px; margin: -111px 0 0 -135px; overflow: hidden; }
+  .scard .d { min-height: 0; }
+  .snav svg { transform: rotate(90deg); }
+  .shopnav { margin-top: 4px; }
+  .shopnote { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(350px + max(16px, env(safe-area-inset-right, 0px))); bottom: max(14px, env(safe-area-inset-bottom, 0px)); margin: 0; text-align: left; text-shadow: 0 1px 3px #000; }
+}
 </style>
 </head>
 <body>
@@ -561,12 +627,12 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
+      <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot" hidden></i></button>
       <button class="ghost big2" data-go="scrSettings">Settings</button>
       <button class="ghost big2" data-go="scrStats">Stats</button>
-      <button class="ghost big2" data-go="scrHelp">How to Play</button>
     </div>
   </section>
 
@@ -577,6 +643,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
       <button class="mode" id="mCustom" data-go="scrCustom"><b>Custom</b><span>Set up your own match: Enemies, Map, Special Bases and Rule Modifiers.</span></button>
       <button class="mode" id="mSpec" data-go="scrSpectate"><b>Spectate</b><span>Setup match and watch the AI play against itself.</span></button>
       <button class="mode" id="mLadder"><b>Challenge Maps<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></b><span id="ladderBlurb">Fixed maps with special rules and goals. Earn stars to unlock more maps.</span></button>
+      <button class="mode" id="mHelp" data-go="scrHelp"><b>How to Play</b><span id="helpBlurb">The basics, plus short lessons you can play.</span></button>
     </div>
   </section>
 
@@ -649,8 +716,6 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Settings</h2></header>
     <div class="opts">
       <div class="opt"><span>Volume</span><input type="range" id="vol" min="0" max="100" step="1" aria-label="Volume"></div>
-      <div class="opt stack"><span>Sound style</span><div class="seg tight five" data-glob="tone"><button data-v="simple">Simple</button><button data-v="hearth">Hearth</button><button data-v="drift">Drift</button><button data-v="chip">Chip</button><button data-v="cosmos">Cosmos</button><button data-v="floe">Floe</button></div></div>
-      <div class="opt stack sep"><span>Visual style</span><div class="seg tight five" data-glob="visual"><button data-v="classic">Classic</button><button data-v="ember">Ember</button><button data-v="atlas">Atlas</button><button data-v="pixel">Pixel</button><button data-v="nebula">Nebula</button><button data-v="rime">Rime</button></div></div>
       <p class="hintline" id="hintSettings"></p>
     </div>
     <button class="ghost big2" data-go="scrAccess">Accessibility</button>
@@ -746,10 +811,22 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
     </ul>
   </section>
 
+  <section class="screen shop" id="scrShop" hidden>
+    <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2 id="shopTitle">Shop</h2>
+      <div class="tokpill" id="tokPill"><span class="tk"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg><b id="tokN">0</b><small id="tokWord">tokens</small></span><span class="tkrow"><small id="tokNextL">next</small><span class="tkbar"><i id="tokBar"></i></span></span></div>
+    </header>
+    <div class="shopdeck">
+      <div class="strip" id="shopStrip"></div>
+      <div class="shopnav"><button class="snav" id="shopPrev" aria-label="Previous style"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><div class="sdots" id="shopDots"></div><button class="snav" id="shopNext" aria-label="Next style"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3l5 5-5 5"/></svg></button></div>
+      <p class="shopnote" id="shopNote" aria-live="polite"></p>
+    </div>
+  </section>
+
   <section class="screen" id="scrPause" hidden>
     <header><h2>Paused</h2></header>
     <button id="bResume" class="primary big">Resume</button>
     <button class="ghost big2" data-go="scrSettings">Settings</button>
+    <button id="bPauseShop" class="ghost big2">Styles</button>
     <button id="bLogP" class="ghost big2">Save match log</button>
     <button id="bQuit" class="ghost big2">Quit to menu</button>
   </section>
@@ -775,6 +852,9 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 <div id="perf" hidden></div>
 <div id="unlockPop" class="overlay" role="dialog" aria-modal="true" aria-labelledby="unlockT" hidden>
   <div class="screen"><h2 id="unlockT">Unlocked</h2><ul id="unlockList"></ul><button id="bUnlockOk" class="primary big">Got it</button></div>
+</div>
+<div id="shopConfirm" class="overlay" role="dialog" aria-modal="true" aria-labelledby="scT" hidden>
+  <div class="screen"><h2 id="scT"></h2><p id="scX"></p><div class="btns"><button id="scNo" class="ghost">Cancel</button><button id="scYes" class="primary"></button></div></div>
 </div>
 <div id="toast" role="status" aria-live="polite"><i id="toastSw"></i><span id="toastT"></span></div>
 
@@ -1934,13 +2014,27 @@ function nearestOwned(team, from) {
   }
 }
 
+// BOUNTY (49.1.1): one crown holder and one runner-up per moment. Most bases wins, troops break ties, and the holder keeps the crown until someone leads by 2 or more bases (no flip-flopping on a 1-base difference).
+const bountyBigger = (a, b) => a.bases > b.bases || (a.bases === b.bases && a.count > b.count);
+function bountyRanks() {
+  if (G._br && G._br.t === G.t) return G._br;
+  const alive = G.teams.filter(U => U.alive).sort((a, b) => (b.bases - a.bases) || (b.count - a.count) || (a.i - b.i));
+  let L = alive.length ? alive[0].i : -1;
+  const cur = G._bl;
+  if (L >= 0 && cur !== undefined && cur >= 0 && G.teams[cur].alive && G.teams[L].bases < G.teams[cur].bases + 2) L = cur;
+  G._bl = L;
+  const rest = alive.filter(U => U.i !== L);
+  return (G._br = { t: G.t, L, R: rest.length ? rest[0].i : -1 });
+}
+const bountyOnly = x => { const a = G.teams.map(() => false); if (x >= 0) a[x] = true; return a; };   // the colours this one may hit (neutral bases are always allowed)
+
 function aiThink(team) {
   const T = G.teams[team], D = T.diff, nodes = G.nodes, N = nodes.length, ti = team + 1;
   if (!T.alive || !T.count) return;
   aiSpend(team);
   const sm = D.smart || 0, S = statArrays();
-  let bounty = null;                                    // BOUNTY: the colour with strictly the most bases is the only rival this one will attack
-  if (G.mods.bounty) { let mx = -1, who = -1, tie = false; for (const U of G.teams) if (U.alive) { if (U.bases > mx) { mx = U.bases; who = U.i; tie = false; } else if (U.bases === mx) tie = true; } if (!tie && who >= 0 && who !== team) bounty = who; }
+  let bAllow = null, bPrey = -1, bLead = -1;           // BOUNTY (49.1.1): everyone hunts the crown holder; the crown holder hunts the runner-up
+  if (G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
   if (!G._ai || G._ai.N !== N) G._ai = { N, pres: new Float64Array(N * 6), mine: new Float64Array(N), committed: new Float64Array(N) };
   const P6 = G._ai.pres.fill(0), mine = G._ai.mine.fill(0), committed = G._ai.committed.fill(0);
   const pr2 = (C.presenceR * 1.2) ** 2;
@@ -2131,14 +2225,24 @@ function aiThink(team) {
     const front = new Set();
     for (const n of nodes) if (n.owner === team || mine[n.id] > 0)
       for (const v of n.adj) if (nodes[v].owner !== team) front.add(v);
-    if (bounty !== null) { let any = false; for (const v of front) { const o = nodes[v].owner; if (o < 0 || o === bounty) { any = true; break; } } if (!any) bounty = null; }   // stuck (only the others' bases in reach): they fight each other
+    if (bAllow) {                                       // BOUNTY: what is really in reach decides who this colour may hit
+      const near = new Set(); let neu = false;
+      for (const v of front) { const o = nodes[v].owner; if (o < 0) neu = true; else near.add(o); }
+      if (!(bPrey >= 0 && near.has(bPrey))) {           // the preferred target is out of reach
+        let pick = -1;
+        if (team !== bLead) for (const o of near) if (bountyBigger(G.teams[o], T) && (pick < 0 || bountyBigger(G.teams[o], G.teams[pick]))) pick = o;   // the biggest bigger neighbour
+        if (pick >= 0) { bAllow = bountyOnly(pick); bPrey = pick; }
+        else if (neu) { bAllow = bountyOnly(-1); bPrey = -1; }   // nobody bigger to hit: grow into neutral bases
+        else { bAllow = null; bPrey = -1; }              // nothing else in reach: side wars are fine
+      }
+    }
     const MS = (D.dly && D.dly.mass && G.t < D.dly.mass.until) ? D.dly.mass : null;   // DEADLY: early on, nearby rivals are the preferred target
     const full = T.count >= capOf(team) * ((D.dly && D.dly.bold) || 0.9);
     const margin = (full ? Math.max(1.05, D.margin * 0.8) : D.margin) * (T.style.margin || 1) * (lastStand ? 1.25 : 1), frac = full || lastStand ? 0.95 : D.frac;
     let armyAll4 = 0; for (let i = 0; i < N; i++) armyAll4 += mine[i];
     for (const v of front) {
       const o = nodes[v].owner;
-      if (bounty !== null && o >= 0 && o !== bounty) continue;   // BOUNTY: only the leader's bases (and neutrals) are targets
+      if (bAllow && o >= 0 && !bAllow[o]) continue;   // BOUNTY: only the allowed colours (and neutrals) are targets
       if (v === T.avoid && G.t < T.avoidUntil) continue;  // just got bounced off this one
       const def = enemyAt(v), rt = routeTable(team, v);
       let need = Math.max(5, def * margin + 1.2) / frac, fr = frac;
@@ -2159,6 +2263,7 @@ function aiThink(team) {
       if (hopCrown && hopCrown[v] >= 0) sc += 1.6 * Math.max(0, 1 - hopCrown[v] / 7);                         // and heads for it: bases on the way count extra
       if (o === NEUTRAL) sc += 0.6;
       else {
+        if (bPrey >= 0 && o === bPrey) sc += 2.0;   // BOUNTY: the crown (or its challenger) is the prize
         if (D.dly && D.dly.prey && o === PLAYER && !G.autoplay && armyAll4 >= def * D.dly.prey.ratio) sc += D.dly.prey.bonus;     // a slow or meek player: a base he holds with a small defense next to the rival's whole army
         if (MS) sc += MS.rival;
         if (o === PLAYER && !G.autoplay) sc += D.playerBias;   // nobody gangs up on blue when blue isn't you
@@ -2204,7 +2309,7 @@ function aiThink(team) {
     for (const nv of nodes) {
       if (shots >= sm + (SL ? SL.extra : 0)) break;
       const v = nv.id; if (nv.owner === team) continue;
-      if (bounty !== null && nv.owner >= 0 && nv.owner !== bounty) continue;
+      if (bAllow && nv.owner >= 0 && !bAllow[nv.owner]) continue;
       const def = enemyAt(v); if (def > (SL ? SL.maxDef : 5)) continue;
       if (v === T.target || (v === T.avoid && G.t < T.avoidUntil)) continue;
       const need = Math.max(5, def * D.margin + 3);
@@ -2240,7 +2345,7 @@ function aiThink(team) {
     for (const v of n.adj) {
       const o = nodes[v].owner;
       if (o === team || v === T.target || (v === T.avoid && G.t < T.avoidUntil)) continue;
-      if (bounty !== null && o >= 0 && o !== bounty) continue;
+      if (bAllow && o >= 0 && !bAllow[o]) continue;
       const def = enemyAt(v), avail = idleStr * 0.65;
       if (avail < def * D.margin * (T.style.margin || 1) + 2) continue;
       const sc = (avail - def) / (def + 2) + (o === NEUTRAL ? 0.5 : 0) + (1 - nodes[v].hp / nodes[v].maxHp) * 0.6 + G.rng() * 0.3;
@@ -2264,6 +2369,43 @@ function aiThink(team) {
 //   input .............. taps, double-tap lock-on, drag, pinch, mouse wheel, keyboard
 //   loop ............... fixed 1/60 s simulation steps, drawing, ?perf readout, adaptive resolution
 (function () {
+// ================= SHOP: every word the Shop shows, and its numbers =================
+// Henry and WC: edit the text freely. Keep the ${...} parts (they are filled in by the game) and the quote marks around each line.
+const SHOP_TEXT = {
+  title: 'Shop', ownedTitle: 'Your styles',
+  token: 'token', tokens: 'tokens', next: 'next',
+  free: 'Free', pair: n => `Pair ${n}`,
+  visual: 'Visual', sound: 'Sound', inUse: 'In use', use: 'Use',
+  buyBoth: 'Buy both', useBoth: 'Use both',
+  owned: 'Owned', partly: 'Partly owned', locked: 'Locked',
+  short: (cost, have) => `That costs ${cost} tokens. You have ${have}.`,
+  confirmOne: (name, left) => [`Buy ${name}?`, `It is put in use right away, and you can switch back any time. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
+  confirmPair: (name, left) => [`Buy ${name}?`, `Both the visuals and the sound, put in use right away. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
+  cancel: 'Cancel', spend: n => `Spend ${n}`,
+  bought: 'Bought, and now in use.',
+  ownedOnly: 'Only the styles you own show here. Buy more in the Shop on the main menu.',
+  endProgress: (gain, have, need) => `Shop: +${gain} toward your next token (${have} of ${need}).`,
+  endToken: n => n === 1 ? 'You earned a token. Spend it in the Shop.' : `You earned ${n} tokens. Spend them in the Shop.`,
+  starTokens: n => `New stars: +${n} ${n === 1 ? 'token' : 'tokens'} for the Shop.`,
+  starsAtStart: n => `The Shop is open. Your challenge stars earned you ${n} ${n === 1 ? 'token' : 'tokens'}. Find it on the main menu.`,
+  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime' },
+  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe' },
+  blurb: {
+    classic: 'Clean squares and triangles, soft round tones. Always yours.',
+    ember: 'A fire seen from afar. A banked hum and crackles that follow the fighting.',
+    atlas: 'A surveyor\'s chart. Gentle plucked notes in a big quiet room.',
+    pixel: 'Chunky pixels and scanlines. A four-channel console played by the battle.',
+    nebula: 'Deep space. A drone, sonar pings and pads that swell with the fighting.',
+    rime: 'A winter night. Frost grows over what you hold; glass and cracking ice.' }
+};
+// Prices and earning. Only Classic earns: a win pays size x strength, a loss pays the size only; quits, Custom and Spectate pay nothing.
+// Each challenge star pays 1 token, once. curve: points needed for each token in turn; the last number repeats from then on.
+const SHOP = { one: 3, pair: 5, curve: [1, 2, 2, 3, 3, 4, 4, 5],
+  size: { small: 1, medium: 1.2, large: 1.4 }, diff: { easy: 1, normal: 1, hard: 1.25, brutal: 1.6, deadly: 2 } };
+// The pairs, in Shop order. A new pair is one more line here (plus its name and blurb above, and the style itself).
+const SHOP_PAIRS = [{ id: 'classic', v: 'classic', s: 'simple', free: true }, { id: 'ember', v: 'ember', s: 'hearth' }, { id: 'atlas', v: 'atlas', s: 'drift' },
+  { id: 'pixel', v: 'pixel', s: 'chip' }, { id: 'nebula', v: 'nebula', s: 'cosmos' }, { id: 'rime', v: 'rime', s: 'floe' }];
+let shopReal = null;      // while the Shop is open: the styles you actually have selected (the map may be showing a preview)
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
 const field = $('field'), hudEl = $('hud');
@@ -2330,7 +2472,7 @@ function load(k, d) {
   try { const v = JSON.parse(localStorage.getItem(k)); return Object.assign({}, d, isObj(v) ? v : {}); }
   catch (e) { return Object.assign({}, d); }
 }
-function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function save(k, v) { if (k === 'ice-settings' && shopReal) v = Object.assign({}, v, shopReal); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }     // a Shop preview is never saved
 const COLOR_KEYS = ['blue', 'red', 'green', 'yellow', 'purple'];
 const settings = load('ice-settings', { send: 1, sound: true, rivals: false, volume: 75, tone: 'simple' });
 const rnd32 = () => (Math.random() * 4294967296) >>> 0;
@@ -2402,6 +2544,18 @@ settings.menuSound = 'on';                                                      
 if (settings.visual === 'spark') settings.visual = 'classic';
 if (settings.visual === 'overload') settings.visual = 'ember';                                                        // Build 48.1.5: Overload was replaced by Ember                                                        // Build 36: Spark was folded into Classic
 if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime'].includes(settings.visual)) settings.visual = 'classic';
+// The Shop's save: tokens, progress toward the next one, how many have been earned by playing, stars already paid for, and what you own.
+// Kept apart from Stats like the unlocks, so resetting Stats never takes styles away. Test pages (?perf) with no Shop save own everything.
+const shop = (() => {
+  let fresh = true; try { fresh = localStorage.getItem('ice-shop') === null; } catch (_) {}
+  const r = load('ice-shop', {}), all = fresh && /[?&]perf\b/.test(location.search);
+  const num = x => Number.isFinite(+x) && +x >= 0 ? +x : 0, own = {}, ro = !fresh && isObj(r.own) ? r.own : {};
+  for (const P of SHOP_PAIRS) for (const k of ['v:' + P.v, 's:' + P.s]) own[k] = !!P.free || all || ro[k] === true;
+  return { tok: fresh ? 0 : Math.floor(num(r.tok)), prog: fresh ? 0 : num(r.prog), n: fresh ? 0 : Math.floor(num(r.n)), stars: fresh ? 0 : Math.floor(num(r.stars)), own, quiet: all };     // quiet: a test page, no pop-up for stars
+})();
+const saveShop = () => save('ice-shop', { tok: shop.tok, prog: shop.prog, n: shop.n, stars: shop.stars, own: Object.fromEntries(Object.entries(shop.own).filter(e => e[1])) });
+if (!shop.own['v:' + settings.visual]) settings.visual = 'classic';         // a style you do not own (an old save, or a Reset) goes back to the free pair
+if (!shop.own['s:' + settings.tone]) settings.tone = 'simple';
 if (!['standard', 'safe', 'contrast'].includes(settings.colors)) settings.colors = 'standard';
 if (!['off', 'on'].includes(settings.symbols)) settings.symbols = 'off';
 if (!['off', 'light', 'normal'].includes(settings.haptics)) settings.haptics = 'normal';
@@ -6564,12 +6718,16 @@ function fitHints() {
 }
 let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHints, 150); });
 function showScreen(id) {
+  if (id !== 'scrShop' && shopReal) closeShop();
   for (const sc of document.querySelectorAll('#menu .screen')) sc.hidden = sc.id !== id;
+  $('menu').classList.toggle('shopOn', id === 'scrShop');
+  if (id === 'scrShop' && !shopReal) { openShop(shopNextOwned); shopNextOwned = false; }
+  if (id === 'scrHome') syncShopDot();
   const m = SCREEN_MODE[id];
   pvOnly = !!m || id === 'scrMods';                   // setup screens show the map as a small preview card, not behind the settings
   if (HINT_START[id]) hintKey[HINT_START[id][0]] = HINT_START[id][1];
   if (m) { syncSeg(); syncText(m); buildPreview(m); }
-  if (id === 'scrSettings') { settingsKey = 'tone'; syncGlobalSeg(); renderSettingsHint(); }
+  if (id === 'scrSettings') { settingsKey = 'volume'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrAccess') { settingsKey = 'colors'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrPlay') updateLadderBlurb();
   if (id === 'scrStats') renderStats();
@@ -6580,8 +6738,130 @@ function showScreen(id) {
   const f = $(id).querySelector('.primary, .back, button'); if (f) f.focus({ preventScroll: true });
 }
 function go(id) { stack.push(id); showScreen(id); armBack(); }
-function back() { if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
+function back() { if (!$('shopConfirm').hidden) { shopAskClose(); return true; } if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
 function resetStack(root) { stack = [root]; showScreen(root); }
+// ---- the Shop: a strip of style pairs over the live map; the centered pair is previewed on the map, chips buy or select ----
+// Opened from Home (everything, with prices) or from Pause as "Styles" (only what you own, nothing to buy).
+const DIA = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg>';
+let shopIdx = 0, shopOwnedOnly = false, shopNextOwned = false, shopList = SHOP_PAIRS, shopToneT = 0, shopAskFn = null, shopSwipe = null, shopSwiped = 0;
+const shopLand = () => matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+const shopNeed = () => SHOP.curve[Math.min(shop.n, SHOP.curve.length - 1)];
+const shopNum = x => String(Math.round(x * 100) / 100);
+const shopCanBuy = () => shop.tok >= SHOP.one && SHOP_PAIRS.some(P => !shop.own['v:' + P.v] || !shop.own['s:' + P.s]);
+function syncShopDot() { $('shopDot').hidden = !shopCanBuy(); }
+function applyStyle(key, v, quiet) {                // what picking a style used to do in Settings: a fresh look, or the new sound started
+  settings[key] = v; drawDirty = true;
+  if (key === 'visual') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
+  else { audioOn(); syncSound(); lastPreview = 0; if (!quiet) setTimeout(previewSound, 30); }
+}
+function shopEarn(win) {                            // one finished Classic match; returns the line for the end card
+  const gain = Math.round((SHOP.size[G.sizeName] || 1) * (win ? (SHOP.diff[G.diffName] || 1) : 1) * 100) / 100;
+  shop.prog = Math.round((shop.prog + gain) * 100) / 100; let got = 0;
+  while (shop.prog + 1e-9 >= shopNeed()) { shop.prog = Math.round((shop.prog - shopNeed()) * 100) / 100; shop.n++; shop.tok++; got++; }
+  saveShop();
+  return got ? SHOP_TEXT.endToken(got) : SHOP_TEXT.endProgress(shopNum(gain), shopNum(shop.prog), shopNeed());
+}
+function shopStarSync() {                           // every challenge star pays one token, once; returns how many were paid now
+  const tot = SCENARIOS.reduce((a, c) => a + starsOfId(c.id).filter(Boolean).length, 0);
+  if (tot <= shop.stars) return 0;
+  const g = tot - shop.stars; shop.stars = tot; shop.tok += g; saveShop(); return g;
+}
+function openShop(ownedOnly) {
+  shopOwnedOnly = ownedOnly; shopReal = { visual: settings.visual, tone: settings.tone };
+  shopList = ownedOnly ? SHOP_PAIRS.filter(P => shop.own['v:' + P.v] || shop.own['s:' + P.s]) : SHOP_PAIRS;
+  const at = shopList.findIndex(P => P.v === settings.visual), at2 = shopList.findIndex(P => P.s === settings.tone);
+  shopIdx = at >= 0 ? at : at2 >= 0 ? at2 : 0;
+  $('scrShop').classList.toggle('owned', ownedOnly); $('shopTitle').textContent = ownedOnly ? SHOP_TEXT.ownedTitle : SHOP_TEXT.title;
+  $('shopNote').textContent = ownedOnly && shopList.length < SHOP_PAIRS.length ? SHOP_TEXT.ownedOnly : '';
+  renderShop();
+}
+function closeShop() {                              // leaving puts back whatever you actually have selected
+  const r = shopReal; if (!r) return;
+  clearTimeout(shopToneT); shopReal = null; shopAskClose();
+  if (settings.visual !== r.visual) applyStyle('visual', r.visual);
+  if (settings.tone !== r.tone) applyStyle('tone', r.tone, true);
+  save('ice-settings', settings);
+}
+function shopPreview() {                            // the centered pair on the live map; the sound waits until the strip settles
+  const P = shopList[shopIdx]; if (!P || !shopReal) return;
+  const v = shop.own['v:' + P.v] || !shopOwnedOnly ? P.v : shopReal.visual, t = shop.own['s:' + P.s] || !shopOwnedOnly ? P.s : shopReal.tone;
+  if (settings.visual !== v) applyStyle('visual', v);
+  clearTimeout(shopToneT);
+  if (settings.tone !== t) shopToneT = setTimeout(() => { if (shopReal) applyStyle('tone', t); }, 350);
+}
+function renderShop() {
+  const T = SHOP_TEXT, R = shopReal || { visual: settings.visual, tone: settings.tone }, own = k => !!shop.own[k];
+  $('tokN').textContent = shop.tok; $('tokWord').textContent = shop.tok === 1 ? T.token : T.tokens; $('tokNextL').textContent = T.next;
+  $('tokBar').style.width = Math.min(100, shop.prog / shopNeed() * 100) + '%';
+  $('shopStrip').innerHTML = shopList.map((P, i) => {
+    const vO = own('v:' + P.v), sO = own('s:' + P.s), vIn = R.visual === P.v, sIn = R.tone === P.s, n = SHOP_PAIRS.indexOf(P);
+    const chip = (k, label, o, on) => shopOwnedOnly && !o ? '' : `<button class="chip2${o ? '' : ' locked'}" data-act="${k}" aria-pressed="${on}"><small>${label}</small><span>${on ? T.inUse : o ? T.use : DIA + SHOP.one}</span></button>`;
+    const pair = !shopOwnedOnly && !P.free && !vO && !sO ? `<button class="pairbtn primary" data-act="pair">${T.buyBoth} ${DIA}${SHOP.pair}</button>`
+      : vO && sO && !(vIn && sIn) ? `<button class="pairbtn ghost" data-act="pair">${T.useBoth}</button>` : '';
+    const st = shopOwnedOnly ? '' : vO && sO ? T.owned : vO || sO ? T.partly : T.locked;
+    return `<div class="scard${i === shopIdx ? ' cur' : ''}" data-i="${i}"><div class="k">${P.free ? T.free : T.pair(n)}</div><div class="n">${T.visualName[P.v]} + ${T.soundName[P.s]}</div>`
+      + `<p class="d">${T.blurb[P.id] || ''}</p><div class="chips">${chip('v', T.visual, vO, vIn)}${chip('s', T.sound, sO, sIn)}</div>${pair}${st ? `<div class="sst">${st}</div>` : ''}</div>`;
+  }).join('');
+  $('shopDots').innerHTML = shopList.map((_, i) => `<i${i === shopIdx ? ' class="on"' : ''}></i>`).join('');
+  $('shopPrev').disabled = shopIdx <= 0; $('shopNext').disabled = shopIdx >= shopList.length - 1;
+  placeShop(); syncShopDot();
+}
+function placeShop() {
+  const land = shopLand();
+  for (const c of $('shopStrip').children) {
+    const off = +c.dataset.i - shopIdx, ab = Math.abs(off), sc = off === 0 ? 1 : ab === 1 ? 0.8 : 0.62;
+    if (land) { const H = c.offsetHeight || 222; c.style.transformOrigin = off > 0 ? 'center top' : off < 0 ? 'center bottom' : 'center'; c.style.transform = `translateY(${off === 0 ? 0 : Math.sign(off) * (H + 8 + (ab - 1) * 60)}px) scale(${sc})`; }      // neighbors peek above and below
+    else { const W = c.offsetWidth || 244; c.style.transformOrigin = 'center top'; c.style.transform = `translateX(${off * W * 0.86}px) scale(${sc})`; }
+    c.style.opacity = off === 0 ? 1 : ab === 1 ? 0.55 : ab === 2 ? 0.2 : 0; c.style.pointerEvents = ab <= 1 ? 'auto' : 'none'; c.style.zIndex = 10 - ab;
+  }
+}
+function shopGo(i) {
+  i = Math.max(0, Math.min(shopList.length - 1, i)); if (i === shopIdx) return;
+  shopIdx = i; if (!shopOwnedOnly || shopList.length === SHOP_PAIRS.length) $('shopNote').textContent = '';
+  renderShop(); shopPreview(); buzz('press');
+}
+function shopUse(keys) {                            // select owned items: they become what you have, and what is saved
+  for (const [k, v] of keys) { shopReal[k] = v; if (settings[k] !== v) applyStyle(k, v); }
+  clearTimeout(shopToneT); save('ice-settings', settings); renderShop();
+}
+function shopAsk(title, text, cost, fn) {
+  $('scT').textContent = title; $('scX').textContent = text; $('scNo').textContent = SHOP_TEXT.cancel; $('scYes').textContent = SHOP_TEXT.spend(cost);
+  shopAskFn = fn; $('shopConfirm').hidden = false; try { $('scYes').focus({ preventScroll: true }); } catch (_) {}
+}
+function shopAskClose() { shopAskFn = null; $('shopConfirm').hidden = true; }
+function shopBuy(items, cost) {
+  shop.tok -= cost; for (const [k, v] of items) shop.own[(k === 'visual' ? 'v:' : 's:') + v] = true; saveShop();
+  shopUse(items); $('shopNote').textContent = SHOP_TEXT.bought; buzz('press');
+}
+function shopAct(act) {
+  const P = shopList[shopIdx], T = SHOP_TEXT; if (!P) return;
+  const want = act === 'v' ? [['visual', P.v]] : act === 's' ? [['tone', P.s]] : [['visual', P.v], ['tone', P.s]];
+  if (want.every(([k, v]) => shop.own[(k === 'visual' ? 'v:' : 's:') + v])) { shopUse(want); return; }
+  if (shopOwnedOnly) return;
+  const cost = want.length === 2 ? SHOP.pair : SHOP.one;
+  if (shop.tok < cost) { $('shopNote').textContent = T.short(cost, shop.tok); return; }
+  const name = act === 'v' ? `${T.visualName[P.v]} visuals` : act === 's' ? `${T.soundName[P.s]} sound` : `${T.visualName[P.v]} + ${T.soundName[P.s]}`;
+  const [ti, tx] = (want.length === 2 ? T.confirmPair : T.confirmOne)(name, shop.tok - cost);
+  shopAsk(ti, tx, cost, () => shopBuy(want, cost));
+}
+$('shopStrip').addEventListener('click', e => {
+  if (performance.now() - shopSwiped < 120) return;
+  const b = e.target.closest('[data-act]'), c = e.target.closest('.scard'); if (!c) return;
+  if (+c.dataset.i !== shopIdx) { shopGo(+c.dataset.i); return; }
+  if (b) shopAct(b.dataset.act);
+});
+$('shopStrip').addEventListener('pointerdown', e => { shopSwipe = { x: e.clientX, y: e.clientY }; });
+$('shopStrip').addEventListener('pointerup', e => {
+  if (!shopSwipe) return; const d = shopLand() ? e.clientY - shopSwipe.y : e.clientX - shopSwipe.x; shopSwipe = null;
+  if (Math.abs(d) > 30) { shopSwiped = performance.now(); shopGo(shopIdx + (d < 0 ? 1 : -1)); }
+});
+$('shopStrip').addEventListener('pointercancel', () => { shopSwipe = null; });
+$('shopPrev').addEventListener('click', () => shopGo(shopIdx - 1));
+$('shopNext').addEventListener('click', () => shopGo(shopIdx + 1));
+$('scNo').addEventListener('click', shopAskClose);
+$('scYes').addEventListener('click', () => { const f = shopAskFn; shopAskClose(); if (f) f(); });
+$('bPauseShop').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });
+window.addEventListener('resize', () => { if (shopReal) placeShop(); });
 // ---- the challenge ladder ----
 let curScen = null, briefId = null, nextScen = null, curPrac = null, coach = null;
 const ladder = {}, bests = {};
@@ -6864,7 +7144,7 @@ $('bUnlockOk').addEventListener('click', closeUnlockPop);
 function showEnd() {
   mode = 'over'; xlFinish();
   const P = G.teams[PLAYER], N = G.nodes.length, t = $('endTitle'), sub = $('endSub');
-  let unlockNote = '';
+  let unlockNote = '', shopLine = '';
   if (watching) {                                   // spectated matches go into the AI vs AI stats, not your record
     const w = G.winner, T = G.teams[w];
     t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${TEAM_NAMES[w]} took the map`;
@@ -6879,6 +7159,7 @@ function showEnd() {
       p.kills += P.kills; p.caps += G.playerCaps; p.time += G.t; p.most = Math.max(p.most, G.peak);
       if (win && (!p.fastest[G.sizeName] || G.t < p.fastest[G.sizeName])) p.fastest[G.sizeName] = Math.round(G.t);
       if (DIFF_LABEL[G.diffName] && G.diffName !== 'random') { p.gDiff[G.diffName] = (p.gDiff[G.diffName] || 0) + 1; if (win) p.wDiff[G.diffName] = (p.wDiff[G.diffName] || 0) + 1; }
+      if (curModeKey === 'classic') shopLine = shopEarn(win);                    // the Shop: only Classic pays
       if (win && curModeKey === 'classic') {                                    // the way in. Classic wins only (Brutal and Deadly are locked everywhere else until earned).
         const got = [], D = G.diffName, big = G.sizeName === 'large';
         if (!unlocks.challenge) { unlocks.challenge = true; got.push('Challenge Maps unlocked. Find them in the Play menu.'); }
@@ -6914,6 +7195,7 @@ function showEnd() {
     const c = document.createElement('span'); c.className = 'coda'; c.textContent = endCoda(); sub.appendChild(c);
   }
   if (unlockNote) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = unlockNote; sub.appendChild(u); }
+  if (shopLine) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = shopLine; sub.appendChild(u); }
   nextScen = null; let challengeMoments = null;
   if (G.practice) {                                 // a lesson: a tick instead of stars or highlights
     const L = PRACTICE.find(x => x.id === G.practice);
@@ -6933,6 +7215,7 @@ function showEnd() {
     const n = st.filter(Boolean).length, fresh = ladder[G.scenarioId].filter(Boolean).length - prev.filter(Boolean).length;
     t.innerHTML = `<span class="sw"${st[0] ? '' : ` data-s="${TEAM_SLOT[PLAYER]}"`} style="background:${st[0] ? '#ffcd30' : TEAM_COLORS[PLAYER]}"></span>${st[0] ? 'Challenge complete' : 'Challenge failed'}`;
     sub.textContent = st[0] ? `${sc.name}: ${n} of 3 stars in ${fmt(G.t)}${fresh > 0 ? `, ${fresh} new.` : '.'}` : `${sc.name}: you lasted ${fmt(G.t)}. Give it another go.`;
+    { const g = shopStarSync(); if (g) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = SHOP_TEXT.starTokens(g); sub.appendChild(u); } }
     challengeMoments = sc.stars.map((g, i) => `<li><time class="st">${st[i] ? '&#9733;' : '&#9734;'}</time><i style="background:${st[i] ? '#ffcd30' : '#3a3a3e'}"></i><span>${g.t}</span></li>`).join('');
     const nx = SCENARIOS[SCENARIOS.findIndex(x => x.id === G.scenarioId) + 1];
     if (st[0] && nx && isOpen(nx)) nextScen = nx.id;
@@ -7048,7 +7331,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.1 LOGGER', started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.2 LOGGER', started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -7289,7 +7572,7 @@ applyScreenLock();
 window.addEventListener('pointerdown', applyScreenLock, { once: true });   // some phones only allow the lock after a touch
 function leaveToMenu() {                            // back to where you set the match up, with Back leading up through the Play hub
   const was = curScen, key = curModeKey, prac = curPrac; toMenu();
-  if (prac) { renderPractice(); go('scrHelp'); return; }          // a lesson goes back to the lesson list
+  if (prac) { renderPractice(); go('scrPlay'); go('scrHelp'); return; }          // a lesson goes back to the lesson list
   go('scrPlay');
   if (was) { renderLadder(); go('scrLadder'); }
   else { const scr = { classic: 'scrClassic', custom: 'scrCustom', spec: 'scrSpectate' }[key]; if (scr) go(scr); }
@@ -7305,6 +7588,8 @@ function doResetAll() {
   doResetStats(); doResetChallenges();
   unlocks.deadly = false; unlocks.deadlyCustom = false; unlocks.tiers = false; unlocks.brutal = false; unlocks.brutalCustom = false; unlocks.challenge = false; save('ice-unlocks', unlocks); updateLadderBlurb();
   for (const k of ['classic', 'custom', 'spec']) if (settings[k] && (settings[k].diff === 'deadly' || settings[k].diff === 'brutal')) settings[k].diff = 'hard';           // a Deadly that is locked again cannot stay picked
+  shop.tok = 0; shop.prog = 0; shop.n = 0; shop.stars = 0; for (const P of SHOP_PAIRS) { shop.own['v:' + P.v] = shop.own['s:' + P.s] = !!P.free; } saveShop(); syncShopDot();     // 49.2: tokens and styles too
+  if (settings.visual !== 'classic') applyStyle('visual', 'classic'); if (settings.tone !== 'simple') applyStyle('tone', 'simple', true);
   save('ice-settings', settings); syncSeg(); syncAllText();
 }
 // Unlock everything (hidden Picture quality screen): two taps. Brutal, Deadly (Classic and Custom), Challenge Maps and every challenge tier. No stars are awarded.
@@ -7313,10 +7598,11 @@ $('bUnlockAll').addEventListener('click', () => {
   const b = $('bUnlockAll'); clearTimeout(allUnlock.t); allUnlock.n++;
   if (allUnlock.n >= 2) {
     allUnlock.n = 0; unlocks.deadly = unlocks.deadlyCustom = unlocks.tiers = unlocks.brutal = unlocks.brutalCustom = unlocks.challenge = true; save('ice-unlocks', unlocks);
+    for (const k of Object.keys(shop.own)) shop.own[k] = true; saveShop(); syncShopDot();          // 49.2: every style too (no tokens are given)
     syncSeg(); syncAllText(); updateLadderBlurb(); if (typeof renderLadder === 'function') renderLadder();
     b.textContent = 'Everything unlocked'; allUnlock.t = setTimeout(() => { b.textContent = 'Unlock everything'; }, 2500); return;
   }
-  b.textContent = 'Tap again to unlock Brutal, Deadly and all challenges';
+  b.textContent = 'Tap again to unlock Brutal, Deadly, all challenges and every style';
   allUnlock.t = setTimeout(() => { allUnlock.n = 0; b.textContent = 'Unlock everything'; }, 3000);
 });
 $('bResetAll').addEventListener('click', () => {
@@ -7338,6 +7624,7 @@ $('statsBtn').addEventListener('click', () => {
   if (!$('mm').hidden && rectsClash($('mm'), $('stats'))) setMinimap(false);          // opening the panel over the minimap puts the minimap away
 });
 syncSeg(); syncGlobalSeg(); syncAllText(); renderMods(); renderSettingsHint(); renderSpecials();
+{ const g = shopStarSync(); if (g && !shop.quiet) { pendingUnlocks.push(SHOP_TEXT.starsAtStart(g)); save('ice-pending', pendingUnlocks); } syncShopDot(); }
 $('mLadder').addEventListener('click', () => { if (!unlocks.challenge) return; renderLadder(); go('scrLadder'); });
 $('ladder').addEventListener('click', e => { const b = e.target.closest('.chcard'); if (b) openBrief(b.dataset.c); });
 $('bBriefStart').addEventListener('click', () => startGame(false, briefId));
@@ -7414,7 +7701,7 @@ let helpSeen = false;
 { const raw = load('ice-seen', {}); helpSeen = isObj(raw) && raw.help === true; }
 function updateNewHere() {                          // first launch: nudge toward How to play until it has been opened (or you have played)
   const show = !helpSeen && stats.play.games === 0;
-  $('newHere').hidden = !show; document.querySelector('#scrHome [data-go=scrHelp]').classList.toggle('nudge', show);
+  $('newHere').hidden = !show; $('mHelp').classList.toggle('nudge', show);
 }
 function renderPractice() {
   $('practiceList').innerHTML = PRACTICE.map(p => `<button class="chcard fresh" data-p="${p.id}"><b>${p.name}</b><span class="d">${p.desc}</span><span class="best">${practiceDone[p.id] ? '&#10003; Completed' : 'Not tried yet'}</span></button>`).join('');
@@ -7514,8 +7801,8 @@ function coachDodge(p) {
 }
 $('coachSkip').addEventListener('click', () => coachNext());
 $('practiceList').addEventListener('click', e => { const b = e.target.closest('.chcard'); if (b) startGame(false, null, null, b.dataset.p); });
-document.querySelector('#scrHome [data-go=scrHelp]').addEventListener('click', () => { helpSeen = true; save('ice-seen', { help: true }); renderPractice(); });
-$('newHere').addEventListener('click', () => document.querySelector('#scrHome [data-go=scrHelp]').click());       // the line itself opens How to play
+$('mHelp').addEventListener('click', () => { helpSeen = true; save('ice-seen', { help: true }); renderPractice(); });
+$('newHere').addEventListener('click', () => { go('scrPlay'); $('mHelp').click(); });       // the line itself opens How to play (now under Play)       // the line itself opens How to play
 renderPractice();
 
 // ---- loop ----

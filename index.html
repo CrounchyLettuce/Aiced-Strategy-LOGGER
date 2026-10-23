@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -4386,7 +4386,10 @@ function rimeBack() {                                // frost creeping in from t
     fr.ax = x; fr.ay = y; fr.bx = x + Math.cos(a0) * fade; fr.by = y + Math.sin(a0) * fade;
     list.push(fr);
   }
-  RIME.back = { list, k, ox, oy, cw, ch, mk: null }; RIME.g = G; return RIME.back;
+  let bx0 = ox, by0 = oy, bx1 = ox + cw, by1 = oy + ch;                 // 49.5.2: the picture used when zoomed out must hold every crack, including the branches that run past the map's edge (it was the map's rectangle, so they were cut off flat)
+  for (const fr of list) { bx0 = Math.min(bx0, fr.x0); bx1 = Math.max(bx1, fr.x1); by0 = Math.min(by0, fr.y0); by1 = Math.max(by1, fr.y1); }
+  bx0 -= 10; by0 -= 10; bx1 += 10; by1 += 10;
+  RIME.back = { list, k, ox, oy, cw, ch, mk: null, bb: { x: bx0, y: by0, w: bx1 - bx0, h: by1 - by0 } }; RIME.g = G; return RIME.back;
 }
 function rimeFernStyles(R) {                         // per fern and branch depth: a line color that fades in from the map edge (made once, needs the canvas)
   if (R.mk) return;
@@ -4433,11 +4436,11 @@ function drawRimeBack(now) {                         // called with the world tr
   const sc = V.s * dpr, BS = 1.25;
   if (sc <= BS) {                                                      // zoomed out: the whole frost is one picture, made once per map and quality step, and the moonlight with it is kept in the background cache
     if (!R.bmp || R.bq !== quality) {
-      if (!R.bmp) { R.bmp = document.createElement('canvas'); R.bmp.width = Math.ceil(R.cw * BS); R.bmp.height = Math.ceil(R.ch * BS); }
+      if (!R.bmp) { R.bmp = document.createElement('canvas'); R.bmp.width = Math.ceil(R.bb.w * BS); R.bmp.height = Math.ceil(R.bb.h * BS); }
       const bc = R.bmp.getContext('2d'); bc.setTransform(1, 0, 0, 1, 0, 0); bc.clearRect(0, 0, R.bmp.width, R.bmp.height);
-      bc.setTransform(BS, 0, 0, BS, -R.ox * BS, -R.oy * BS); rimeStrokeFerns(bc, R, BS, null); R.bq = quality;
+      bc.setTransform(BS, 0, 0, BS, -R.bb.x * BS, -R.bb.y * BS); rimeStrokeFerns(bc, R, BS, null); R.bq = quality;
     }
-    bgCache('#030a14', 'rime', R, g => { moon(g); g.drawImage(R.bmp, R.ox, R.oy, R.cw, R.ch); });
+    bgCache('#030a14', 'rime', R, g => { moon(g); g.drawImage(R.bmp, R.bb.x, R.bb.y, R.bb.w, R.bb.h); });
   } else { moon(ctx); rimeStrokeFerns(ctx, R, sc, VIS); }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const w = Math.ceil(F.w) + 40, h = Math.ceil(F.h) + 40, mv = reduceMotion ? 0 : 1, PAR = [0.04, 0.1, 0.2];
@@ -4693,14 +4696,13 @@ function drawGear(n, c, now) {                        // one base: a gear in its
   } else if (SYM) { ctx.strokeStyle = NEUTRAL_COLOR; ctx.lineWidth = 2; ctx.strokeRect(n.x - 3.6, n.y - 3.6, 7.2, 7.2); }
   else { ctx.fillStyle = hexA(NEUTRAL_COLOR, 0.5); ctx.beginPath(); ctx.arc(n.x, n.y, 2, 0, 6.2832); ctx.fill(); }
 }
-function clockBack() {                                // the dial: concentric rings and a guilloche rosette, engraved once per map into a picture
-  if (CW.back && CW.back.g === G) return CW.back;
-  const BS = 1.25, cw = W * 1.1, ch = H * 1.1, ox = -W * 0.05, oy = -H * 0.05;
-  const bmp = document.createElement('canvas'); bmp.width = Math.ceil(cw * BS); bmp.height = Math.ceil(ch * BS);
-  const g = bmp.getContext('2d'); g.setTransform(BS, 0, 0, BS, -ox * BS, -oy * BS);
-  const cx = W / 2, cy = H / 2, M = Math.hypot(W, H) * 0.55;
-  const vg = g.createRadialGradient(cx, cy, 0, cx, cy, Math.min(cw, ch) * 0.5); vg.addColorStop(0, 'rgba(60,72,98,0.16)'); vg.addColorStop(1, 'rgba(20,26,40,0)');      // ends at zero inside the picture, so no edge shows
-  g.fillStyle = vg; g.fillRect(ox, oy, cw, ch);
+function clockBack() { return CW.back && CW.back.g === G ? CW.back : (CW.back = { g: G }); }      // 49.5.2: nothing to build; the dial is engraved straight onto the cached background (see drawClockBack)
+function clockDial(g) {                                // the dial: concentric rings and a guilloche rosette, over everything the screen can show (so it never ends at the map's edge)
+  const cx = W / 2, cy = H / 2, M0 = Math.hypot(W, H) * 0.55;
+  const vx = Math.max(Math.abs(VIS.x0 - cx), Math.abs(VIS.x1 - cx)), vy = Math.max(Math.abs(VIS.y0 - cy), Math.abs(VIS.y1 - cy));
+  const M = Math.max(M0, Math.min(Math.hypot(vx, vy), Math.hypot(W, H) * 3));
+  const vg = g.createRadialGradient(cx, cy, 0, cx, cy, Math.min(W, H) * 0.55); vg.addColorStop(0, 'rgba(60,72,98,0.16)'); vg.addColorStop(1, 'rgba(20,26,40,0)');      // ends at zero, so no edge shows
+  g.fillStyle = vg; g.fillRect(cx - M, cy - M, M * 2, M * 2);
   g.lineWidth = 1;
   for (let i = 1, rr = 26; rr < M; i++, rr += 18) { g.strokeStyle = i % 5 ? 'rgba(210,174,104,0.035)' : 'rgba(210,174,104,0.065)'; g.beginPath(); g.arc(cx, cy, rr, 0, 6.2832); g.stroke(); }
   g.strokeStyle = 'rgba(210,174,104,0.028)'; g.lineWidth = 0.8;                  // the rosette: 48 circles round the middle, overlapping like a watch dial's engraving
@@ -4709,11 +4711,10 @@ function clockBack() {                                // the dial: concentric ri
   g.strokeStyle = 'rgba(210,174,104,0.07)'; g.lineWidth = 1.2; g.beginPath();       // a minute track round the rosette
   for (let i = 0; i < 120; i++) { const a = i * 6.2832 / 120, r0 = rr + off + 10, r1 = r0 + (i % 10 ? 4 : 9); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); }
   g.stroke();
-  CW.back = { g: G, bmp, ox, oy, cw, ch }; return CW.back;
 }
 function drawClockBack(now) {                         // called with the world transform in place; leaves the screen transform behind
   const B = clockBack();
-  bgCache(CW_BG, 'clock', B, g => g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch));
+  bgCache(CW_BG, 'clock', B, g => clockDial(g));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 function drawClockDeco(D) {                           // terrain as metalwork: a river is an engraved channel, islands are plates screwed down, the ring is a bezel
@@ -4921,14 +4922,18 @@ function neonBack() {                                  // wet asphalt: grain, an
   const g = bmp.getContext('2d'); g.setTransform(BS, 0, 0, BS, -ox * BS, -oy * BS);
   let sd = (G.seed | 0) ^ 0x5bd1e995; const rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
   const tints = ['200,70,255', '40,200,220', '255,150,60', '70,100,255', '255,60,140'];
-  for (let i = 0; i < 8; i++) {                       // the sheen: wide, faint pools of coloured light on the wet street
+  for (let i = 0; i < 8; i++) {                       // the sheen: wide, faint pools of coloured light on the wet street (the picture's edge fade below thins them out at its border)
     const x = ox + rnd() * cw, y = oy + rnd() * ch, R = Math.min(cw, ch) * (0.25 + rnd() * 0.3), gr = g.createRadialGradient(x, y, 0, x, y, R);
     gr.addColorStop(0, 'rgba(' + tints[i % tints.length] + ',0.075)'); gr.addColorStop(1, 'rgba(' + tints[i % tints.length] + ',0)'); g.fillStyle = gr; g.fillRect(ox, oy, cw, ch);
   }
   const n = Math.round(cw * ch / 70);                 // the grain of the asphalt
   for (let i = 0; i < n; i++) { const a = rnd(); g.fillStyle = a < 0.5 ? 'rgba(190,170,230,0.04)' : a < 0.85 ? 'rgba(120,130,170,0.05)' : 'rgba(0,0,0,0.22)'; const z = 0.7 + rnd() * 0.9; g.fillRect(ox + rnd() * cw, oy + rnd() * ch, z, z); }
-  const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(cw, ch) * 0.55);        // the edges fall away into the dark
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.25)'); g.fillStyle = vg; g.fillRect(ox, oy, cw, ch);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'destination-out';      // 49.5.2: the grain and the pools thin out to nothing at the picture's edges, so they never end in a hard line
+  const fw = Math.round(bmp.width * 0.045), fh = Math.round(bmp.height * 0.045);
+  const edge = (x0, y0, x1, y1, rx, ry, rw, rh) => { const e = g.createLinearGradient(x0, y0, x1, y1); e.addColorStop(0, 'rgba(0,0,0,1)'); e.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = e; g.fillRect(rx, ry, rw, rh); };
+  edge(0, 0, fw, 0, 0, 0, fw, bmp.height); edge(bmp.width, 0, bmp.width - fw, 0, bmp.width - fw, 0, fw, bmp.height);
+  edge(0, 0, 0, fh, 0, 0, bmp.width, fh); edge(0, bmp.height, 0, bmp.height - fh, 0, bmp.height - fh, bmp.width, fh);
+  g.globalCompositeOperation = 'source-over';
   NE.back = { g: G, bmp, ox, oy, cw, ch }; return NE.back;
 }
 function drawNeonBack(now) {                           // called with the world transform in place; leaves the screen transform behind
@@ -4939,7 +4944,11 @@ function drawNeonBack(now) {                           // called with the world 
     let gr = g.createLinearGradient(0, F.y, 0, F.y + F.h); gr.addColorStop(0, '#140c34'); gr.addColorStop(0.55, '#0a0c22'); gr.addColorStop(1, '#05222c'); g.fillStyle = gr; g.fillRect(F.x, F.y, F.w, F.h);
     gr = g.createLinearGradient(0, F.y + F.h * 0.62, 0, F.y + F.h); gr.addColorStop(0, 'rgba(255,50,170,0)'); gr.addColorStop(1, 'rgba(255,50,170,0.13)'); g.fillStyle = gr; g.fillRect(F.x, F.y + F.h * 0.62, F.w, F.h * 0.38);
     gr = g.createLinearGradient(0, F.y, 0, F.y + F.h * 0.3); gr.addColorStop(0, 'rgba(60,200,255,0.07)'); gr.addColorStop(1, 'rgba(60,200,255,0)'); g.fillStyle = gr; g.fillRect(F.x, F.y, F.w, F.h * 0.3);
-    g.setTransform(m); g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch);
+    g.setTransform(m);
+    g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);               // the vignette is part of the screen, not of the map: it darkens the edges of the frame, and goes on at the same strength wherever the map ends
+    const vg = g.createRadialGradient(F.x + F.w / 2, F.y + F.h / 2, Math.min(F.w, F.h) * 0.3, F.x + F.w / 2, F.y + F.h / 2, Math.hypot(F.w, F.h) * 0.55);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.25)'); g.fillStyle = vg; g.fillRect(F.x, F.y, F.w, F.h);
   });
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ms = performance.now(), dt = Math.min(0.25, Math.max(0, (ms - NE.hAt) / 1000)); NE.hAt = ms;
@@ -8458,7 +8467,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.5.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.5.2 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -3446,7 +3446,7 @@ function drawEdges(now) {
   const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), DASH = NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
   for (let i = 0; i < 5; i++) { inner[i].length = 0; out[i].length = 0; }
   ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
-  ctx.strokeStyle = HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(140,160,200,0.15)' : 'rgba(255,255,255,0.17)';
+  ctx.strokeStyle = HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
   ctx.beginPath();
   for (const [a, b] of G.edges) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
@@ -3461,18 +3461,20 @@ function drawEdges(now) {
   for (let i = 0; i < 5; i++) {
     const L = inner[i];
     if (L.length) {
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.24 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
+      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       for (let j = 0; j < L.length; j += 2) { if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
       ctx.stroke();
+      if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.09); ctx.lineWidth = lw * 4.5; ctx.stroke(); ctx.lineWidth = lw * 0.9; ctx.globalCompositeOperation = 'source-over'; }   // Neon: every line glows
     }
     const O = out[i];
     if (O.length) {   // drawn from the owner outward, so the dashes drift toward what they can attack
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.5 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
+      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
       }
       ctx.stroke(); ctx.lineWidth = lw;
+      if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.16); ctx.lineWidth = lw * 5; ctx.stroke(); ctx.lineWidth = lw; ctx.globalCompositeOperation = 'source-over'; }   // Neon: the ways out glow brightest
       if (isOver()) {                                // Overload: the same lines again, wide and glowing, on the beat
         ctx.setLineDash([]); ctx.globalCompositeOperation = 'lighter';
         ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.1 + 0.14 * kick); ctx.lineWidth = lw * 5; ctx.stroke();
@@ -4808,7 +4810,7 @@ function drawClockFx(now) {                           // notches, springs, captu
 // reflections sliding out along them. Rain falls fast and diagonally over the asphalt, heavier as the fighting grows, with puddle rings now and then.
 // Never: firelight or crackle, a starfield, hard pixel edges, glassy ice tones, or any flash brighter than a soft lift.
 // Reduce motion: no flicker, no stutter, no lift, still rain.
-const NE_BG = '#06070b', NE_RAIN = '#b8cbe6', NE_SEGS = 8;
+const NE_BG = '#0b0618', NE_RAIN = '#b8cbe6', NE_SEGS = 8;            // 49.5.1: the air glows violet and teal instead of black asphalt
 const NE = { own: new Map(), og: null, back: null, rain: null, rw: 0, rh: 0, rq: -1, heat: 0, hAt: 0, refl: new Map(), tube: null, lift: 0 };
 const isNeon = () => settings.visual === 'neon';
 function neReset() { if (NE.og !== G) { NE.og = G; NE.own.clear(); NE.heat = 0; } }
@@ -4889,14 +4891,23 @@ function drawNeonBase(n, c, now) {
   if (rs > 0) {                                       // the reflection on the street, broken up by the rain
     const R = neRefl(c), wob = reduceMotion ? 0 : Math.sin(now * 2.1 + n.id) * 0.6;
     ctx.save(); ctx.translate(x, y); if (V.rot) ctx.rotate(-Math.PI / 2);
-    ctx.globalAlpha = 0.55 * rs * Math.min(1, b) * (0.5 + 0.5 * h); ctx.drawImage(R, -s * 0.95 + wob, s + 1.5, s * 1.9, s * 4.4);
+    ctx.globalAlpha = 0.75 * rs * Math.min(1, b) * (0.5 + 0.5 * h); ctx.drawImage(R, -s * 1.0 + wob, s + 1.5, s * 2.0, s * 5.2);
     ctx.restore();
   }
-  ctx.globalAlpha = 0.5 * Math.min(1, b) * (0.55 + 0.45 * h); const gs = s * 5.2; ctx.drawImage(glow(c), x - gs / 2, y - gs / 2, gs, gs);       // the glow it throws around it
+  ctx.globalAlpha = 0.75 * Math.min(1, b) * (0.55 + 0.45 * h); const gs = s * 6.2; ctx.drawImage(glow(c), x - gs / 2, y - gs / 2, gs, gs);       // the glow it throws around it
+  if (quality < 2) { ctx.globalAlpha = 0.2 * Math.min(1, b) * (0.5 + 0.5 * h); const gw = s * 13; ctx.drawImage(glow(c), x - gw / 2, y - gw / 2, gw, gw); }   // and the wide halo of a bright sign in wet air
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = 'rgba(4,5,9,0.92)'; ctx.beginPath(); neArc(x, y, s * 0.92, 0, 1); ctx.fill();                                      // the dark sign behind the tube, so it reads over any glow
   if (hurt) { ctx.strokeStyle = hexA(c, 0.13); ctx.lineWidth = (HC ? 1.8 : 1.3); ctx.beginPath(); neSegs(x, y, s, h, 1); ctx.stroke(); }  // the dark glass of the segments that have gone out
-  if (h > 0.002) neGlowTube(x, y, s, c, k, Math.min(1.25, b), 0, h, 1.9);
+  if (h > 0.002) {
+    neGlowTube(x, y, s, c, k, Math.min(1.25, b), 0, h, 1.9);
+    if (quality < 2) {                                // a slight colour fringe either side of the tube, like an over-bright sign through rain
+      ctx.globalCompositeOperation = 'lighter'; ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,60,200,' + (0.28 * Math.min(1, b)).toFixed(3) + ')'; ctx.beginPath(); neSegs(x + 1.1, y, s, 0, h); ctx.stroke();
+      ctx.strokeStyle = 'rgba(60,230,255,' + (0.28 * Math.min(1, b)).toFixed(3) + ')'; ctx.beginPath(); neSegs(x - 1.1, y, s, 0, h); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
   if (n.kind) return;                                 // a special keeps its glyph (drawn after this) inside the sign
   if (SYM) { ctx.fillStyle = emCss(k.hot, 0.95 * Math.min(1, b)); ctx.beginPath(); symPath(ctx, symOf(n.owner), x, y, 4.8 * (HC ? 1.1 : 1)); ctx.fill(); return; }
   ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5 * Math.min(1, b); ctx.drawImage(glow(c), x - 7, y - 7, 14, 14);         // a lit point in the middle of the sign
@@ -4910,38 +4921,53 @@ function neonBack() {                                  // wet asphalt: grain, an
   const g = bmp.getContext('2d'); g.setTransform(BS, 0, 0, BS, -ox * BS, -oy * BS);
   let sd = (G.seed | 0) ^ 0x5bd1e995; const rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
   const tints = ['200,70,255', '40,200,220', '255,150,60', '70,100,255', '255,60,140'];
-  for (let i = 0; i < 6; i++) {                       // the sheen: a few wide, very faint pools of coloured light on the wet street
+  for (let i = 0; i < 8; i++) {                       // the sheen: wide, faint pools of coloured light on the wet street
     const x = ox + rnd() * cw, y = oy + rnd() * ch, R = Math.min(cw, ch) * (0.25 + rnd() * 0.3), gr = g.createRadialGradient(x, y, 0, x, y, R);
-    gr.addColorStop(0, 'rgba(' + tints[i % tints.length] + ',0.05)'); gr.addColorStop(1, 'rgba(' + tints[i % tints.length] + ',0)'); g.fillStyle = gr; g.fillRect(ox, oy, cw, ch);
+    gr.addColorStop(0, 'rgba(' + tints[i % tints.length] + ',0.075)'); gr.addColorStop(1, 'rgba(' + tints[i % tints.length] + ',0)'); g.fillStyle = gr; g.fillRect(ox, oy, cw, ch);
   }
   const n = Math.round(cw * ch / 70);                 // the grain of the asphalt
-  for (let i = 0; i < n; i++) { const a = rnd(); g.fillStyle = a < 0.5 ? 'rgba(170,180,200,0.05)' : a < 0.85 ? 'rgba(120,130,150,0.06)' : 'rgba(0,0,0,0.3)'; const z = 0.7 + rnd() * 0.9; g.fillRect(ox + rnd() * cw, oy + rnd() * ch, z, z); }
+  for (let i = 0; i < n; i++) { const a = rnd(); g.fillStyle = a < 0.5 ? 'rgba(190,170,230,0.04)' : a < 0.85 ? 'rgba(120,130,170,0.05)' : 'rgba(0,0,0,0.22)'; const z = 0.7 + rnd() * 0.9; g.fillRect(ox + rnd() * cw, oy + rnd() * ch, z, z); }
   const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(cw, ch) * 0.55);        // the edges fall away into the dark
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.5)'); g.fillStyle = vg; g.fillRect(ox, oy, cw, ch);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.25)'); g.fillStyle = vg; g.fillRect(ox, oy, cw, ch);
   NE.back = { g: G, bmp, ox, oy, cw, ch }; return NE.back;
 }
 function drawNeonBack(now) {                           // called with the world transform in place; leaves the screen transform behind
   neReset();
   const B = neonBack();
-  bgCache(NE_BG, 'neon', B, g => g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch));
+  bgCache(NE_BG, 'neon', B, g => {
+    const m = g.getTransform(); g.setTransform(dpr, 0, 0, dpr, 0, 0);                                  // the air: the city's light thrown back off low cloud, violet above, deep teal below, a glow along the bottom edge like a skyline
+    let gr = g.createLinearGradient(0, F.y, 0, F.y + F.h); gr.addColorStop(0, '#140c34'); gr.addColorStop(0.55, '#0a0c22'); gr.addColorStop(1, '#05222c'); g.fillStyle = gr; g.fillRect(F.x, F.y, F.w, F.h);
+    gr = g.createLinearGradient(0, F.y + F.h * 0.62, 0, F.y + F.h); gr.addColorStop(0, 'rgba(255,50,170,0)'); gr.addColorStop(1, 'rgba(255,50,170,0.13)'); g.fillStyle = gr; g.fillRect(F.x, F.y + F.h * 0.62, F.w, F.h * 0.38);
+    gr = g.createLinearGradient(0, F.y, 0, F.y + F.h * 0.3); gr.addColorStop(0, 'rgba(60,200,255,0.07)'); gr.addColorStop(1, 'rgba(60,200,255,0)'); g.fillStyle = gr; g.fillRect(F.x, F.y, F.w, F.h * 0.3);
+    g.setTransform(m); g.drawImage(B.bmp, B.ox, B.oy, B.cw, B.ch);
+  });
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ms = performance.now(), dt = Math.min(0.25, Math.max(0, (ms - NE.hAt) / 1000)); NE.hAt = ms;
   NE.heat += ((1 - Math.exp(-shotRate / 30)) - NE.heat) * (1 - Math.exp(-dt / 2.5));          // the rain gets heavier as the fighting grows (smoothed over a few seconds)
-  const w = Math.ceil(F.w) + 40, h = Math.ceil(F.h) + 60, mv = reduceMotion ? 0 : 1, cap = [120, 90, 60, 36][quality];
+  const w = Math.ceil(F.w) + 40, h = Math.ceil(F.h) + 60, mv = reduceMotion ? 0 : 1, cap = [170, 130, 85, 45][quality];
   if (!NE.rain || NE.rw !== w || NE.rh !== h || NE.rq !== quality) {
-    const out = []; for (let i = 0; i < cap; i++) out.push({ x: Math.random() * w, y: Math.random() * h, v: 520 + Math.random() * 260, l: 9 + Math.random() * 9, a: i % 3 });
+    const out = []; for (let i = 0; i < cap; i++) out.push({ x: Math.random() * w, y: Math.random() * h, v: 520 + Math.random() * 260, l: 9 + Math.random() * 10, a: i % 3 });
     NE.rain = out; NE.rw = w; NE.rh = h; NE.rq = quality;
   }
-  const use = Math.round(NE.rain.length * (0.5 + 0.5 * NE.heat)), SL = 0.26;           // a streak leans a quarter of its length: fast and diagonal, never drifting like snow
-  ctx.lineCap = 'round'; ctx.lineWidth = 1;
-  for (let a = 0; a < 3; a++) {
-    ctx.strokeStyle = NE_RAIN; ctx.globalAlpha = [0.09, 0.14, 0.2][a]; ctx.beginPath();
-    for (let i = a; i < use; i += 3) {
-      const p = NE.rain[i], yy = p.y + now * p.v * mv, x = F.x - 20 + ((p.x + yy * SL) % w + w) % w, y = F.y - 40 + (yy % h + h) % h;
-      ctx.moveTo(x, y); ctx.lineTo(x - p.l * SL, y - p.l);
-    }
-    ctx.stroke();
+  const L = NE.lit || (NE.lit = { x: new Float32Array(256), y: new Float32Array(256), c: new Int8Array(256), b: [] });     // the lit signs, on screen, so the rain near each can catch its light
+  let nl = 0; const fogD = fogOn();
+  for (const n of G.nodes) { if (n.owner < 0 || nl >= 256 || (fogD && !n.vis)) continue; const q = toScreen(n.x, n.y); if (q.x < F.x - 80 || q.x > F.x + F.w + 80 || q.y < F.y - 80 || q.y > F.y + F.h + 80) continue; L.x[nl] = q.x; L.y[nl] = q.y; L.c[nl] = n.owner; nl++; }
+  const R = Math.max(38, 52 * V.s), R2 = R * R, use = Math.round(NE.rain.length * (0.55 + 0.45 * NE.heat)), SL = 0.26;     // a streak leans a quarter of its length: fast and diagonal, never drifting like snow
+  for (let k = 0; k < 18; k++) (L.b[k] || (L.b[k] = [])).length = 0;                  // buckets: plain rain in three strengths, then each colour near and nearer
+  for (let i = 0; i < use; i++) {
+    const p = NE.rain[i], yy = p.y + now * p.v * mv, x = F.x - 20 + ((p.x + yy * SL) % w + w) % w, y = F.y - 40 + (yy % h + h) % h;
+    let best = R2, bc = -1;
+    for (let j = 0; j < nl; j++) { const dx = x - L.x[j], dy = y - L.y[j], d = dx * dx + dy * dy; if (d < best) { best = d; bc = L.c[j]; } }
+    L.b[bc < 0 ? p.a : 3 + bc * 3 + (best < R2 * 0.3 ? 2 : best < R2 * 0.6 ? 1 : 0)].push(x, y, p.l);
   }
+  ctx.lineCap = 'round'; ctx.lineWidth = 1;
+  for (let k = 0; k < 18; k++) {
+    const B2 = L.b[k]; if (!B2.length) continue;
+    if (k < 3) { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = NE_RAIN; ctx.globalAlpha = [0.09, 0.14, 0.2][k]; }
+    else { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = TEAM_COLORS[((k - 3) / 3) | 0]; ctx.globalAlpha = [0.28, 0.45, 0.65][(k - 3) % 3]; ctx.lineWidth = 1.2; }
+    ctx.beginPath(); for (let i = 0; i < B2.length; i += 3) { ctx.moveTo(B2[i], B2[i + 1]); ctx.lineTo(B2[i] - B2[i + 2] * SL, B2[i + 1] - B2[i + 2]); } ctx.stroke(); ctx.lineWidth = 1;
+  }
+  ctx.globalCompositeOperation = 'source-over';
   if (mv) {                                           // and now and then a ring opens in a puddle
     ctx.strokeStyle = NE_RAIN;
     for (let i = 0; i < 7; i++) {
@@ -4992,9 +5018,12 @@ function neonHits(ev) {                                // a blow throws a little
 function drawNeonTroops(buckets) {                     // points of light, each with a short taillight streak behind it, softened by the rain
   if (!reduceMotion) {
     ctx.globalCompositeOperation = 'lighter';
-    for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (!arr.length) continue; ctx.fillStyle = hexA(TEAM_COLORS[b - 1], 0.42); trailPath(arr, 8, 1.05); }
+    for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (!arr.length) continue; ctx.fillStyle = hexA(TEAM_COLORS[b - 1], 0.6); trailPath(arr, 9, 1.1); }
     ctx.globalCompositeOperation = 'source-over';
   }
+  ctx.globalCompositeOperation = 'lighter';
+  for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (arr.length) drawClusterGlows(arr, glow(TEAM_COLORS[b - 1]), 0.55); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   const sc = 0.72 * (HC ? 1.2 : 1);
   for (let b = 1; b < 6; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
@@ -6929,39 +6958,19 @@ function musicboxPreview() {                          // wind, two ticks, the ta
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7000);
 }
 
-// ---- "Rain": a city at night in the rain, in sound, for Neon (49.5) ----
-// The bed is the rain itself, never a tune: a light drizzle when the map is quiet, a downpour with the gutters running in the final battles.
-// It is low-passed and grows wider as it grows heavier (the Cosmos rule), and it never fully stops during a match. A troop hit is one heavy drop
-// plinking on a metal awning, pitched by team; a base hit is rain drumming on a car roof, with a dull thunk now and then. A base losing another
-// quarter of its health buzzes like a failing sign. Taking a base is a sign striking on: a click, a buzz and a warm two-note hum rising into tune.
-// Losing one is your sign shorting out: a pop, then the hum falls a fifth and dies. A rival's capture is a distant sign clicking on, muffled by the
-// rain. A knockout is thunder rolling far off. Your actions own the sound: hits are split into three budgets, as in Music Box since 49.4.1
-// (yours, a rival on one of your bases, everyone else). The ending is the last sign: its hum detunes and crackles as your last base falls.
-const RN_LEVEL = 1.6, RN_BED = 0.07;                   // the style's level, and the rain's under it
-const RN_TEAMF = [2150, 1480, 1750, 1300, 1950];                                         // each colour's drop on the awning
-const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', bufs: null, ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0 };
+// ---- "Rain": a city at night in the rain, in sound, for Neon (49.5; reworked in 49.5.1) ----
+// The fighting is the rain. There is no rain bed: every troop hit is one water drop falling into a puddle (a quick rising "plip"), so a quiet map is
+// a few drops and a big battle is a downpour, made of the real hits. A base hit is a heavier drop with a soft low synth thump on every third of yours.
+// Under it all is the hum of the city: a faint electrical hum and the air of a city far off, a little fuller in big fights, never a tune.
+// The neon is the music of the events: taking a base is a warm, slightly detuned synth brass swell, opening like a sign striking on; losing one is
+// that swell bending down and warbling like old tape; a rival's capture is the same swell far off, muffled; a knockout is one huge, low synth hit
+// rolling off into distant thunder. A base losing another quarter of its health buzzes like a failing sign. Your actions own the sound: the same
+// three hit budgets as Music Box since 49.4.1 (yours, a rival on one of your bases, everyone else). The ending is the last sign: its hum detunes and
+// crackles and the drops come thicker as your last base falls; a win settles every hum into one chord as the city goes quiet under it.
+const RN_LEVEL = 1.6, RN_BED = 0.008;                   // the style's level, and the city's hum under it
+const RN_TEAMF = [1150, 820, 960, 740, 1060];                                            // each colour's drop: where its rising plip starts
+const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0, swells: 0 };
 const isRain = () => settings.tone === 'rain';
-function rnBufs() {                                    // the rain, made once: a light layer (sparse bright drops over a soft hiss, nearly the same in both ears) and a heavy one (dense, darker, wide)
-  if (RN.bufs && RN.bufs.sr === AC.sampleRate) return RN.bufs;
-  const sr = AC.sampleRate, len = Math.floor(sr * 3.2);
-  const make = (rate, f0, f1, d0, d1, hiss, hlp, spread) => {
-    const b = AC.createBuffer(2, len, sr), L = b.getChannelData(0), R = b.getChannelData(1);
-    for (const [ch, seed] of [[L, 0], [R, 1]]) {
-      let l = 0; for (let i = 0; i < len; i++) { l += (Math.random() * 2 - 1 - l) * hlp; ch[i] = l * hiss; }       // the hiss under the drops
-      const n = Math.floor(rate * len / sr);
-      for (let k = 0; k < n; k++) {                  // each drop: a tiny ringing burst, wrapped round the end so the loop has no seam
-        const at = Math.floor(Math.random() * len), f = f0 * Math.pow(f1 / f0, Math.random()), dec = (d0 + Math.random() * (d1 - d0)) * sr, a = Math.pow(Math.random(), 2.2) * (seed && spread < 1 ? 1 : 1);
-        const w = 2 * Math.PI * f / sr, m = Math.min(len, Math.floor(dec * 5));
-        for (let j = 0; j < m; j++) ch[(at + j) % len] += a * Math.sin(w * j) * Math.exp(-j / dec);
-      }
-    }
-    if (spread < 1) for (let i = 0; i < len; i++) { const m = (L[i] + R[i]) * 0.5; L[i] = m + (L[i] - m) * spread; R[i] = m + (R[i] - m) * spread; }   // narrow: mostly the same in both ears
-    let s = 0; for (let i = 0; i < len; i++) s += L[i] * L[i] + R[i] * R[i];
-    const k = 0.25 / Math.sqrt(s / (2 * len) + 1e-12); for (let i = 0; i < len; i++) { L[i] *= k; R[i] *= k; }
-    return b;
-  };
-  return (RN.bufs = { sr, light: make(260, 2400, 6500, 0.0012, 0.0035, 0.35, 0.3, 0.25), heavy: make(1500, 800, 4200, 0.0018, 0.006, 0.9, 0.18, 1) });
-}
 function rnIR() {                                       // a wet street: short, dark reflections off the walls either side
   if (RN.ir && RN.ir.sampleRate === AC.sampleRate) return RN.ir;
   const sr = AC.sampleRate, len = Math.floor(sr * 0.7), b = AC.createBuffer(2, len, sr);
@@ -6975,12 +6984,16 @@ function rnBuild(withBed) {
   N.dry = AC.createGain(); N.dry.gain.value = 1; N.dry.connect(N.comp);
   N.rev = AC.createConvolver(); N.rev.buffer = rnIR(); const rg = AC.createGain(); rg.gain.value = 0.3; N.rev.connect(rg); rg.connect(N.comp);
   N.wet = AC.createGain(); N.wet.gain.value = 1; N.wet.connect(N.rev);
-  if (withBed) {                                      // the rain: drizzle always, the downpour and the gutters joining as the fighting grows
-    const B = rnBufs(); N.bed = AC.createGain(); N.bed.gain.value = RN_BED; N.bed.connect(N.comp);
-    const layer = (buf, off, type, f, g0) => { const s = AC.createBufferSource(), lp = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = buf; s.loop = true; lp.type = type; lp.frequency.value = f; lp.Q.value = 0.5; g.gain.value = g0; s.connect(lp); lp.connect(g); g.connect(N.bed); s.start(t, off); N.srcs.push(s); return { lp, g }; };
-    N.light = layer(B.light, Math.random() * 3, 'lowpass', 3600, 0.16);
-    N.heavy = layer(B.heavy, Math.random() * 3, 'lowpass', 1500, 0.02);
-    if (q < 2) N.gutter = layer(B.heavy, Math.random() * 3, 'lowpass', 420, 0.05);
+  if (withBed) {                                      // the hum of the city: a faint transformer hum (its harmonics, so a phone can play it) and the air of a city far off
+    N.bed = AC.createGain(); N.bed.gain.value = RN_BED; N.bed.connect(N.comp);
+    N.hum = AC.createGain(); N.hum.gain.value = 0.5; const hl = AC.createBiquadFilter(); hl.type = 'lowpass'; hl.frequency.value = 520; hl.Q.value = 0.4; hl.connect(N.hum); N.hum.connect(N.bed);
+    for (const [f, a, ty] of [[120, 0.5, 'sawtooth'], [240, 0.35, 'sine'], [360, 0.18, 'sine'], [240.6, 0.2, 'sine']]) { const o = AC.createOscillator(), g = AC.createGain(); o.type = ty; o.frequency.value = f; g.gain.value = a; o.connect(g); g.connect(hl); o.start(t); N.srcs.push(o); }
+    const lfo = AC.createOscillator(), ld = AC.createGain(); lfo.frequency.value = 0.09; ld.gain.value = 0.15; lfo.connect(ld); ld.connect(N.hum.gain); lfo.start(t); N.srcs.push(lfo);      // it breathes, very slowly
+    if (q < 2) {                                      // the air: low, soft, wide, like traffic many streets away
+      N.air = AC.createGain(); N.air.gain.value = 0.25; N.air.connect(N.bed);
+      for (const pan of [-0.6, 0.6]) { const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), lp = AC.createBiquadFilter(); s.buffer = noise(); s.loop = true; bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 0.6; lp.type = 'lowpass'; lp.frequency.value = 700;
+        s.connect(bp); bp.connect(lp); let o = lp; if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = pan; lp.connect(p); o = p; } o.connect(N.air); s.start(t, Math.random() * 0.4); N.srcs.push(s); }
+    }
   }
   return N;
 }
@@ -6994,23 +7007,37 @@ function rnNoise(N, t, type, f, Q, peak, len, pan, wet, f2) {   // a short burst
   g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
   s.connect(bp); bp.connect(g); rnOut(N, g, pan, wet); s.start(t, Math.random() * 0.3, len + 0.02);
 }
-function rnPlink(N, t, f, peak, pan, dull) {           // a heavy drop on a metal awning: a quick falling ping with a tin edge
+function rnPlink(N, t, f, peak, pan, dull) {           // one water drop into a puddle: a quick rising "plip" with a little body under it
   if (RN.v > [14, 9, 6][AQ()]) return; RN.v++; setTimeout(() => { RN.v--; }, 200); RN.plinks++;
-  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
-  o.frequency.setValueAtTime(f * 1.3, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.012); o2.frequency.value = f * 2.76;
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
-  g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.3, t + 0.002); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
-  lp.type = 'lowpass'; lp.frequency.value = dull ? 1600 : 9000; o.connect(g); o2.connect(g2); g.connect(lp); g2.connect(lp); rnOut(N, lp, pan, 0.25);
-  o.start(t); o2.start(t); o.stop(t + 0.1); o2.stop(t + 0.05);
+  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(), d = 0.035 + Math.random() * 0.02;
+  o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * (2.2 + Math.random() * 0.6), t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.003); g.gain.exponentialRampToValueAtTime(peak * 0.35, t + d * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.02);
+  lp.type = 'lowpass'; lp.frequency.value = dull ? 1500 : 7000; o.connect(g); g.connect(lp); rnOut(N, lp, pan, dull ? 0.5 : 0.3);
+  o.start(t); o.stop(t + d + 0.04);
 }
-function rnThunk(N, t, peak, pan, lite) {              // rain drumming hard on a car roof: a quick patter, and (not lite) a short dull thunk under it
+function rnSwell(N, t, notes, peak, att, hold, rel, lpTop, pan, bend, wow) {   // the neon's voice: a warm synth brass swell, two detuned saws a note, a filter opening like a sign striking on
+  RN.swells++;
+  const sum = AC.createGain(), lp = AC.createBiquadFilter(), env = AC.createGain(), q = AQ(), saws = q >= 2 ? [0] : [-7, 7];
+  lp.type = 'lowpass'; lp.Q.value = 2.2; lp.frequency.setValueAtTime(220, t); lp.frequency.exponentialRampToValueAtTime(lpTop, t + att); lp.frequency.exponentialRampToValueAtTime(Math.max(300, lpTop * 0.35), t + att + hold + rel * 0.6);
+  env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(peak, t + att); env.gain.setValueAtTime(peak, t + att + hold); env.gain.exponentialRampToValueAtTime(0.0001, t + att + hold + rel);
+  sum.gain.value = 1 / Math.sqrt(notes.length * saws.length); sum.connect(lp); lp.connect(env); rnOut(N, env, pan, 0.55);
+  const end = t + att + hold + rel + 0.05;
+  let vib = null; if (wow || q < 2) { vib = AC.createOscillator(); const vd = AC.createGain(); vib.frequency.value = wow ? 3.2 : 5.2; vd.gain.value = wow ? 30 : 5; vib.connect(vd); vib.vd = vd; vib.start(t); vib.stop(end); }
+  for (const f of notes) for (const dc of saws) {
+    const o = AC.createOscillator(); o.type = 'sawtooth'; o.detune.value = dc; o.frequency.setValueAtTime(f, t);
+    if (bend) o.frequency.exponentialRampToValueAtTime(f * bend, t + att + hold + rel * 0.8);                     // bending down, like a tape slowing
+    if (vib) vib.vd.connect(o.detune);
+    o.connect(sum); o.start(t); o.stop(end);
+  }
+}
+function rnThunk(N, t, peak, pan, lite) {              // a base hit: a heavier, lower drop; and (not lite) a soft low synth thump under it
   RN.thunks++;
-  for (let i = 0; i < 3; i++) rnNoise(N, t + i * 0.014 + Math.random() * 0.004, 'bandpass', 1000 + Math.random() * 300, 1.2, peak * (1 - i * 0.2), 0.012, pan, 0.2);
+  rnPlink(N, t, 520 + Math.random() * 80, peak * 0.5, pan, lite && peak < 0.1);
   if (lite) return;
-  const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(80, t + 0.08);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.5, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
-  o.connect(g); rnOut(N, g, pan, 0.4); o.start(t); o.stop(t + 0.13);
-  rnNoise(N, t, 'lowpass', 420, 0.7, peak * 0.5, 0.04, pan, 0.3);
+  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(62, t + 0.12);
+  lp.type = 'lowpass'; lp.frequency.setValueAtTime(700, t); lp.frequency.exponentialRampToValueAtTime(160, t + 0.12);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * 0.28, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o.connect(lp); lp.connect(g); rnOut(N, g, pan, 0.4); o.start(t); o.stop(t + 0.2);
 }
 function rnBuzz(N, t, peak, pan, len) {                // a sign failing: a mains buzz that stutters
   const o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 120;
@@ -7029,35 +7056,29 @@ function rnHumVoice(N, t, f, peak, att, len, glide, lpf, pan) {   // one warm hu
   for (const x of [o, o2, o3]) { x.start(t); x.stop(t + len + 0.05); }
 }
 const rnShare = () => (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
-function rnStrike(N, t, share, mine, pan) {            // a sign striking on: a click, a stuttering buzz, then two warm notes rising into tune (brighter the more of the map is yours)
+function rnStrike(N, t, share, mine, pan) {            // you took a base: the swell (D, A, E: open, warm), brighter the more of the map is yours; a click as the sign catches
   const k = mine ? 1 : 0.55;
-  rnNoise(N, t, 'bandpass', 3400, 2, 0.22 * k, 0.006, pan, 0.2);
-  rnBuzz(N, t + 0.01, 0.02 * k, pan, 0.12);
-  const lpf = 1400 + 1400 * Math.min(1, share * 1.6);
-  rnHumVoice(N, t + 0.12, 293.66, 0.04 * k, 0.12, 1.15, [0.965, 1, 0.3], lpf, pan);
-  rnHumVoice(N, t + 0.15, 440, 0.028 * k, 0.12, 1.05, [0.965, 1, 0.3], lpf, pan);
+  rnNoise(N, t, 'bandpass', 3400, 2, 0.12 * k, 0.006, pan, 0.2);
+  rnSwell(N, t + 0.01, [146.83, 220, 329.63], 0.045 * k, 0.16, 0.12, 1.3, 1600 + 1600 * Math.min(1, share * 1.6), pan * 0.5, 0, false);
 }
-function rnShort(N, t, pan, big) {                     // your sign shorting out: a pop, a crackle, and the hum falling a fifth as it dies
-  const k = big ? 1.4 : 1;
-  rnNoise(N, t, 'bandpass', 900, 0.8, 0.32 * k, 0.03, pan, 0.4);
-  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(55, t + 0.06);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12 * k, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08); o.connect(g); rnOut(N, g, pan, 0.3); o.start(t); o.stop(t + 0.1);
-  for (let i = 0; i < 3; i++) rnNoise(N, t + 0.04 + Math.random() * 0.14, 'bandpass', 4200, 1.5, 0.12 * k, 0.003, pan + (Math.random() - 0.5) * 0.3, 0.1);
-  rnHumVoice(N, t + 0.02, 293.66, 0.045 * k, 0.01, big ? 1.4 : 0.95, [1, 2 / 3, big ? 1.2 : 0.75], 1500, pan);
-  rnHumVoice(N, t + 0.02, 440, 0.03 * k, 0.01, big ? 1.3 : 0.85, [1, 2 / 3, big ? 1.1 : 0.7], 1500, pan);
+function rnShort(N, t, pan, big) {                     // your sign shorting out: a pop and a crackle, and the swell bending down and warbling like old tape as it dies
+  const k = big ? 1.3 : 1;
+  rnNoise(N, t, 'bandpass', 900, 0.8, 0.22 * k, 0.03, pan, 0.4);
+  for (let i = 0; i < 3; i++) rnNoise(N, t + 0.04 + Math.random() * 0.14, 'bandpass', 4200, 1.5, 0.1 * k, 0.003, pan + (Math.random() - 0.5) * 0.3, 0.1);
+  rnSwell(N, t + 0.02, [146.83, 220, 293.66], 0.05 * k, 0.03, 0.1, big ? 1.6 : 1.1, 1400, pan * 0.5, Math.pow(2, -4 / 12), true);
 }
-function rnFar(N, t, pan) {                            // a rival's sign clicking on somewhere across the city, muffled by the rain
+function rnFar(N, t, pan) {                            // a rival took a base: the same swell, one low note, far off across the city and muffled
   const clk = AC.currentTime; RN.rc = RN.rc.filter(x => clk - x < 2); if (RN.rc.length >= 3) return; RN.rc.push(clk);
-  rnNoise(N, t, 'bandpass', 1700, 1.5, 0.07, 0.006, pan * 0.7, 0.5);
-  rnHumVoice(N, t + 0.05, 146.83, 0.014, 0.08, 0.45, [0.97, 1, 0.2], 520, pan * 0.7);
+  rnSwell(N, t, [110], 0.022, 0.2, 0.05, 0.7, 520, pan * 0.7, 0, false);
 }
-function rnThunder(N, t, peak) {                       // a colour is out: thunder rolling far off, a few slow swells of a deep rumble
+function rnThunder(N, t, peak) {                       // a colour is out: one huge low synth hit, then thunder rolling far off
+  rnSwell(N, t, [73.42, 110, 146.83], 0.05, 0.02, 0.15, 2.6, 1500, 0, Math.pow(2, -2 / 12), false);
   const s = AC.createBufferSource(), lp = AC.createBiquadFilter(), lp2 = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = noise(); s.loop = true;
   lp.type = lp2.type = 'lowpass'; lp.frequency.value = 340; lp2.frequency.value = 520; lp.Q.value = lp2.Q.value = 0.6;
-  const steps = 24, c = new Float32Array(steps); let e = 0;
-  for (let i = 0; i < steps; i++) { const x = i / (steps - 1), bump = 0.55 + 0.45 * Math.abs(Math.sin(x * 9.5 + Math.random())); e = x < 0.08 ? x / 0.08 : Math.pow(1 - (x - 0.08) / 0.92, 1.6); c[i] = 0.0001 + peak * e * bump; }
-  g.gain.setValueAtTime(0.0001, t); g.gain.setValueCurveAtTime(c, t, 3.8);
-  s.connect(lp); lp.connect(lp2); lp2.connect(g); rnOut(N, g, 0, 0.5); s.start(t, Math.random() * 0.3); s.stop(t + 4);
+  const steps = 24, c = new Float32Array(steps), t2 = t + 0.6;
+  for (let i = 0; i < steps; i++) { const x = i / (steps - 1), bump = 0.55 + 0.45 * Math.abs(Math.sin(x * 9.5 + Math.random())), e = x < 0.1 ? x / 0.1 : Math.pow(1 - (x - 0.1) / 0.9, 1.6); c[i] = 0.0001 + peak * 0.45 * e * bump; }
+  g.gain.setValueAtTime(0.0001, t2); g.gain.setValueCurveAtTime(c, t2, 3.6);
+  s.connect(lp); lp.connect(lp2); lp2.connect(g); rnOut(N, g, 0, 0.5); s.start(t2, Math.random() * 0.3); s.stop(t2 + 3.8);
 }
 function rnTyres(N, t, pan) {                          // a retreat: tyres hissing past on the wet road and away
   if (!rtOK('rn', 2)) return;
@@ -7067,10 +7088,8 @@ function rnTyres(N, t, pan) {                          // a retreat: tyres hissi
   let o = g; if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.setValueAtTime(Math.max(-0.8, Math.min(0.8, pan)), t); p.pan.linearRampToValueAtTime(Math.max(-0.8, Math.min(0.8, -pan * 0.8)), t + 1.1); g.connect(p); o = p; }
   s.connect(bp); bp.connect(g); o.connect(N.dry); s.start(t, Math.random() * 0.3); s.stop(t + 1.2);
 }
-function rnSplash(N, t, k) {                           // your order: a small footstep splash
-  rnNoise(N, t, 'bandpass', 1300, 1, 0.14 + 0.05 * k, 0.045, 0, 0.2, 650);
-  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(2300, t + 0.01); o.frequency.exponentialRampToValueAtTime(1500, t + 0.03);
-  g.gain.setValueAtTime(0.0001, t + 0.01); g.gain.exponentialRampToValueAtTime(0.02, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04); o.connect(g); rnOut(N, g, 0, 0.1); o.start(t + 0.01); o.stop(t + 0.05);
+function rnSplash(N, t, k) {                           // your order: one soft drop close by
+  rnPlink(N, t, 1300 + 150 * k, 0.045, 0, false);
 }
 function rnTransformer(N, t) {                         // an upgrade point: a transformer hum swells and resolves to one clean, bright tone
   const o = AC.createOscillator(), o2 = AC.createOscillator(), lp = AC.createBiquadFilter(), g = AC.createGain(); o.type = o2.type = 'sawtooth'; o.frequency.value = 120; o2.frequency.value = 180;
@@ -7147,12 +7166,11 @@ function rainTick() {
   const N = RN.nodes, now = AC.currentTime, ms = performance.now(), dt = Math.min(0.25, Math.max(0.001, (ms - RN.at) / 1000)); RN.at = ms;
   RN.heat += ((1 - Math.exp(-shotRate / 30)) - RN.heat) * (1 - Math.exp(-dt / 2.5));          // the weight of the rain follows the fighting, smoothed over a few seconds
   let h = RN.heat;
-  if (RN.ft > 0) h = RN.ftKind === 'win' ? h * (1 - 0.8 * RN.ft) : Math.max(h, 0.4 + 0.6 * RN.ft);   // the ending: the rain thickens round your last sign (a win: it eases)
-  const fade = RN.fadeAt && now > RN.fadeAt;          // a win: the rain eases away and the hum is the last thing you hear
+  if (RN.ft > 0) h = RN.ftKind === 'win' ? h * (1 - 0.8 * RN.ft) : Math.max(h, 0.4 + 0.6 * RN.ft);   // the ending: the city leans in round your last sign (a win: it goes quiet)
+  const fade = RN.fadeAt && now > RN.fadeAt;          // a win: the city goes quiet and the chord is the last thing you hear
   N.bed.gain.setTargetAtTime(fade ? 0.0001 : RN_BED, now, fade ? 1.1 : 0.3);
-  N.light.g.gain.setTargetAtTime(0.16 - 0.03 * h, now, 0.4);
-  N.heavy.g.gain.setTargetAtTime(0.015 + 0.3 * Math.pow(h, 1.3), now, 0.4); N.heavy.lp.frequency.setTargetAtTime(1300 + 1700 * h, now, 0.4);
-  if (N.gutter) N.gutter.g.gain.setTargetAtTime(0.03 + 0.28 * h, now, 0.6);
+  N.hum.gain.setTargetAtTime(0.45 + 0.4 * h, now, 0.6);                              // the city hums a little fuller in a big fight
+  if (N.air) N.air.gain.setTargetAtTime(0.18 + 0.5 * h, now, 0.8);
   for (const f of G.fx) {                             // captures, knockouts and retreats
     if (f.rn) continue; f.rn = 1; if (f.ftq) continue;
     if (G.t - f.b > 1.5 || (fogOn() && f.x !== undefined && !seenXY(f.x, f.y))) continue;
@@ -7166,15 +7184,14 @@ function rainTick() {
     else if (f.k === 'retreat') rnTyres(N, now + 0.02, f.x !== undefined ? screenPan(f.x, f.y) : 0);
   }
 }
-function rainPreview() {                               // the rain swells, a sign buzzes on, a drop plinks, then a sign shorts out
+function rainPreview() {                               // the city's hum, a few drops, a sign's swell as you take a base, then a sign bending away as you lose one
   const N = rnBuild(true), t = AC.currentTime + 0.05;
-  N.light.g.gain.setValueAtTime(0.1, t); N.light.g.gain.linearRampToValueAtTime(0.15, t + 1);
-  N.heavy.g.gain.setValueAtTime(0.015, t); N.heavy.g.gain.linearRampToValueAtTime(0.28, t + 1.1); N.heavy.g.gain.linearRampToValueAtTime(0.12, t + 3.6);
-  N.heavy.lp.frequency.setValueAtTime(1300, t); N.heavy.lp.frequency.linearRampToValueAtTime(2600, t + 1.1);
+  N.bed.gain.setValueAtTime(0.0001, t); N.bed.gain.linearRampToValueAtTime(RN_BED * 1.2, t + 0.8);
+  [[0.25, 1150, -0.3], [0.5, 900, 0.3], [0.62, 1060, 0.1], [0.9, 760, -0.2]].forEach(([d, f, pan]) => rnPlink(N, t + d, f, 0.05, pan, false));
   rnStrike(N, t + 1.1, 0.4, true, 0);
-  rnPlink(N, t + 2.2, RN_TEAMF[0], 0.06, 0.2, false);
+  rnPlink(N, t + 2.3, RN_TEAMF[0], 0.05, 0.2, false);
   rnShort(N, t + 2.7, 0, false);
-  N.out.gain.setTargetAtTime(0.0001, t + 4.2, 0.4); for (const s of N.srcs) s.stop(t + 6.5);
+  N.out.gain.setTargetAtTime(0.0001, t + 4.4, 0.4); for (const s2 of N.srcs) s2.stop(t + 6.5);
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7500);
 }
 function mvRain(t, back) {                             // a single drip, dry
@@ -8441,7 +8458,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.5 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.5.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9168,13 +9185,14 @@ FTS.rain = {                                              // the last sign: buil
     const N = RN.nodes; if (!N) return 1.5;
     if (kind === 'win') { rnNoise(N, t, 'bandpass', 3000, 2, 0.08 + 0.08 * g, 0.006, (Math.random() - 0.5) * 0.8, 0.3); return 1.6 - 0.8 * g; }        // another of your signs clicking on, somewhere
     rnCrackle(N, t, 1 + Math.round(3 * g), 0.06 + 0.1 * g, 0); if (g > 0.3) rnBuzz(N, t + 0.05, 0.008 + 0.018 * g, 0, 0.06 + 0.1 * g);              // the sign sparks and stutters, more as it fails
+    for (let i = 0, n = 2 + Math.round(5 * g); i < n; i++) rnPlink(N, t + Math.random() * 1.0, 700 + Math.random() * 500, 0.018 + 0.02 * g, (Math.random() - 0.5) * 1.2, true);   // and the drops come thicker round it
     return 1.5 - 0.9 * g;
   },
   peak(kind, t, hold) {
     const N = RN.nodes; if (!N) return;
     if (kind === 'win') {                                 // the last sign strikes on, the hums settle into one chord that holds, and the rain eases away under it
       rnStrike(N, t, 1, true, 0); RN.fadeAt = AC.currentTime + 0.5;
-      for (const [f, a, d] of [[146.83, 0.03, 0.2], [220, 0.026, 0.25], [293.66, 0.03, 0.3], [440, 0.016, 0.35]]) rnHumVoice(N, t + d, f, a, 0.5, 4.2, null, 1600, 0);
+      rnSwell(N, t + 0.25, [146.83, 220, 293.66, 440], 0.07, 0.6, 1.6, 2.6, 2400, 0, 0, false);              // one wide, steady chord, the last thing you hear
       return;
     }
     rnShort(N, t, 0, true); rnCrackle(N, t + 0.35, 4, 0.12, 0);                                     // it shorts out; then only the rain

@@ -390,6 +390,14 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .mode { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 14px 16px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .mode b { font-size: 17px; font-weight: 600; }
 .mode .lk { display: none; width: 8px; height: 10px; margin-left: 6px; vertical-align: -1px; }
+.mode.resume { flex-direction: row; align-items: center; gap: 12px; border-color: var(--blue); background: var(--blue-soft); }
+.mode.resume[hidden] { display: none; }
+.mode.resume canvas { flex: none; width: 88px; height: 52px; border-radius: 8px; background: rgba(0,0,0,.5); border: 1px solid var(--faint); }
+.mode.resume .rsText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mode.resume .rsText { color: var(--ink); }
+.mode.resume .rsText span:empty { display: none; }
+.mode.resume .rsText span { font-size: 12.5px; color: var(--dim); line-height: 1.35; }
+.mode.resume .rsText #rsL1 { color: var(--ink); }
 .mode.lockd { opacity: .6; }
 .mode.lockd .lk { display: inline-block; }
 .mode span { font-size: 12.5px; color: var(--dim); line-height: 1.35; }
@@ -416,7 +424,9 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
   .screen.side.cols .seg button, .screen.side.cols .modbtn, .screen.side.cols select { min-height: 36px; height: 36px; font-size: 13px; }
   .screen.side.cols .primary.big { min-height: 46px; }
   .screen.side.cols .blurb { margin: 0; grid-column: 1 / -1; }
-  #scrPlay { width: min(100%, 660px); }
+  #scrPlay { width: min(100%, 800px); max-height: 100%; overflow-y: auto; }          /* 49.3: wide enough for the Resume card's summary; scrolls on a very short screen */
+  .mode.resume { padding: 10px 14px; gap: 10px; }
+  .mode.resume canvas { width: 80px; height: 48px; }
   .modes { grid-template-columns: 1fr 1fr; }
 }
 @media (orientation: landscape) and (max-height: 400px) {      /* short screens (a browser's toolbars eat height): same screens, tighter */
@@ -502,8 +512,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 
 /* ---------- Build 49.2: the Shop (styles bought with tokens; the live map behind is the preview) ---------- */
 .shopbtn { position: relative; }
-#shopDot { position: absolute; right: 14px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 2px #000; }
-#shopDot[hidden] { display: none; }
+#shopDot { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12.5px; font-weight: 500; color: var(--dim); font-style: normal; }          /* 49.3: the token count, where the blue dot was */
 #menu.shopOn { background: none; touch-action: none; }
 #menu.shopOn * { touch-action: none; }                   /* 49.2.1: no pinch-zoom of the page over the Shop; the strip handles its own swipes */
 body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles from Pause: the match shows, its controls do not */
@@ -561,6 +570,11 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   .snav svg { transform: rotate(90deg); }
   .shopnav { margin-top: 4px; }
   .shopnote { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(350px + max(16px, env(safe-area-inset-right, 0px))); bottom: max(14px, env(safe-area-inset-bottom, 0px)); margin: 0; text-align: left; text-shadow: 0 1px 3px #000; }
+}
+@media (orientation: landscape) and (max-height: 500px) {      /* 49.3: five Pause buttons do not fit one under another on a short screen */
+  #scrPause { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; width: min(100%, 520px); }
+  #scrPause header, #scrPause #bResume { grid-column: 1 / -1; }
+  #scrPause #bPauseSave[hidden] ~ #bQuit { grid-column: 1 / -1; }
 }
 </style>
 </head>
@@ -632,10 +646,10 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.2.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.3.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
-      <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot" hidden></i></button>
+      <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
       <button class="ghost big2" data-go="scrSettings">Settings</button>
       <button class="ghost big2" data-go="scrStats">Stats</button>
     </div>
@@ -644,6 +658,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   <section class="screen" id="scrPlay" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Play</h2></header>
     <div class="modes">
+      <button class="mode resume" id="mResume" hidden><canvas id="rsThumb" width="176" height="104" aria-hidden="true"></canvas><span class="rsText"><b id="rsT">Resume match</b><span id="rsL1"></span><span id="rsL2"></span><span id="rsL3"></span></span></button>
       <button class="mode" id="mClassic" data-go="scrClassic"><b>Classic</b><span>The standard match. Choose your team, map size, and AI strength.</span></button>
       <button class="mode" id="mCustom" data-go="scrCustom"><b>Custom</b><span>Set up your own match: Enemies, Map, Special Bases and Rule Modifiers.</span></button>
       <button class="mode" id="mSpec" data-go="scrSpectate"><b>Spectate</b><span>Setup match and watch the AI play against itself.</span></button>
@@ -724,6 +739,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="hintline" id="hintSettings"></p>
     </div>
     <button class="ghost big2" data-go="scrAccess">Accessibility</button>
+    <button id="bSetStyles" class="ghost big2">Styles</button>
     <button id="bResetAll" class="ghost small">Reset all data</button>
   </section>
 
@@ -832,6 +848,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <button id="bResume" class="primary big">Resume</button>
     <button class="ghost big2" data-go="scrSettings">Settings</button>
     <button id="bPauseShop" class="ghost big2">Styles</button>
+    <button id="bPauseSave" class="ghost big2" hidden>Save and quit</button>
     <button id="bLogP" class="ghost big2">Save match log</button>
     <button id="bQuit" class="ghost big2">Quit to menu</button>
   </section>
@@ -1141,12 +1158,14 @@ function fixedToMap(f, nTeams) {
 }
 
 function mulberry32(a) {
-  return function () {
+  const f = function () {
     a |= 0; a = a + 0x6D2B79F5 | 0;
     let t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
+  f.get = () => a; f.set = v => { a = v | 0; };       // 49.3: a saved match needs to know where the dice are
+  return f;
 }
 const colorOf = t => t < 0 ? NEUTRAL_COLOR : TEAM_COLORS[t];
 
@@ -1412,6 +1431,7 @@ function newGame(opts) {
       T.diff = DIFF[name]; T.diffName = name;
     }
   }
+  G.startOpts = JSON.parse(JSON.stringify(Object.assign({}, opts, { seed })));      // 49.3: save and quit rebuilds the same map from these
   G.specials = !!opts.specials;
   if (fixed && fixed.specials) {                       // hand-placed special bases
     G.specials = true;
@@ -1440,6 +1460,37 @@ function newGame(opts) {
   presenceStep(0);
   recount();
   if (opts.runSeed != null) G.rng = mulberry32(opts.runSeed);   // tests: same map, different course of events
+  return G;
+}
+
+// SAVE AND QUIT (49.3). A snapshot is the match as plain JSON: the options that built the map, plus everything that has changed since.
+// Loading builds the same map again, lays the saved state over it, and puts the dice back where they were, so the match carries on exactly as it would have.
+const SNAP_SKIP = new Set(['rng', 'startOpts', 'fx', 'sfx', '_S', '_ai', '_rtCache', '_br']);   // dice, build options, effects and caches are handled apart or rebuilt
+function snapGame() {
+  const g = G;
+  const keep = {};
+  for (const k of Object.keys(g)) if (!SNAP_SKIP.has(k)) keep[k] = g[k];
+  keep.troops = g.troops.map(t => Object.assign({}, t, { tgt: t.tgt ? { tr: t.tgt.id } : null, aim: t.aim ? (t.aim.id !== undefined && t.aim.team !== undefined && t.aim.path ? { tr: t.aim.id } : { nd: t.aim.id }) : null }));
+  const enc = (k, v) => v instanceof Set ? { $: 'set', a: [...v] }
+    : ArrayBuffer.isView(v) ? { $: v.constructor.name, a: Array.from(v) } : v;
+  return JSON.stringify({ v: 1, W, H, opts: g.startOpts, rng: g.rng.get(), g: keep }, enc);
+}
+function loadSnap(str) {
+  const S = JSON.parse(str, (k, v) => {
+    if (v && v.$ === 'set') return new Set(v.a);
+    if (v && v.$ && v.a) return new globalThis[v.$](v.a);
+    return v;
+  });
+  newGame(S.opts);                                        // same map, same colours and world size
+  W = S.W; H = S.H;
+  for (const k of Object.keys(S.g)) G[k] = S.g[k];
+  const byId = new Map(G.troops.map(t => [t.id, t]));
+  for (const t of G.troops) {
+    if (t.tgt) t.tgt = byId.get(t.tgt.tr) || null;
+    if (t.aim) t.aim = t.aim.tr !== undefined ? (byId.get(t.aim.tr) || null) : G.nodes[t.aim.nd];
+  }
+  G.rng = mulberry32(0); G.rng.set(S.rng);
+  G.fx = []; G.sfx = []; G._S = null;
   return G;
 }
 
@@ -2381,7 +2432,7 @@ function aiThink(team) {
 // Henry and WC: edit the text freely. Keep the ${...} parts (they are filled in by the game) and the quote marks around each line.
 const SHOP_TEXT = {
   title: 'Shop', ownedTitle: 'Your styles',
-  token: 'token', tokens: 'tokens', next: 'next',
+  token: 'token', tokens: 'tokens', next: 'next', homeTokens: n => `Tokens: ${n}`,
   free: 'Free', pair: n => `Pair ${n}`,
   visual: 'Visual', sound: 'Sound', inUse: 'In use', use: 'Use',
   buyBoth: 'Buy both', useBoth: 'Use both',
@@ -6749,7 +6800,7 @@ function showScreen(id) {
   if (m) { syncSeg(); syncText(m); buildPreview(m); }
   if (id === 'scrSettings') { settingsKey = 'volume'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrAccess') { settingsKey = 'colors'; syncGlobalSeg(); renderSettingsHint(); }
-  if (id === 'scrPlay') updateLadderBlurb();
+  if (id === 'scrPlay') { updateLadderBlurb(); refreshResume(); }
   if (id === 'scrStats') renderStats();
   if (id === 'scrNews') { renderNews(); $('updMsg').textContent = ''; }
   if (id === 'scrQual') syncQual();
@@ -6768,7 +6819,7 @@ const shopLand = () => matchMedia('(orientation: landscape) and (max-height: 500
 const shopNeed = () => SHOP.curve[Math.min(shop.n, SHOP.curve.length - 1)];
 const shopNum = x => String(Math.round(x * 100) / 100);
 const shopCanBuy = () => shop.tok >= SHOP.one && SHOP_PAIRS.some(P => !shop.own['v:' + P.v] || !shop.own['s:' + P.s]);
-function syncShopDot() { $('shopDot').hidden = !shopCanBuy(); }
+function syncShopDot() { $('shopDot').textContent = SHOP_TEXT.homeTokens(shop.tok); }      // the Shop button on Home says how many tokens you have
 function applyStyle(key, v, quiet) {                // what picking a style used to do in Settings: a fresh look, or the new sound started
   settings[key] = v; drawDirty = true;
   if (key === 'visual') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
@@ -6889,6 +6940,7 @@ $('tokPill').addEventListener('click', shopInfo); $('stOk').addEventListener('cl
 $('shopInfo').addEventListener('click', e => { if (e.target === $('shopInfo')) shopInfoClose(); });
 $('scYes').addEventListener('click', () => { const f = shopAskFn; shopAskClose(); if (f) f(); });
 $('bPauseShop').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });
+$('bSetStyles').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });      // 49.3: Settings opens the same owned-only view the Pause menu does
 window.addEventListener('resize', () => { if (shopReal) placeShop(); });
 // ---- the challenge ladder ----
 let curScen = null, briefId = null, nextScen = null, curPrac = null, coach = null;
@@ -7049,8 +7101,67 @@ function buildPreview(key) {                         // the map behind the menu 
 }
 function startDemo() { mode = 'demo'; buildPreview(previewMode); }
 let curModeKey = 'custom';
-function startGame(watch, scen, modeKey, prac) {
-  resetPtrs();
+
+// ---- SAVE AND QUIT (49.3) ----
+// One saved match. Pause > Save and quit writes it (Classic and Custom only); starting a new match never touches it; it goes when the match that came from it ends.
+// Every word is in SAVE_TEXT, for you and WC.
+const SAVE_TEXT = {
+  button: 'Save and quit', title: 'Resume match', saved: 'Match saved. Resume it from here.', failed: 'Could not save the match.', noRoom: 'Not enough storage to save the match.', broken: 'That saved match could not be opened.',
+  rival: 'rival', rivals: 'rivals', in: 'in', hold: 'you hold', of: 'of', bases: 'bases', savedWord: 'saved', now: 'just now', today: 'today', yesterday: 'yesterday', daysAgo: 'days ago', over: 'over'
+};
+const SAVE_KEY = 'ice-save', SAVE_META = 'ice-savemeta', SHAPE_LABEL = { continent: 'continent', islands: 'islands', ring: 'ring', river: 'river' };
+let resumedFromSlot = false;
+function readSaveMeta() { try { const m = JSON.parse(localStorage.getItem(SAVE_META)); return m && typeof m.t === 'number' && Array.isArray(m.nodes) && localStorage.getItem(SAVE_KEY) ? m : null; } catch (e) { return null; } }
+function dropSave() { try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_META); } catch (e) {} refreshResume(); }
+function canSaveNow() { return !!G && !G.over && !watching && !curScen && !curPrac && (curModeKey === 'classic' || curModeKey === 'custom'); }
+function saveAge(at) {
+  const T = SAVE_TEXT, d0 = new Date(); d0.setHours(0, 0, 0, 0); const days = Math.round((d0 - new Date(at).setHours(0, 0, 0, 0)) / 864e5);
+  return days <= 0 ? (Date.now() - at < 120000 ? T.now : T.today) : days === 1 ? T.yesterday : days + ' ' + T.daysAgo;
+}
+function drawSaveThumb(cv, m) {
+  const x = cv.getContext('2d'), w = cv.width, h = cv.height, pad = 10, sc = Math.min((w - pad * 2) / m.W, (h - pad * 2) / m.H), ox = (w - m.W * sc) / 2, oy = (h - m.H * sc) / 2;
+  x.clearRect(0, 0, w, h); x.lineWidth = 2; x.strokeStyle = 'rgba(255,255,255,.2)'; x.beginPath();
+  for (const [a, b] of m.edges) { const A = m.nodes[a], B = m.nodes[b]; x.moveTo(ox + A[0] * sc, oy + A[1] * sc); x.lineTo(ox + B[0] * sc, oy + B[1] * sc); }
+  x.stroke();
+  for (const n of m.nodes) { x.fillStyle = n[2]; x.beginPath(); x.arc(ox + n[0] * sc, oy + n[1] * sc, 5, 0, 6.2832); x.fill(); }
+}
+function refreshResume() {
+  const T = SAVE_TEXT, m = readSaveMeta(), b = $('mResume'); if (!b) return;
+  b.hidden = !m; if (!m) return;
+  $('rsT').textContent = T.title;
+  $('rsL1').textContent = m.line;
+  $('rsL2').textContent = m.mods.join(', ');
+  $('rsL3').textContent = `${fmt(m.t)} ${T.in} · ${T.hold} ${m.bases} ${T.of} ${m.total} ${T.bases} · ${T.savedWord} ${saveAge(m.at)}`;
+  drawSaveThumb($('rsThumb'), m);
+}
+function saveAndQuit() {
+  if (!canSaveNow()) return;
+  const T = SAVE_TEXT, fog = !!G.mods.fog;
+  const mods = MODS.filter(x => G.mods[x.k]).map(x => x.n); if (G.overtimeOn) mods.push('Overtime'); if (G.specials) mods.push('Special bases');
+  const rivals = G.teams.filter(U => U.active).length - 1;
+  const line = [curModeKey === 'classic' ? 'Classic' : 'Custom', (SIZE_LABEL[G.sizeName] || G.sizeName) + (curModeKey === 'custom' && SHAPE_LABEL[G.shape] ? ' ' + SHAPE_LABEL[G.shape] : ''), rivals + ' ' + (rivals === 1 ? T.rival : T.rivals), DIFF_LABEL[G.diffName] || G.diffName].join(' · ');
+  const meta = { k: curModeKey, line, mods, t: G.t, bases: G.teams[PLAYER].bases, total: G.nodes.length, at: Date.now(), color: settings[curModeKey].color, W, H,
+    nodes: G.nodes.map(n => [n.x, n.y, fog && n.owner > PLAYER ? NEUTRAL_COLOR : colorOf(n.owner)]), edges: G.edges,
+    cam: { z: cam.z, cu: cam.cu, cv: cam.cv, land: innerWidth > innerHeight } };
+  let oldSnap = null, oldMeta = null; try { oldSnap = localStorage.getItem(SAVE_KEY); oldMeta = localStorage.getItem(SAVE_META); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, snapGame()); localStorage.setItem(SAVE_META, JSON.stringify(meta)); }
+  catch (e) {                                       // it did not fit: the match stays open and the earlier save, if there was one, is put back exactly as it was
+    try { if (oldSnap !== null && oldMeta !== null) { localStorage.setItem(SAVE_KEY, oldSnap); localStorage.setItem(SAVE_META, oldMeta); } else { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_META); } } catch (_) {}
+    toast(e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) ? T.noRoom : T.failed, '#fff'); refreshResume(); return;
+  }
+  resumedFromSlot = false;
+  toMenu(); go('scrPlay'); toast(T.saved, '#fff');
+}
+function resumeSaved() {
+  const m = readSaveMeta(); if (!m) { refreshResume(); return; }
+  let snap = null; try { snap = localStorage.getItem(SAVE_KEY); } catch (e) {}
+  try { startGame(false, null, m.k, null, { snap, meta: m }); }
+  catch (e) { console.error(e); toMenu(); toast(SAVE_TEXT.broken, '#fff'); return; }
+  resumedFromSlot = true;
+  pause();                                          // a saved match opens paused, so you can look around before it moves
+}
+function startGame(watch, scen, modeKey, prac, resume) {
+  resetPtrs(); if (!resume) resumedFromSlot = false;
   curPrac = prac || null; curScen = scen || null; curModeKey = scen ? curModeKey : (modeKey || (watch ? 'spec' : 'custom'));
   const cfg = settings[curModeKey];
   audioOn(); armBack(); hideInfo();
@@ -7060,10 +7171,11 @@ function startGame(watch, scen, modeKey, prac) {
   hudEl.classList.toggle('watch', watching);
   $('bAgain').textContent = watching ? 'Watch again' : (curScen || curPrac) ? 'Retry' : 'Play again';
   clearEffects();
-  applyColors(watching, (scen || prac) ? settings.classic.color : cfg.color);
+  applyColors(watching, resume ? resume.meta.color : (scen || prac) ? settings.classic.color : cfg.color);
   if (settings.send !== 1) { settings.send = 1; save('ice-settings', settings); }          // every match opens at 100% send
   syncCtrl(); syncRivals(); layout();
-  if (curPrac) newGame(practiceOpts(curPrac));          // a practice lesson: tiny map, a rival that never attacks
+  if (resume) loadSnap(resume.snap);                   // a saved match: the same map and the same moment
+  else if (curPrac) newGame(practiceOpts(curPrac));          // a practice lesson: tiny map, a rival that never attacks
   else if (curScen) newGame({ scenario: curScen });          // fixed map and rules: the same every attempt
   else { newGame(PERF && window.__fixedOnce ? Object.assign(optsFor(curModeKey), { fixedMap: window.__fixedOnce, teams: 0 }) : optsFor(curModeKey)); cfg.seed = rnd32(); save('ice-settings', settings); }   // play the previewed map, then roll the next one
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
@@ -7082,6 +7194,7 @@ function startGame(watch, scen, modeKey, prac) {
   if (!watching) {                                 // you start zoomed in on your home base
     const home = G.nodes[G.homes[PLAYER]];
     cam.z = Math.max(1, Math.min(F.w, F.h) / 520 / s0); centerOn(home.x, home.y);
+    const cs = resume && resume.meta.cam; if (cs && cs.land === (innerWidth > innerHeight) && cs.z > 0) { cam.z = cs.z; cam.cu = cs.cu; cam.cv = cs.cv; }      // a saved match keeps your view, if the phone is held the same way
   }
   hud();
 }
@@ -7089,7 +7202,7 @@ function pause() {
   if (mode !== 'play') return;
   resetPtrs();
   mode = 'paused'; hover = null; selBase = null; hideInfo(); drawDirty = true;
-  resetStack('scrPause'); show('menu', true);
+  resetStack('scrPause'); $('bPauseSave').hidden = !canSaveNow(); show('menu', true);
 }
 function resume() {
   if (mode !== 'paused') return;
@@ -7171,6 +7284,7 @@ function closeUnlockPop() { pendingUnlocks.length = 0; save('ice-pending', pendi
 $('bUnlockOk').addEventListener('click', closeUnlockPop);
 function showEnd() {
   mode = 'over'; xlFinish();
+  if (resumedFromSlot) { resumedFromSlot = false; dropSave(); }                // the saved match has been played out
   const P = G.teams[PLAYER], N = G.nodes.length, t = $('endTitle'), sub = $('endSub');
   let unlockNote = '', shopLine = '';
   if (watching) {                                   // spectated matches go into the AI vs AI stats, not your record
@@ -7359,7 +7473,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.2.1 LOGGER', started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.3.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -7606,6 +7720,8 @@ function leaveToMenu() {                            // back to where you set the
   else { const scr = { classic: 'scrClassic', custom: 'scrCustom', spec: 'scrSpectate' }[key]; if (scr) go(scr); }
 }
 $('bQuit').addEventListener('click', leaveToMenu);
+$('bPauseSave').addEventListener('click', saveAndQuit);
+$('mResume').addEventListener('click', resumeSaved);
 $('bAgain').addEventListener('click', () => { if (performance.now() - endAt < 450) return; startGame(watching, curScen, curModeKey, curPrac); });
 $('bNext').addEventListener('click', () => { if (performance.now() - endAt < 450) return; startGame(false, nextScen); });
 $('bMenu').addEventListener('click', () => { if (performance.now() - endAt < 450) return; leaveToMenu(); });
@@ -7613,7 +7729,7 @@ $('bReset').addEventListener('click', () => confirmReset($('bReset'), 'Reset sta
 // Reset all data (Settings): three taps, each within 3 s of the last. Clears stats, challenge stars and bests, and the unlocks (Deadly locks again). Reset stats alone keeps the unlocks on purpose.
 const allReset = { n: 0, t: 0 };
 function doResetAll() {
-  doResetStats(); doResetChallenges();
+  doResetStats(); doResetChallenges(); dropSave();
   unlocks.deadly = false; unlocks.deadlyCustom = false; unlocks.tiers = false; unlocks.brutal = false; unlocks.brutalCustom = false; unlocks.challenge = false; save('ice-unlocks', unlocks); updateLadderBlurb();
   for (const k of ['classic', 'custom', 'spec']) if (settings[k] && (settings[k].diff === 'deadly' || settings[k].diff === 'brutal')) settings[k].diff = 'hard';           // a Deadly that is locked again cannot stay picked
   shop.tok = 0; shop.prog = 0; shop.n = 0; shop.stars = 0; for (const P of SHOP_PAIRS) { shop.own['v:' + P.v] = shop.own['s:' + P.s] = !!P.free; } saveShop(); syncShopDot();     // 49.2: tokens and styles too
@@ -8113,6 +8229,7 @@ if (PERF) window.__chip = () => ({ on: !!CH.nodes, busy: CH.nodes ? Object.value
 if (PERF) window.__hearth = () => ({ on: !!HE.nodes, v: HE.v, I: HE.I, Is: HE.Is, rr: HE.rr, phrases: HE.phrases, caps: HE.caps, losses: HE.losses, taps: HE.taps, rcaps: HE.rcaps, rskip: HE.rskip, snaps: HE.snaps, drop: HE.drop, gain: HE.nodes ? HE.nodes.out.gain.value : 0 });   // sound-test hook
 if (PERF) window.__floe = () => ({ on: !!FL.nodes, v: FL.v, gain: FL.nodes ? FL.nodes.out.gain.value : 0 });   // sound-test hook
 if (PERF) { window.__xl = () => XL.log; window.__xlDl = xlDownload; window.__core = { newGame, update, command, setLock, upgrade, getG: () => G, atBase, STEP }; window.__wfr = watchFrameRate; window.__qs = () => ({ quality, ceilQ, calmSince, slowSince, start: startQ(), aq: AQ() }); window.__qset = q => { quality = q; layout(); }; window.__box = () => ({ box: boxUV(), view: mapView(), s0, W, H, rot }); window.__ios = () => IOS; window.__ir = () => ({ dr: DR.ir && DR.ir.duration, cs: CS.ir && CS.ir.duration, fl: Object.fromEntries(Object.entries(FL.ir).map(([k, v]) => [k, v.duration])), nodes: { dr: DR.nodes && DR.nodes.tier, cs: CS.nodes && CS.nodes.tier, fl: FL.nodes && FL.nodes.tier } }); window.__aq = () => AQ(); window.__hwset = ms => { HW.list = [ms, ms, ms]; HW.ms = ms; HW.done = true; save('ice-hw', { v: 3, list: HW.list }); if (qualFix < 0 && mode !== 'play') { quality = startQ(); layout(); } syncQual(); }; window.__hw = () => ({ ms: HW.ms, done: HW.done, tier: hwTier(), quality, aq: AQ(), audFix }); }
+if (PERF) window.__ev = s => eval(s);                  // tests: run a line inside the game's own scope
 if (PERF) window.__validate = id => validateStaticMap(typeof id === 'string' ? STATIC_MAPS[id] : id);
 if (PERF) window.__setCam = (cu, cv, z) => { cam.cu = cu; cam.cv = cv; if (z) cam.z = z; updateView(); };          // tests: where a world point lands on screen
 requestAnimationFrame(frame);

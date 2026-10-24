@@ -287,6 +287,20 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .bars .bar { height: 6px; background: var(--faint); }
 .bars .bar i { display: block; height: 100%; }
 .bars b { font-size: 13px; min-width: 2ch; text-align: right; }
+.tiles.three { grid-template-columns: repeat(3, 1fr); }
+.tiles.two { grid-template-columns: repeat(2, 1fr); }
+.formwrap { display: flex; flex-direction: column; gap: 4px; }
+.form { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
+.form i { height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-style: normal; font-weight: 700; box-sizing: border-box; }
+.form i.w { background: var(--blue); color: #fff; }
+.form i.l { border: 1.5px solid var(--dim); color: var(--dim); }
+.form i.e { border: 1px dashed var(--faint); }
+.formcap { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); }
+.sbars { display: flex; flex-direction: column; }
+.sbar { display: grid; grid-template-columns: 62px 1fr 84px; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--hair); font-size: 14px; }
+.sbar .bar { height: 6px; background: var(--faint); border-radius: 3px; overflow: hidden; }
+.sbar .bar i { display: block; height: 100%; background: var(--blue); }
+.sbar b { font-size: 13px; text-align: right; font-weight: 600; }
 .prow { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--hair); }
 .none { margin: 0; font-size: 14px; color: var(--dim); }
 
@@ -324,7 +338,8 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .erows b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .endcard p.ecoda { color: var(--ink); }
 .endcard p.ecoda:empty { display: none; }
-.endbar { display: flex; align-items: center; gap: 10px; margin-top: 4px; max-width: 360px; }
+.endbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 4px; max-width: 360px; }
+.endbar .ebl { flex: 0 0 100%; font-size: 12px; color: var(--dim); }
 .endbar .eb { flex: 1; position: relative; height: 8px; border-radius: 4px; background: var(--faint); overflow: hidden; }
 .endbar .eb i { position: absolute; top: 0; bottom: 0; left: 0; display: block; }
 .endbar .eb .eo { background: var(--blue); }
@@ -680,7 +695,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.8.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.8.9 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -2707,7 +2722,8 @@ const stats = (() => {
   const matches = count(watch.matches), fastest = {};
   if (isObj(play.fastest)) for (const k of Object.keys(play.fastest)) if (count(play.fastest[k]) > 0) fastest[k] = count(play.fastest[k]);
   return {
-    play: { games: count(play.games), wins: count(play.wins), kills: count(play.kills), caps: count(play.caps), time: count(play.time), most: count(play.most), fastest, gDiff: dict(play.gDiff), wDiff: dict(play.wDiff) },
+    play: { games: count(play.games), wins: count(play.wins), kills: count(play.kills), caps: count(play.caps), time: count(play.time), most: count(play.most), fastest, gDiff: dict(play.gDiff), wDiff: dict(play.wDiff),
+      recent: (Array.isArray(play.recent) ? play.recent : []).filter(x => x === 0 || x === 1).slice(-10), streak: count(play.streak), best: count(play.best), lost: count(play.lost), lostBases: count(play.lostBases) },      // 49.8.7: last ten results, win streaks, troops and bases lost (counted from 49.8.7 on)
     // win *rates* need appearances; matches from before every color always played count as all five appearing
     watch: { matches, byColor: five(watch.byColor), byStyle: dict(watch.byStyle), appColor: Array.isArray(watch.appColor) ? five(watch.appColor) : [0, 1, 2, 3, 4].map(() => matches), appStyle: dict(watch.appStyle) }
   };
@@ -8979,22 +8995,35 @@ function fmtLong(t) {
   const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60);
   return h ? `${h}h ${m}m` : m ? `${m}m` : `${Math.floor(t)}s`;
 }
+// 49.8.7: every word on the Stats screen, in one table
+const STATS_TEXT = {
+  record: 'Record', played: 'Played', won: 'Won', rate: 'Win rate', last: 'Last 10 matches', older: 'older', latest: 'latest', win: 'W', loss: 'L',
+  streak: 'Win streak', best: 'Best streak',
+  bests: 'Bests', most: 'Most bases held', fastest: 'Fastest win', maps: { small: 'Small map', medium: 'Medium map', large: 'Large map', huge: 'Huge map' },
+  totals: 'All your matches', defeated: 'Troops defeated', lost: 'Troops lost', taken: 'Bases taken', lostBases: 'Bases lost', time: 'Time played',
+  strength: 'By rival strength', locked: 'Locked', wonOf: (w, g) => `${w} of ${g} won`,
+  vs: n => `Spectate - ${n} ${n === 1 ? 'Match' : 'Matches'} Watched`
+};
 function renderStats() {
-  const p = stats.play, w = stats.watch, dash = '–';
+  const p = stats.play, w = stats.watch, dash = '–', T = STATS_TEXT;
   const tile = (v, l) => `<div class="tile"><b>${v}</b><span>${l}</span></div>`;
-  const fast = k => p.fastest[k] ? fmt(p.fastest[k]) : dash;
-  const strengthRows = () => ['easy', 'normal', 'hard', 'brutal', 'deadly'].map(k => { const g = p.gDiff[k] || 0, wn = p.wDiff[k] || 0; return `<div class="prow"><span>${DIFF_LABEL[k]}</span><b>${(k === 'deadly' && !unlocks.deadly) || (k === 'brutal' && !unlocks.brutal) ? 'Locked' : g ? wn + ' of ' + g + ' won' : dash}</b></div>`; }).join('');
-  let h = `<h3>Your games</h3><div class="tiles">
-    ${tile(p.games, 'Played')}${tile(p.wins, 'Won')}${tile(p.games ? Math.round(100 * p.wins / p.games) + '%' : dash, 'Win rate')}
-    ${tile(p.most || dash, 'Most bases held')}${tile(p.kills.toLocaleString(), 'Troops knocked out')}
-    ${tile(p.caps, 'Bases taken')}${tile(p.time ? fmtLong(p.time) : dash, 'Time played')}</div>
-    <h3>Fastest win</h3><div class="tiles">${tile(fast('small'), 'Small map')}${tile(fast('medium'), 'Medium map')}${tile(fast('large'), 'Large map')}${tile(fast('huge'), 'Huge map')}</div>
-    <h3>By rival strength</h3><div>${strengthRows()}</div>
-    <h3>AI vs AI</h3>`;
-  if (!w.matches) h += `<p class="none">No AI vs AI matches watched yet.</p>`;
+  const row = (l, v) => `<div class="prow"><span>${l}</span><b>${v}</b></div>`;
+  const rate = p.games ? Math.round(100 * p.wins / p.games) + '%' : dash;
+  const form = Array.from({ length: 10 }, (_, i) => { const r = p.recent[i - (10 - p.recent.length)]; return r === undefined ? '<i class="e"></i>' : r ? `<i class="w">${T.win}</i>` : `<i class="l">${T.loss}</i>`; }).join('');
+  const strengthRows = () => ['easy', 'normal', 'hard', 'brutal', 'deadly'].map(k => {
+    const g = p.gDiff[k] || 0, wn = p.wDiff[k] || 0, lock = (k === 'deadly' && !unlocks.deadly) || (k === 'brutal' && !unlocks.brutal);
+    return `<div class="sbar"><span>${DIFF_LABEL[k]}</span><span class="bar">${g && !lock ? `<i style="width:${100 * wn / g}%"></i>` : ''}</span><b>${lock ? T.locked : g ? T.wonOf(wn, g) : dash}</b></div>`; }).join('');
+  let h = `<h3>${T.record}</h3><div class="tiles three">${tile(p.games, T.played)}${tile(p.wins, T.won)}${tile(rate, T.rate)}</div>
+    <div class="formwrap"><div class="formcap"><span>${T.last}</span></div><div class="form" role="img" aria-label="${T.last}: ${p.recent.map(r => r ? T.win : T.loss).join(' ') || dash}">${form}</div><div class="formcap"><span>${T.older}</span><span>${T.latest}</span></div></div>
+    <div class="tiles two">${tile(p.streak, T.streak)}${tile(p.best, T.best)}</div>
+    <h3>${T.bests}</h3><div>${row(T.most, p.most || dash)}${['small', 'medium', 'large', 'huge'].map(k => row(T.fastest + ', ' + T.maps[k].toLowerCase(), p.fastest[k] ? fmt(p.fastest[k]) : dash)).join('')}</div>
+    <h3>${T.totals}</h3><div>${row(T.defeated, p.kills.toLocaleString())}${row(T.lost, p.lost.toLocaleString())}${row(T.taken, p.caps.toLocaleString())}${row(T.lostBases, p.lostBases.toLocaleString())}${row(T.time, p.time ? fmtLong(p.time) : dash)}</div>
+    <h3>${T.strength}</h3><div class="sbars">${strengthRows()}</div>
+    <h3>${T.vs(w.matches)}</h3>`;
+  if (!w.matches) h += `<p class="none">Nothing here yet. Watch a match in Spectate.</p>`;
   else {
     const rate = (wins, apps) => apps ? wins / apps : 0;
-    h += `<div class="tiles">${tile(w.matches, 'Matches watched')}</div><h3>Win rate by color</h3><div class="bars">` +
+    h += `<h3>Win rate by color</h3><div class="bars">` +
       w.byColor.map((n, i) => { const r = rate(n, w.appColor[i]);
         return `<i class="sw" data-s="${i}" style="background:${PALETTE[i].c}"></i><span class="bar"><i style="width:${100 * r}%;background:${PALETTE[i].c}"></i></span><b>${Math.round(100 * r)}%</b>`; }).join('') +
       `</div><h3>Win rate by personality</h3><div>` +
@@ -9017,7 +9046,7 @@ function confirmReset(btn, label, action) {
   }, 1000));
 }
 function doResetStats() {
-  stats.play = { games: 0, wins: 0, kills: 0, caps: 0, time: 0, most: 0, fastest: {}, gDiff: {}, wDiff: {} };
+  stats.play = { games: 0, wins: 0, kills: 0, caps: 0, time: 0, most: 0, fastest: {}, gDiff: {}, wDiff: {}, recent: [], streak: 0, best: 0, lost: 0, lostBases: 0 };
   stats.watch = { matches: 0, byColor: [0, 0, 0, 0, 0], byStyle: {}, appColor: [0, 0, 0, 0, 0], appStyle: {} };
   save('ice-stats', stats); renderStats(); renderRecord();
 }
@@ -9230,6 +9259,10 @@ const END_TEXT = {
   },
   rows: { defeated: 'Troops defeated', lost: 'Troops lost', captured: 'Bases captured', lostBases: 'Bases lost' },      // two pairs, one per line
   coda: {                                           // the line under the numbers, by the shape of the match (see SHAPE for what each means)
+    flawless:   ['Not a single base lost.'],           // 49.8.9: placeholder line, WC to write more
+    hardest:    ['Deadly, and you still won.'],       // placeholder
+    quick:      ['That was quick.'],                  // placeholder
+    marathon:   ['That was a long one.'],             // placeholder
     steady:     ['Quiet again.', 'That\'s all of it.', 'Nothing left to take.', 'That settles that.', 'Tidy work.', 'Every base, accounted for.', 'The map looks better in one color.', 'Somewhere, a rival is rethinking things.', 'Nothing out there but you.'],
     steadyHard: ['They didn\'t make it easy.', 'That was earned.', 'Nobody gave you that one.', 'They fought for every base.', 'The rivals will want a recount.', 'Hard-won.'],
     stomp:      ['You led nearly the whole way.', 'The rivals never found a foothold.', 'Not a close one.', 'The rivals barely got a look in.', 'They\'ll want a new plan.', 'A Queen sweep.'],
@@ -9240,6 +9273,7 @@ const END_TEXT = {
     lossClose:  ['It was close for a while.', 'You were in it until late.', 'A few bases different, and it\'s yours.', 'It could have gone the other way.', 'The lead didn\'t settle until late.'],
     loss:       ['It\'ll be here when you\'re ready.', 'Worth another look.', 'The map isn\'t going anywhere.', 'Some maps are like that.', 'Nothing to do but go again.']
   },
+  bar: { label: 'Progress to your next token', got: 'Token earned' },      // the line above the Shop bar on the Result tab
   board: { name: 'Color', defeated: 'Defeated', lost: 'Lost', peak: 'Peak', up: 'Upgrades', you: 'You', note: 'Defeated and Lost are troops. Peak is the most bases held at once. Upgrades are Health · Speed · Damage.' },
   facts: {                                          // the Moments tab, under the graph; each is shown only when it is true
     firstCapture: (team, t) => ({ t, text: `You first took a base from ${team}.` }),
@@ -9251,7 +9285,7 @@ const END_TEXT = {
   }
 };
 // What counts as which shape of match. Tune here. lead = share of the match you were strictly out in front; changes = lead changes (a lead only counts after 5 s on your own).
-const SHAPE = { stomp: { lead: 0.75, changes: 2 }, comeback: { dip: 3, lead: 0.35 }, close: { changes: 4 }, lossEarly: 150, lossBig: 0.4, lossClose: { lead: 0.3, changes: 4 } };
+const SHAPE = { quick: 0.3, marathon: 0.75, stomp: { lead: 0.75, changes: 2 }, comeback: { dip: 3, lead: 0.35 }, close: { changes: 4 }, lossEarly: 150, lossBig: 0.4, lossClose: { lead: 0.3, changes: 4 } };
 function endStats() {                               // everything the card derives from the once-a-second history; nothing here is stored
   const hs = G.hist, P = PLAYER, T = Math.max(1, G.t), act = G.teams.filter(x => x.active).map(x => x.i), win = G.result === 'win';
   const r = { lead: 0, changes: 0, runner: -1, low: null, peak: { n: 0, t: 0 }, share: 0, shape: 'steady' };
@@ -9270,7 +9304,16 @@ function endStats() {                               // everything the card deriv
   if (G.winner != null) { const o = act.filter(k => k !== G.winner).sort((p, q) => area[q] - area[p]); if (o.length && area[o[0]] > 0) r.runner = o[0]; }
   const N = G.nodes.length, hard = ['hard', 'brutal', 'deadly'].includes(G.diffName);
   if (win) {
-    r.shape = depth >= SHAPE.comeback.dip || r.share <= SHAPE.comeback.lead ? 'comeback' : r.share >= SHAPE.stomp.lead && r.changes <= SHAPE.stomp.changes ? 'stomp' : r.changes >= SHAPE.close.changes ? 'close' : hard ? 'steadyHard' : 'steady';
+    // 49.8.9: the first rule that fits wins, most specific first: comeback, close, flawless, deadly, quick, stomp, marathon, steadyHard, steady
+    const clock = OT_CLOCK[G.sizeName] || OT_CLOCK.large;
+    r.shape = depth >= SHAPE.comeback.dip || r.share <= SHAPE.comeback.lead ? 'comeback'
+      : r.changes >= SHAPE.close.changes ? 'close'
+      : G.playerLosses === 0 ? 'flawless'
+      : G.diffName === 'deadly' ? 'hardest'
+      : T < SHAPE.quick * clock ? 'quick'
+      : r.share >= SHAPE.stomp.lead && r.changes <= SHAPE.stomp.changes ? 'stomp'
+      : T >= SHAPE.marathon * clock ? 'marathon'
+      : hard ? 'steadyHard' : 'steady';
   } else r.shape = G.t < SHAPE.lossEarly ? 'lossEarly' : r.peak.n >= SHAPE.lossBig * N ? 'lossBig' : r.share >= SHAPE.lossClose.lead || r.changes >= SHAPE.lossClose.changes ? 'lossClose' : 'loss';
   return r;
 }
@@ -9283,7 +9326,7 @@ function scoreboard() {                              // 49.8.4: the finishing or
   return act.slice().sort((a, b) => rank(b) - rank(a)).map((T, k) => ({ i: T.i, place: k + 1, style: T.style.name, kills: T.kills, lost: T.lost || 0, peak: peak[T.i], lv: `${T.lv.hp} · ${T.lv.spd} · ${T.lv.dmg}` }));
 }
 const headPick = list => list[(G.seed >>> 0) % list.length];
-function endCoda(ES) { const pool = END_TEXT.coda[ES.shape]; return pool[(G.seed >>> 0) % pool.length]; }
+function endCoda(ES) { const pool = END_TEXT.coda[ES.shape] && END_TEXT.coda[ES.shape].length ? END_TEXT.coda[ES.shape] : END_TEXT.coda.steady; return pool[(G.seed >>> 0) % pool.length]; }
 function endFacts(ES) {                             // the Moments tab text, as list items: [time or '', team slot, colour, text]
   const you = !watching, F = END_TEXT.facts, out = [], name = i => i === PLAYER && !watching ? 'You' : TEAM_NAMES[i];
   const add = (t, i, text) => out.push(`<li><time>${t == null ? '' : fmt(t)}</time><i data-s="${slotOf(i)}" style="background:${colorOf(i)}"></i><span>${text}</span></li>`);
@@ -9323,6 +9366,8 @@ function showEnd() {
     if (!G.scenarioId && !G.practice) {             // challenges keep their own record (the stars), and lessons keep none
       p.games++; if (win) p.wins++;
       p.kills += P.kills; p.caps += G.playerCaps; p.time += G.t; p.most = Math.max(p.most, G.peak);
+      p.lost += P.lost || 0; p.lostBases += G.playerLosses || 0;
+      p.recent.push(win ? 1 : 0); if (p.recent.length > 10) p.recent.shift(); p.streak = win ? p.streak + 1 : 0; p.best = Math.max(p.best, p.streak);
       if (win && (!p.fastest[G.sizeName] || G.t < p.fastest[G.sizeName])) p.fastest[G.sizeName] = Math.round(G.t);
       if (DIFF_LABEL[G.diffName] && G.diffName !== 'random') { p.gDiff[G.diffName] = (p.gDiff[G.diffName] || 0) + 1; if (win) p.wDiff[G.diffName] = (p.wDiff[G.diffName] || 0) + 1; }
       if (curModeKey === 'classic') shopLine = shopEarn(win);                    // the Shop: only Classic pays
@@ -9367,7 +9412,7 @@ function showEnd() {
     const eb = G.endBar, el = $('endBar'); el.hidden = !eb;
     if (eb) {
       el.setAttribute('aria-label', eb.line); el.title = eb.line;
-      el.innerHTML = `<span class="eb"><i class="eo" style="width:${eb.a}%"></i><i class="en" style="left:${eb.a}%;--w:${Math.max(0, eb.b - eb.a)}%"></i></span>` + (eb.got ? `<span class="tkd">${DIA.repeat(Math.min(3, eb.got))}</span>` : '');
+      el.innerHTML = `<span class="ebl">${eb.got ? END_TEXT.bar.got : END_TEXT.bar.label}</span><span class="eb"><i class="eo" style="width:${eb.a}%"></i><i class="en" style="left:${eb.a}%;--w:${Math.max(0, eb.b - eb.a)}%"></i></span>` + (eb.got ? `<span class="tkd">${DIA.repeat(Math.min(3, eb.got))}</span>` : '');
     }
   }
   nextScen = null; let challengeMoments = null;
@@ -9519,7 +9564,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.8.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.8.9 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

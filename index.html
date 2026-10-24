@@ -670,7 +670,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .dkroll .dv { font-size: 16.5px; }
 .dkroll .dk { text-transform: none; letter-spacing: 0; font-size: 12px; margin-top: 1px; }
 .dkroll button:active { background: rgba(40,40,44,.8); }
-.blurb, .hintline { text-wrap: balance; }      /* WC: two-line hints split evenly, no word alone on the second line */
+.blurb, .hintline { text-wrap: wrap; }
+.blurb.orph, .hintline.orph { text-wrap: balance; }      /* 49.9.9: only a hint that would end on a lone word is balanced (script below); every other hint wraps normally so side-by-side hints look alike. text-wrap: pretty did nothing for two-line text. */
 .dkbar { display: flex; align-items: center; gap: 12px; padding: 8px 14px calc(22px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); }
 .dksum { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.3; color: var(--dim); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .dv { overflow-wrap: anywhere; }
@@ -684,6 +685,12 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .dp .modrow { padding: 8px 10px; }
 .dp .modrow b { font-size: 14.5px; }
 .dkbar .primary.wide { padding: 0 22px; }
+/* 49.9.9: Shape = four equal tiles in a 2 x 2 grid and Random as a full-width bar under them (the 3 + 2 layout left two tiles wider than the rest) */
+.seg.g2 { display: grid; grid-template-columns: repeat(2, 1fr); }
+.seg.g2 button { border-left: 1px solid var(--faint); border-top: 1px solid var(--faint); font-size: 13px; }
+.seg.g2 button:nth-child(2n+1) { border-left: 0; }
+.seg.g2 button:nth-child(-n+2) { border-top: 0; }
+.seg.g2 button:last-child:nth-child(2n+1) { grid-column: span 2; }
 @media (max-width: 420px), (orientation: landscape) {      /* five shapes do not fit one row at this width ("Continent", "Random"): 3 + 2 */
   .seg.g3 { display: grid; grid-template-columns: repeat(3, 1fr); }
   .seg.g3 button { border-left: 1px solid var(--faint); border-top: 1px solid var(--faint); font-size: 13px; }
@@ -777,7 +784,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.8 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.9 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -818,7 +825,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <div class="dkbody"><div class="dkrows">
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Your team</span><span class="dv" data-val="color"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg swatches" data-mode="custom" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Enemies</span><span class="dv" data-val="enemies"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dsub">Rivals</div><div class="seg tight" data-mode="custom" data-key="opp"><button data-v="auto">Auto</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div><p class="blurb" id="hintCOpp"></p><div class="dsub">AI strength</div><div class="seg tight g3" data-mode="custom" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div><p class="blurb" id="hintCDiff"></p><div class="dsub">Personality</div><div class="seg tight" data-mode="custom" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div><p class="blurb" id="hintCPers"></p></div></div>
-        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g3" data-mode="custom" data-key="shape"></div><p class="blurb" id="hintCShape"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g2" data-mode="custom" data-key="shape"></div><p class="blurb" id="hintCShape"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Size</span><span class="dv" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight" data-mode="custom" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><p class="blurb" id="hintCSize"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Special bases</span><span class="dv" data-val="special"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dline"><div class="seg" data-mode="custom" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" data-go="scrSpecials" aria-label="What are special bases?">i</button></div><p class="blurb" id="hintCSpecial"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Modifiers</span><span class="dv" data-val="mods"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="mods" id="modsCustom" data-mm="custom"></div></div></div>
@@ -833,7 +840,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <button class="dkhandle" aria-label="Show or hide the options"><i></i><span class="dkhint"></span></button>
       <div class="dkbody"><div class="dkrows">
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Teams</span><span class="dv" data-val="enemies"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dsub">Colors</div><div class="seg tight" data-mode="spec" data-key="opp"><button data-v="auto">Auto</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div><p class="blurb" id="hintSOpp"></p><div class="dsub">AI strength</div><div class="seg tight g3" data-mode="spec" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div><p class="blurb" id="hintSDiff"></p><div class="dsub">Personality</div><div class="seg tight" data-mode="spec" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div><p class="blurb" id="hintSPers"></p></div></div>
-        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g3" data-mode="spec" data-key="shape"></div><p class="blurb" id="hintSShape"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g2" data-mode="spec" data-key="shape"></div><p class="blurb" id="hintSShape"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Size</span><span class="dv" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight" data-mode="spec" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><p class="blurb" id="hintSSize"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Special bases</span><span class="dv" data-val="special"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dline"><div class="seg" data-mode="spec" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" data-go="scrSpecials" aria-label="What are special bases?">i</button></div><p class="blurb" id="hintSSpecial"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Modifiers</span><span class="dv" data-val="mods"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="mods" id="modsSpec" data-mm="spec"></div></div></div>
@@ -8814,7 +8821,7 @@ const PERSONA_INFO = { mixed: 'Each rival is randomly Balanced, Aggressive, Stur
   adaptive: 'Reads the board and goes after whoever is winning.' };
 const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
 // the Shape buttons in Custom and Spectate come from the same table (49.3.2)
-document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = ['random', ...SHAPES].map(k => `<button data-v="${k}">${k === 'random' ? 'Random' : SHAPE_DEFS[k].label}</button>`).join(''); });
+document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random'].map(k => `<button data-v="${k}">${k === 'random' ? 'Random' : SHAPE_DEFS[k].label}</button>`).join(''); });
 const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'Every base is the same.' };
 // 49.8.4: the tone, visual, menuSound, screen and volume lines are struck (the Shop's pair blurbs describe the styles); only the Accessibility lines remain
 const SETTINGS_INFO = {
@@ -8954,6 +8961,18 @@ function fitHint(id, texts) {                        // one standard height per 
   for (const t of texts) { el.textContent = t; mx = Math.max(mx, el.getBoundingClientRect().height); }
   el.textContent = keep; el.style.minHeight = Math.ceil(mx) + 'px';
 }
+// 49.9.9: a hint that wraps and would leave a lone word (or two) on its last line gets the class `orph` (text-wrap: balance); all others wrap normally.
+function wrapFix(el) {
+  el.classList.remove('orph'); if (!el.offsetParent) return;
+  const w = el.getBoundingClientRect().width, r = document.createRange(); r.selectNodeContents(el);
+  const rects = [...r.getClientRects()].filter(x => x.width > 0); if (!w || rects.length < 2) return;
+  const tops = [...new Set(rects.map(x => Math.round(x.top)))].sort((a, b) => a - b); if (tops.length < 2) return;
+  const last = rects.filter(x => Math.round(x.top) === tops[tops.length - 1]).reduce((s, x) => s + x.width, 0);
+  if (last < w * 0.3) el.classList.add('orph');
+}
+const wrapFixAll = () => document.querySelectorAll('.blurb, .hintline').forEach(wrapFix);
+{ const mo = new MutationObserver(ms => { for (const m of ms) { const el = m.target.nodeType === 1 ? m.target : m.target.parentElement; if (el && el.matches && el.matches('.blurb, .hintline')) wrapFix(el); } });
+  document.querySelectorAll('.blurb, .hintline').forEach(el => mo.observe(el, { childList: true, characterData: true, subtree: true })); }
 function fitHints() {
   const rv = n => n === 1 ? 'rival' : 'rivals', V = o => Object.values(o), lock = V(LOCK_TEXT), diff = V(DIFF_INFO), pers = V(PERSONA_INFO);
   const sizeA = V(SIZE_CLAUSE), sizeB = V(SIZE_CLAUSE), opp = [];
@@ -8965,6 +8984,7 @@ function fitHints() {
     fitHint(ids.opp, opp); fitHint(ids.diff, [...diff, ...lock]); fitHint(ids.persona, pers); fitHint(ids.shape, V(SHAPE_INFO)); fitHint(ids.size, sizeB); fitHint(ids.special, V(SPECIAL_INFO));
   }
   fitHint('hintAccess', flat(acc));
+  wrapFixAll();
 }
 let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHints, 150); });
 function showScreen(id) {
@@ -9808,7 +9828,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.9.8 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.9.9 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

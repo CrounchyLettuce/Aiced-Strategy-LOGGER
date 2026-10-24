@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -814,6 +814,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p class="specintro" id="hwNow" role="status" aria-live="polite"></p>
     <p class="specintro">Tide (Ink's sound) switches, to try by ear, any mix: No echo (only the room, notes hang instead of bouncing). Strokes (captures swell and thin like a brush; a knockout sweeps up and back down). Pressure (keys harder and brighter the hotter the fight). Build-up (the last base's climbing keys brought forward). All off is Tide as in 49.6.</p>
     <div class="seg tight" id="tideRow"><button data-t="1">No echo</button><button data-t="2">Strokes</button><button data-t="4">Pressure</button><button data-t="8">Build-up</button></div>
+    <p class="specintro">Bowl (Sand's sound) bed: 49.7 is the pad as it was (the same voice as Cosmos). Rubbed bowls: each pad note is two tones beating slowly, breathing, no shimmer. Same chords. Switching in a match fades the bed and brings it back.</p>
+    <div class="seg tight" id="bowlRow"><button data-b="0">49.7</button><button data-b="1">Rubbed bowls</button></div>
     <button id="hwRun" class="ghost small">Run the phone check again</button>
     <button id="bUnlockAll" class="ghost small">Unlock everything</button>
   </section>
@@ -3103,7 +3105,7 @@ function drawFogOverlay() {
   const fs = Math.min(1, 1 / (dpr * 1.5)) * dpr * 0.5, fw = Math.max(1, Math.round(cv.width / dpr * fs)), fh = Math.max(1, Math.round(cv.height / dpr * fs));
   if (fogCv.width !== fw || fogCv.height !== fh) { fogCv.width = fw; fogCv.height = fh; }
   const x = fogCx; x.globalCompositeOperation = 'source-over'; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, fw, fh);
-  x.fillStyle = isInk() ? 'rgba(206,201,193,0.9)' : 'rgba(0,0,0,0.8)'; x.fillRect(0, 0, fw, fh);        // Ink: the unseen part of the page is paper-coloured haze, not black
+  x.fillStyle = isInk() ? 'rgba(206,201,193,0.9)' : isSand() ? 'rgba(120,104,80,0.88)' : 'rgba(0,0,0,0.8)'; x.fillRect(0, 0, fw, fh);        // Ink: the unseen part of the page is paper-coloured haze, not black
   x.globalCompositeOperation = 'destination-out';
   for (let i = 0; i < fogN; i += 3) { const p = toScreen(fogSrc[i], fogSrc[i + 1]), r = fogSrc[i + 2] * V.s * fs * 1.12 / dpr * dpr; x.drawImage(fogSprite, p.x * fs - r, p.y * fs - r, r * 2, r * 2); }
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.save(); ctx.beginPath(); ctx.rect(F.x * dpr, F.y * dpr, F.w * dpr, F.h * dpr); ctx.clip();
@@ -3443,7 +3445,7 @@ function bridgeTies() {                              // crossties along every br
 }
 function drawBridges() {                             // crossties along every bridge, so chokepoints read at a glance
   if (!G.bridges.size) return;
-  ctx.strokeStyle = isSand() ? 'rgba(200,182,150,0.4)' : isInk() ? 'rgba(60,52,45,0.5)' : 'rgba(255,255,255,0.34)'; ctx.lineWidth = isInk() ? 1.1 : 1.5; ctx.beginPath();
+  ctx.strokeStyle = isSand() ? 'rgba(90,72,50,0.5)' : isInk() ? 'rgba(60,52,45,0.5)' : 'rgba(255,255,255,0.34)'; ctx.lineWidth = isInk() ? 1.1 : 1.5; ctx.beginPath();
   const T = bridgeTies();
   for (let i = 0; i < T.length; i += 4) { if (!inV(T[i], T[i + 1])) continue; ctx.moveTo(T[i], T[i + 1]); ctx.lineTo(T[i + 2], T[i + 3]); }
   ctx.stroke();
@@ -3454,7 +3456,7 @@ function drawEdges(now) {
   const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), IK_ = isInk(), SD_ = isSand(), DASH = SD_ ? [0.1, 6] : IK_ ? [0.1, 3.6] : NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
   for (let i = 0; i < 5; i++) { inner[i].length = 0; out[i].length = 0; }
   ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = SD_ ? lw * 1.7 : IK_ ? lw * 0.75 : NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
-  ctx.strokeStyle = SD_ ? (HC ? 'rgba(220,200,165,0.6)' : 'rgba(200,182,150,0.32)') : IK_ ? (HC ? 'rgba(50,44,38,0.7)' : 'rgba(70,62,55,0.45)') : HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
+  ctx.strokeStyle = SD_ ? (HC ? 'rgba(60,45,28,0.6)' : 'rgba(90,72,50,0.28)') : IK_ ? (HC ? 'rgba(50,44,38,0.7)' : 'rgba(70,62,55,0.45)') : HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
   ctx.beginPath();
   for (const [a, b] of G.edges) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
@@ -3470,7 +3472,7 @@ function drawEdges(now) {
     const L = inner[i];
     if (L.length) {
       if (IK_) ctx.setLineDash([]);                  // Ink: ground you hold is joined by a plain pen line
-      ctx.strokeStyle = SD_ ? hexA(TEAM_COLORS[i], HC ? 0.8 : 0.55) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
+      ctx.strokeStyle = SD_ ? hexA(saCol(TEAM_COLORS[i]), HC ? 0.85 : 0.6) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       for (let j = 0; j < L.length; j += 2) { if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
       ctx.stroke(); if (IK_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.09); ctx.lineWidth = lw * 4.5; ctx.stroke(); ctx.lineWidth = lw * 0.9; ctx.globalCompositeOperation = 'source-over'; }   // Neon: every line glows
@@ -3478,7 +3480,7 @@ function drawEdges(now) {
     const O = out[i];
     if (O.length) {   // drawn from the owner outward, so the dashes drift toward what they can attack
       if (IK_) ctx.setLineDash([7, 4]); if (SD_) ctx.setLineDash([4, 5]);              // and its ways out by a dashed one, drifting toward what it can attack
-      ctx.strokeStyle = SD_ ? hexA(TEAM_COLORS[i], HC ? 1 : 0.85) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 1 : 0.85) : hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = SD_ ? lw * 0.95 : lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
+      ctx.strokeStyle = SD_ ? hexA(saCol(TEAM_COLORS[i]), HC ? 1 : 0.9) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 1 : 0.85) : hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = SD_ ? lw * 0.95 : lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
@@ -4178,7 +4180,7 @@ function drawSelRing(sn, now, kk, al) {                       // called with the
     g.fillStyle = hexA('#e8f6ff', 0.85); for (let i = 0; i < 6; i++) { const a = T + i * Math.PI / 3; g.beginPath(); g.arc(hx + Math.cos(a) * R, hy + Math.sin(a) * R, 1.8 * u, 0, TAU); g.fill(); }
   } else if (isSand()) {                              // a raked ring round the stone: a plain groove, with the share you send raked in your colour and a pebble where it ends
     g.strokeStyle = SA_GROOVE; g.lineWidth = 1.8 * u; arc(R, 0, TAU); g.strokeStyle = SA_RIDGE; g.lineWidth = 1.1 * u; arc(R - 1.6 * u, 0, TAU);
-    g.strokeStyle = hexA(col, 1); g.lineWidth = 3.2 * u; arc(R, T, E); cap(R, '#e8dcc4', 2.6);
+    g.strokeStyle = hexA(saCol(col), 1); g.lineWidth = 3.2 * u; arc(R, T, E); cap(R, '#fff6e4', 2.6);
   } else if (isInk()) {                               // a pencil circle, and the share you send brushed over it in your ink
     const ink = ikHex(col); g.strokeStyle = hexA(ink, 0.3 + 0.3 * flash); g.lineWidth = 0.9 * u; arc(R, 0, TAU);
     ikBrush(hx, hy, R, 0, f, ink, 3.4 * u, 0.95);
@@ -5384,18 +5386,36 @@ function drawInkFx(now) {                              // drops, blots, lifted i
 // Edgeless by construction: the grain is a tile laid edge to edge, and the raked lines are drawn across whatever is on screen, so nothing
 // has a border. The rings are part of the cached background and are painted again when a base changes hands. Reduce motion: no sweeps,
 // smoothing or spiral animation (the result simply appears).
-const SA_BG = '#3b342c', SA_GROOVE = 'rgba(14,10,6,0.42)', SA_RIDGE = 'rgba(232,212,178,0.13)', SA_STONE = [44, 46, 50], SA_NEUTRAL = '#a99c86';
+const SA_BG = '#bdab8c', SA_GROOVE = 'rgba(92,70,44,0.42)', SA_RIDGE = 'rgba(255,247,228,0.42)', SA_STONE = [62, 64, 68], SA_NEUTRAL = '#7a6c56';   // 49.7.1: pale warm sand (the dusk brown read as wood planks)
+const SA_COLS = new Map();
+function saCol(hex) { let k = SA_COLS.get(hex); if (k) return k; const n = parseInt(hex.slice(1), 16), r0 = [n >> 16, (n >> 8) & 255, n & 255], lum = (0.3 * r0[0] + 0.59 * r0[1] + 0.11 * r0[2]) / 255, c = emMix(r0, [40, 28, 14], lum > 0.6 ? 0.4 : 0.22); k = '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); SA_COLS.set(hex, k); return k; }   // a team colour a shade deeper, so it holds on light sand
 const SA = { tile: null, layer: null, lx: null, own: new Map(), og: null, stones: new Map(), back: null };
 const isSand = () => settings.visual === 'sand';
 function saReset() { if (SA.og !== G) { SA.og = G; SA.own.clear(); SA.stones.clear(); SA.back = null; } }
 function saRand(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
-function saTile() {                                    // the grain of the sand: a seamless tile of tiny light and dark specks, at device resolution
-  if (SA.tile) return SA.tile;
-  const S = 192, c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d'), rnd = saRand(0x9e3779b9);
-  g.fillStyle = SA_BG; g.fillRect(0, 0, S, S);
-  for (let i = 0; i < 2600; i++) { const a = rnd(); g.fillStyle = a < 0.45 ? 'rgba(235,215,180,0.07)' : a < 0.9 ? 'rgba(0,0,0,0.12)' : 'rgba(250,235,205,0.16)'; const z = 0.6 + rnd() * 0.8; g.fillRect(rnd() * S, rnd() * S, z, z); }
-  return (SA.tile = c);
+function saTiles(m) {                                 // 49.7.1: the grain and the raked lines baked into one small repeating tile (device pixels), so panning only lays copies of it;
+  const k = Math.hypot(m.a, m.b), rot = Math.abs(m.b) > Math.abs(m.a), key = k.toFixed(4) + rot;      // made again only when the zoom changes. A second tile has the grain alone, for the sand inside the rings
+  if (SA.tk === key) return SA.tiles;
+  const sp = 10 * k, n = Math.max(2, Math.round(256 / sp)), Hh = Math.max(8, Math.round(n * sp)), Tw = 256, d = Hh / n;
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const grainOn = (g, w, h) => { const rnd = saRand(0x9e3779b9); g.fillStyle = SA_BG; g.fillRect(0, 0, w, h);
+    for (let i = 0, N = Math.round(w * h / 14); i < N; i++) { const a = rnd(); g.fillStyle = a < 0.45 ? 'rgba(255,248,230,0.22)' : a < 0.9 ? 'rgba(90,70,45,0.12)' : 'rgba(70,52,30,0.2)'; const z = 0.6 + rnd() * 0.8; g.fillRect(rnd() * w, rnd() * h, z, z); } };
+  const lines = mk(Tw, Hh), gl = lines.getContext('2d'); grainOn(gl, Tw, Hh);
+  const wl = Math.max(1.2, 1.6 * k), wr = Math.max(1, 1.1 * k), off = Math.max(1.2, 1.5 * k);
+  gl.lineCap = 'round';
+  for (const [dy, col, w] of [[0, SA_GROOVE, wl], [-off, SA_RIDGE, wr]]) {
+    gl.strokeStyle = col; gl.lineWidth = w; gl.beginPath();
+    for (let i = -1; i <= n; i++) { const y = i * d + d / 2 + dy, ph = i * 1.7; for (let x = -4; x <= Tw + 4; x += 8) { const yv = y + Math.sin(x / Tw * Math.PI * 4 + ph) * 0.16 * d + Math.sin(x / Tw * Math.PI * 10 + ph * 3) * 0.04 * d; x === -4 ? gl.moveTo(x, yv) : gl.lineTo(x, yv); } }
+    gl.stroke();
+  }
+  const grain = mk(Tw, Hh); grainOn(grain.getContext('2d'), Tw, Hh);
+  let L = lines, Gr = grain;
+  if (rot) { const tr = c0 => { const c = mk(c0.height, c0.width), g = c.getContext('2d'); g.setTransform(0, 1, -1, 0, c0.height, 0); g.drawImage(c0, 0, 0); return c; }; L = tr(lines); Gr = tr(grain); }   // the map is turned on a tall screen: the rake lines turn with it
+  SA.tiles = { L, G: Gr }; SA.tk = key; return SA.tiles;
+}
+function saLay(g, m, img) {                            // lay a tile edge to edge over the frame, pinned to the map (device pixels, plain copies)
+  const W2 = img.width, H2 = img.height, ox = ((m.e % W2) + W2) % W2 - W2, oy = ((m.f % H2) + H2) % H2 - H2;
+  for (let y = oy; y < cv.height; y += H2) for (let x = ox; x < cv.width; x += W2) g.drawImage(img, x, y);
 }
 const SA_R0 = 13, SA_DR = 5, SA_RINGS = 5;              // the rings round a stone: the first at 13, then every 5 (the gauge is the first)
 const saOuter = () => SA_R0 + SA_DR * (SA_RINGS - 1) + 3;
@@ -5403,44 +5423,37 @@ function saBack() { return SA.back && SA.back.g === G ? SA.back : (SA.back = { g
 function saOwnKey() { let k = settings.colors + (HC ? 'h' : ''); for (const n of G.nodes) k += String.fromCharCode(66 + n.owner); return k; }
 function drawSandBack(now) {                           // called with the world transform in place; leaves it in place
   saReset();
-  const tile = saTile();
   bgCache(SA_BG, 'sand' + saOwnKey(), saBack(), g => {
-    const m = g.getTransform(), S = tile.width;
-    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);        // the grain, laid edge to edge in device pixels, pinned to the map
-    const ox = ((m.e % S) + S) % S - S, oy = ((m.f % S) + S) % S - S;
-    for (let y = oy; y < cv.height; y += S) for (let x = ox; x < cv.width; x += S) g.drawImage(tile, x, y);
-    g.restore();
-    // the raked lines, drawn onto a layer of their own so the rings round each stone can clear them
-    const L = SA.layer || (SA.layer = document.createElement('canvas')); if (L.width !== cv.width || L.height !== cv.height) { L.width = cv.width; L.height = cv.height; }
-    const x = L.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, L.width, L.height); x.setTransform(m);
-    const sp = 10, y0 = Math.floor(VIS.y0 / sp) * sp, y1 = VIS.y1, xa = VIS.x0 - 10, xb = VIS.x1 + 10, step = 22;
-    const vs = m.a / dpr, lw = Math.max(1.6, 0.9 / vs), rw = Math.max(1.1, 0.7 / vs), rl = (dy, col, w) => {
-      x.strokeStyle = col; x.lineWidth = w; x.beginPath();
-      for (let yy = y0; yy < y1; yy += sp) { for (let xx = xa; xx <= xb; xx += step) { const yv = yy + dy + Math.sin(xx / 97 + yy / 41) * 1.6 + Math.sin(xx / 31 + yy * 0.7) * 0.35; xx === xa ? x.moveTo(xx, yv) : x.lineTo(xx, yv); } }
-      x.stroke();
-    };
-    x.lineCap = 'round'; rl(0, SA_GROOVE, lw); rl(-Math.max(1.5, 1 / vs), SA_RIDGE, rw);
-    x.globalCompositeOperation = 'destination-out'; x.fillStyle = '#000'; const R = saOuter();
-    x.beginPath(); for (const n of G.nodes) { if (!inV(n.x, n.y)) continue; x.moveTo(n.x + R, n.y); x.arc(n.x, n.y, R, 0, Math.PI * 2); } x.fill();
-    saIslandsClear(x);
-    x.globalCompositeOperation = 'source-over';
-    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(L, 0, 0); g.restore();
-    for (const n of G.nodes) { if (inV(n.x, n.y)) saRings(g, n); }
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);              // dusk: the light falls off toward the frame's edges (screen space, so it never ends where the map ends)
+    const m = g.getTransform(), T = saTiles(m), R = saOuter();
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); saLay(g, m, T.L); g.restore();                           // the raked sand
+    const k = Math.hypot(m.a, m.b) / dpr, P = R + 2;                                                     // each stone's patch (unraked sand, the tint, the rings) is drawn once per colour and zoom, then stamped
+    for (const n of G.nodes) { if (!inV(n.x, n.y)) continue; g.drawImage(saRingSpr(n.owner >= 0 ? saCol(colorOf(n.owner)) : '', Math.hypot(m.a, m.b)), n.x - P, n.y - P, 2 * P, 2 * P); }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);              // late light: it falls off toward the frame's edges (screen space, so it never ends where the map ends)
     const vg = g.createRadialGradient(F.x + F.w * 0.4, F.y + F.h * 0.35, Math.min(F.w, F.h) * 0.2, F.x + F.w / 2, F.y + F.h / 2, Math.hypot(F.w, F.h) * 0.62);
-    vg.addColorStop(0, 'rgba(255,220,170,0.05)'); vg.addColorStop(0.6, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.3)'); g.fillStyle = vg; g.fillRect(F.x, F.y, F.w, F.h);
+    vg.addColorStop(0, 'rgba(255,240,210,0.08)'); vg.addColorStop(0.6, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(60,40,20,0.2)'); g.fillStyle = vg; g.fillRect(F.x, F.y, F.w, F.h);
     g.setTransform(m);
   });
 }
-function saIslandsClear(x) { }                         // (islands keep the straight lines; their shore is raked round in drawSandDeco)
 function saRingPair(g, x, y, r, col, a, w) {           // one raked ring: the groove, and its lit ridge just inside it
   g.strokeStyle = col ? hexA(col, a) : SA_GROOVE; g.lineWidth = w || 1.6; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke();
   g.strokeStyle = SA_RIDGE; g.lineWidth = 1.1; g.beginPath(); g.arc(x, y, r - 1.5, 0, Math.PI * 2); g.stroke();
 }
-function saRings(g, n) {                               // the rake's rings round a stone (part of the cached background): in the holder's colour, or plain sand
-  const own = n.owner >= 0, c = own ? colorOf(n.owner) : null, R = saOuter();
-  if (own) { const gr = g.createRadialGradient(n.x, n.y, 6, n.x, n.y, R); gr.addColorStop(0, hexA(c, HC ? 0.2 : 0.14)); gr.addColorStop(0.8, hexA(c, HC ? 0.12 : 0.08)); gr.addColorStop(1, hexA(c, 0)); g.fillStyle = gr; g.beginPath(); g.arc(n.x, n.y, R, 0, Math.PI * 2); g.fill(); }
-  for (let i = 1; i < SA_RINGS; i++) saRingPair(g, n.x, n.y, SA_R0 + SA_DR * i, c, own ? (HC ? 0.75 : 0.55) * (1 - i * 0.12) : 0, own ? 1.5 : 1.6);
+function saRingSpr(c, k) {                             // 49.7.1: a stone's patch as a picture at device resolution: unraked sand inside the rings, the holder's tint, the rings
+  const key = c + '|' + k.toFixed(4) + (HC ? 'h' : ''); if (SA.rk !== k.toFixed(4) + (HC ? 'h' : '')) { SA.rs = new Map(); SA.rk = k.toFixed(4) + (HC ? 'h' : ''); }
+  let s = SA.rs.get(key); if (s) return s;
+  const R = saOuter(), P = R + 2, S = Math.max(8, Math.ceil(2 * P * k)), cv2 = document.createElement('canvas'); cv2.width = cv2.height = S;
+  const g = cv2.getContext('2d'), rnd = saRand(0x51ab17 + (c ? parseInt(c.slice(1), 16) : 7));
+  g.setTransform(S / (2 * P), 0, 0, S / (2 * P), S / 2, S / 2);
+  g.save(); g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.clip(); g.fillStyle = SA_BG; g.fillRect(-P, -P, 2 * P, 2 * P);
+  for (let i = 0, N = Math.round(S * S / 16); i < N; i++) { const a = rnd(); g.fillStyle = a < 0.45 ? 'rgba(255,248,230,0.22)' : a < 0.9 ? 'rgba(90,70,45,0.12)' : 'rgba(70,52,30,0.2)'; const z = (0.6 + rnd() * 0.8) / k; g.fillRect((rnd() * 2 - 1) * P, (rnd() * 2 - 1) * P, z, z); }
+  g.restore();
+  saRings(g, { x: 0, y: 0, owner: c ? 0 : -1 }, c || null);
+  SA.rs.set(key, cv2); return cv2;
+}
+function saRings(g, n, cc) {                               // the rake's rings round a stone (part of the cached background): in the holder's colour, or plain sand
+  const own = n.owner >= 0, c = cc !== undefined ? cc : own ? saCol(colorOf(n.owner)) : null, R = saOuter();
+  if (own) { const gr = g.createRadialGradient(n.x, n.y, 6, n.x, n.y, R); gr.addColorStop(0, hexA(c, HC ? 0.28 : 0.22)); gr.addColorStop(0.8, hexA(c, HC ? 0.18 : 0.13)); gr.addColorStop(1, hexA(c, 0)); g.fillStyle = gr; g.beginPath(); g.arc(n.x, n.y, R, 0, Math.PI * 2); g.fill(); }
+  for (let i = 1; i < SA_RINGS; i++) saRingPair(g, n.x, n.y, SA_R0 + SA_DR * i, c, own ? (HC ? 0.9 : 0.75) * (1 - i * 0.12) : 0, own ? 1.7 : 1.6);
 }
 function saStone(n) {                                  // each stone's outline: a rounded, uneven shape from the map's seed, worked out once
   let s = SA.stones.get(n.id); if (s) return s;
@@ -5460,8 +5473,8 @@ function saRec(n) {
   else if (r.o !== n.owner) { const seen = !reduceMotion && G.fx.some(f => f.k === 'ring' && f.x === n.x && f.y === n.y && G.t - f.b < 0.6); r.p = r.o; r.o = n.owner; r.t = seen ? t : -99; }
   return r;
 }
-function drawSandBase(n, c, now) {
-  saRec(n);
+function drawSandBase(n, c0, now) {
+  saRec(n); const c = n.owner >= 0 ? saCol(c0) : c0;
   const own = n.owner >= 0, x = n.x, y = n.y, h = Math.max(0, Math.min(1, n.hp / n.maxHp)), r = (own || n.kind ? (n.kind ? 9.5 : 8) : 6) * (HC ? 1.1 : 1);
   ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.lineCap = 'round';
   const TAU = Math.PI * 2, T = -Math.PI / 2;
@@ -5489,7 +5502,7 @@ function drawSandDeco(D) {                             // terrain the way a gard
   ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   if (D.kind === 'river') {
     const path = () => { ctx.beginPath(); D.line.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); };
-    path(); ctx.strokeStyle = 'rgba(30,26,22,0.35)'; ctx.lineWidth = D.hw * 1.9; ctx.stroke();                  // a smoothed band, darker
+    path(); ctx.strokeStyle = 'rgba(110,88,60,0.16)'; ctx.lineWidth = D.hw * 1.9; ctx.stroke();                  // a smoothed band, darker
     for (const [k, a] of [[1.6, 0.5], [1.0, 0.6], [0.4, 0.5]]) {                                              // and waves raked along it
       ctx.strokeStyle = 'rgba(232,212,178,' + 0.12 * a + ')'; ctx.lineWidth = 1.1; ctx.setLineDash([16, 6, 3, 6]); ctx.lineDashOffset = k * 7; ctx.lineWidth = D.hw * k; ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
     }
@@ -5510,28 +5523,34 @@ function sandHits(ev) {                                // a blow kicks up a litt
   let budget = 8;
   for (const e of ev) {
     if (budget-- <= 0 || e.tx === undefined) break;
-    if (e.base) emit(e.tx, e.ty, Math.random() < 0.6 ? '#d8c4a0' : colorOf(e.team), 3, 45, 0.45, 1.1, 0, e.tx - e.x, e.ty - e.y, 1.6);
-    else if (Math.random() < 0.35) emit(e.tx, e.ty, '#c8b490', 1, 35, 0.35, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.2);
+    if (e.base) emit(e.tx, e.ty, Math.random() < 0.6 ? '#7e6a4c' : saCol(colorOf(e.team)), 3, 45, 0.45, 1.1, 0, e.tx - e.x, e.ty - e.y, 1.6);
+    else if (Math.random() < 0.35) emit(e.tx, e.ty, '#8a7656', 1, 35, 0.35, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.2);
   }
 }
-function drawSandTroops(buckets) {                     // pale grains in their colour, each dragging a short furrow
-  if (!reduceMotion) { ctx.fillStyle = 'rgba(10,7,4,0.35)'; for (let b = 0; b < 6; b++) { const arr = buckets[b]; if (arr.length) trailPath(arr, 9, 1.1); } }
-  const sc = 0.68 * (HC ? 1.2 : 1);
-  for (let b = 1; b < 6; b++) {
-    const arr = buckets[b]; if (!arr.length) continue;
-    ctx.fillStyle = emCss(emCol(TEAM_COLORS[b - 1]).tr, 1); ctx.beginPath();
-    const kind = SYM ? symOf(b - 1) : 'circle', kk = SYM ? sc * 1.2 : sc;
-    for (const t of arr) troopShape(ctx, kind, t.x, t.y, t.nx, t.ny, kk);
-    ctx.fill();
+function drawSandTroops(buckets) {                     // 49.7.1: small pebbles with a lit side, each dragging a short two-tine furrow, like a tiny rake (not Cosmos's dots and wedges)
+  const sc = HC ? 1.2 : 1;
+  if (!reduceMotion) {
+    ctx.strokeStyle = 'rgba(80,60,36,0.45)'; ctx.lineWidth = 0.6; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let b = 0; b < 6; b++) for (const t of buckets[b]) { if (!t.path.length) continue; const px = -t.ny * 0.95, py = t.nx * 0.95;
+      for (const s2 of [1, -1]) { ctx.moveTo(t.x - t.nx * 2.4 + px * s2, t.y - t.ny * 2.4 + py * s2); ctx.lineTo(t.x - t.nx * 9 + px * s2, t.y - t.ny * 9 + py * s2); } }
+    ctx.stroke();
   }
-  if (buckets[0].length) { ctx.fillStyle = hexA(SA_NEUTRAL, 0.75); ctx.beginPath(); for (const t of buckets[0]) troopShape(ctx, 'circle', t.x, t.y, t.nx, t.ny, 0.6); ctx.fill(); }
+  for (let b = 0; b < 6; b++) {
+    const arr = buckets[b]; if (!arr.length) continue;
+    const col = b === 0 ? SA_NEUTRAL : saCol(TEAM_COLORS[b - 1]);
+    ctx.fillStyle = col; ctx.beginPath();
+    if (SYM && b > 0) for (const t of arr) troopShape(ctx, symOf(b - 1), t.x, t.y, t.nx, t.ny, 0.84 * sc);
+    else for (const t of arr) { const a = Math.atan2(t.ny, t.nx), r = (b ? 1.75 : 1.4) * sc; ctx.moveTo(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r); ctx.ellipse(t.x, t.y, r, r * 0.74, a, 0, 6.283); }
+    ctx.fill();
+    if (b > 0 && !SYM) { ctx.fillStyle = 'rgba(255,250,235,0.55)'; ctx.beginPath(); for (const t of arr) ctx.rect(t.x - 0.9 * sc, t.y - 0.9 * sc, 0.7, 0.7); ctx.fill(); }   // the lit side of each pebble
+  }
 }
 function saSpiral(x, y, c, e0) {                       // a knockout: one spiral raked round where they fell, held, then filled in
   const fade = e0 < 2.0 ? 1 : Math.max(0, 1 - (e0 - 2.0) / 0.9); if (fade <= 0) return;
   const q = reduceMotion ? 1 : Math.min(1, e0 / 0.9), turns = 3.2, Nn = 90, upto = Math.ceil(Nn * q);
   const pt = i => { const u = i / Nn, a = -Math.PI / 2 + u * turns * Math.PI * 2, r = 9 + u * 38; return [x + Math.cos(a) * r, y + Math.sin(a) * r]; };
   ctx.lineCap = 'round';
-  for (const [col, w, dr] of [[hexA(c, 0.85 * fade), 2.2, 0], ['rgba(232,212,178,' + (0.16 * fade) + ')', 1.1, -1.5]]) {
+  for (const [col, w, dr] of [[hexA(c, 0.85 * fade), 2.2, 0], ['rgba(255,247,228,' + (0.4 * fade) + ')', 1.1, -1.5]]) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
     for (let i = 0; i <= upto; i++) { const p = pt(i), ox = x + (p[0] - x) * (1 + dr / 40), oy = y + (p[1] - y) * (1 + dr / 40); i ? ctx.lineTo(ox, oy) : ctx.moveTo(ox, oy); }
     ctx.stroke();
@@ -5544,10 +5563,10 @@ function drawSandFx(now) {                             // the rake sweeping ring
     const age = G.t - f.b;
     if (f.x === undefined || (fogD && !seenXY(f.x, f.y))) continue;
     if (f.k === 'pop' && age < 0.5) {                 // a lost troop: a small dent in the sand, its grains thrown up
-      const p = age / 0.5; ctx.globalAlpha = (1 - p) * 0.6; ctx.strokeStyle = 'rgba(232,212,178,0.5)'; ctx.lineWidth = 0.9;
+      const p = age / 0.5; ctx.globalAlpha = (1 - p) * 0.6; ctx.strokeStyle = 'rgba(90,70,45,0.5)'; ctx.lineWidth = 0.9;
       ctx.beginPath(); ctx.arc(f.x, f.y, 1.5 + p * 4.5, 0, Math.PI * 2); ctx.stroke();
     } else if (f.k === 'ring' && age < 1.3) {         // a capture: the rake sweeps the new rings outward, one after another, bright as it passes
-      const c = colorOf(f.c);
+      const c = saCol(colorOf(f.c));
       for (let i = 0; i < SA_RINGS; i++) {
         const at = i * 0.12, q = (age - at) / 0.5; if (q <= 0 || q >= 1) continue;
         const r = SA_R0 + SA_DR * i; ctx.globalAlpha = (1 - q) * 0.9; ctx.strokeStyle = c; ctx.lineWidth = 2.4;
@@ -5557,7 +5576,7 @@ function drawSandFx(now) {                             // the rake sweeping ring
         const q = age / 1.1, mine = colorOf(PLAYER); ctx.strokeStyle = mine; ctx.lineWidth = 1.8;
         for (let i = 0; i < 3; i++) { const r = (SA_R0 + SA_DR * (SA_RINGS - 1 - i)) * (1 - q * 0.7); ctx.globalAlpha = (1 - q) * 0.7 * (1 - i * 0.2); ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2); ctx.stroke(); }
       }
-    } else if (f.k === 'elim' && age > 0.35 && age < 3.0) saSpiral(f.x, f.y, colorOf(f.c), age - 0.35);
+    } else if (f.k === 'elim' && age > 0.35 && age < 3.0) saSpiral(f.x, f.y, saCol(colorOf(f.c)), age - 0.35);
     else if (f.k === 'retreat' && age < 1.1) {        // called off: a furrow drawn back toward home
       const p = age / 1.1, g = rtSeg(f, p, 40);
       if (g) { ctx.globalAlpha = (1 - p) * 0.9; ctx.strokeStyle = colorOf(f.c); ctx.lineWidth = 1.8; ctx.setLineDash([0.1, 4]); ctx.beginPath(); ctx.moveTo(g[0], g[1]); ctx.lineTo(g[2], g[3]); ctx.stroke(); ctx.setLineDash([]); }
@@ -7257,6 +7276,7 @@ const bwMidi = d => 62 + 12 * Math.floor(d / 5) + BW_SCALE[((d % 5) + 5) % 5];
 const BW_PAD = [[50, 57, 62, 69], [50, 55, 62, 67], [46, 53, 58, 62], [45, 52, 57, 62]];   // open voicings that never rub: D5, Gsus over D, Bb, A
 const BW = { nodes: null, pool: [], low: null, caps: [], deg: 6, next: 0, step: 0, ir: null, irT: -1, ret: null, ftCh: null };
 const isBowl = () => settings.tone === 'bowl';
+let bwBed = (() => { try { const v = JSON.parse(localStorage.getItem('ice-bowl')); return v && (v.b === 0 || v.b === 1) ? v.b : 0; } catch (e) { return 0; } })();   // 49.7.1: the pad's voice, a switch on the hidden screen: 0 as in 49.7 (Cosmos's sine and shimmering octave), 1 rubbed bowls
 const bwJit = () => Math.random() * 0.07;               // nothing lands exactly on the clock
 function bwIR() {                                      // still evening air in a walled garden: two and a half seconds, soft, a little bright
   if (BW.ir && BW.ir.sampleRate === AC.sampleRate && BW.irT === AQ()) return BW.ir;
@@ -7286,10 +7306,17 @@ function bwBuild(withBed) {
     const vib = AC.createOscillator(), vd = AC.createGain(); vib.frequency.value = 0.13; vd.gain.value = 4; vib.connect(vd); vib.start(t); N.oscs.push(vib);
     BW_PAD[0].forEach((m, i) => { if (AQ() >= 2 && i >= 3) return;                       // the pad: soft sines, a breath of a reed organ
       const a = AC.createOscillator(), b = AC.createOscillator(), ga = AC.createGain(), gb = AC.createGain();
-      a.frequency.value = hz(m); b.type = 'triangle'; b.frequency.value = hz(m) * 2; b.detune.value = (i % 2 ? 5 : -5); vd.connect(b.detune);
-      ga.gain.value = 0.15; gb.gain.value = 0.025; a.connect(ga); b.connect(gb); ga.connect(N.padLP); gb.connect(N.padLP);
-      a.start(t); N.voices.push([a, b]); N.oscs.push(a); if (AQ() < 1) { b.start(t); N.oscs.push(b); }
+      if (bwBed) {                                     // rubbed bowls: each note a pair of tones a few hertz apart that beat slowly against each other, each voice breathing at its own pace, no shimmer
+        a.frequency.value = hz(m); b.frequency.value = hz(m) * 1.004 + 0.3 * i; ga.gain.value = 0.1; gb.gain.value = 0.1;
+        const br = AC.createOscillator(), bd = AC.createGain(), vg = AC.createGain(); br.frequency.value = 0.05 + i * 0.023; bd.gain.value = 0.45; vg.gain.value = 0.55;
+        br.connect(bd); bd.connect(vg.gain); a.connect(ga); b.connect(gb); ga.connect(vg); gb.connect(vg); vg.connect(N.padLP); br.start(t); N.oscs.push(br);
+      } else {
+        a.frequency.value = hz(m); b.type = 'triangle'; b.frequency.value = hz(m) * 2; b.detune.value = (i % 2 ? 5 : -5); vd.connect(b.detune);
+        ga.gain.value = 0.15; gb.gain.value = 0.025; a.connect(ga); b.connect(gb); ga.connect(N.padLP); gb.connect(N.padLP);
+      }
+      a.start(t); N.voices.push([a, b]); N.oscs.push(a); if (AQ() < 1 || bwBed) { b.start(t); N.oscs.push(b); }
     });
+    N.bed = bwBed;
   }
   return N;
 }
@@ -7336,7 +7363,7 @@ function bowlHits(ev) {
   if (BW.pool.length > 40) BW.pool.splice(0, BW.pool.length - 40);
 }
 const bwFT = () => (isBowl() && mode === 'play' && (FT.phase === 'build' || FT.phase === 'hold') && FT.kind) ? { g: FT.phase === 'hold' ? 0.4 : FT.g, kind: FT.kind } : null;
-function bwGlide(N, ch, t, tc) { N.voices.forEach(([a, b], i) => { a.frequency.setTargetAtTime(hz(ch[i]), t, tc); b.frequency.setTargetAtTime(hz(ch[i]) * 2, t, tc); }); }
+function bwGlide(N, ch, t, tc) { N.voices.forEach(([a, b], i) => { a.frequency.setTargetAtTime(hz(ch[i]), t, tc); b.frequency.setTargetAtTime(N.bed ? hz(ch[i]) * 1.004 + 0.3 * i : hz(ch[i]) * 2, t, tc); }); }
 function bwSlot(N, t0, heat) {
   const fc = bwFT(), t = t0 + bwJit();
   if (N.voices && fc && BW.ftCh !== fc.kind) { BW.ftCh = fc.kind; bwGlide(N, BW_PAD[fc.kind === 'loss' ? 2 : 1], t0, 1.6); }
@@ -8594,6 +8621,7 @@ function syncQual() {
   for (const b of $('qualRow').children) b.setAttribute('aria-pressed', String(+b.dataset.q === qualFix));
   $('qualNow').textContent = qualFix < 0 ? 'Auto: the game picks the level.' : 'Held at ' + QNAMES[qualFix] + ' (' + Math.round(QUALITY[qualFix] * 100) + '% sharpness).';
   for (const b of $('audRow').children) b.setAttribute('aria-pressed', String(+b.dataset.a === audFix));
+  for (const b of $('bowlRow').children) b.setAttribute('aria-pressed', String(+b.dataset.b === bwBed));
   for (const b of $('tideRow').children) b.setAttribute('aria-pressed', String((tdOpt & +b.dataset.t) !== 0));
   $('hwNow').textContent = 'Phone check: ' + (HW.done ? HW.ms.toFixed(1) + ' ms (last readings ' + HW.list.map(x => x.toFixed(0)).join(', ') + ')' : 'not run yet') + (HW.mem ? ', ' + HW.mem + ' GB memory' : '') + (HW.cores ? ', ' + HW.cores + ' cores' : '') + '. Auto starts at ' + QNAMES[[0, 2, 3][hwTier()]] + '. Now: picture ' + QNAMES[quality] + ', sound ' + ['Full', 'Light', 'Lite'][AQ()] + '.';
   $('qualNote').hidden = qualFix < 0; $('qualNote').textContent = qualFix < 0 ? '' : 'Picture quality held at ' + QNAMES[qualFix];
@@ -8603,6 +8631,7 @@ for (const b of $('qualRow').children) b.addEventListener('click', () => {
   quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); syncQual();
 });
 for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix }); syncQual(); });
+for (const b of $('bowlRow').children) b.addEventListener('click', () => { bwBed = +b.dataset.b; save('ice-bowl', { b: bwBed }); syncQual(); if (BW.nodes) BW.nodes.tier = -1; });     // 49.7.1: a running Bowl bed fades and comes back in the new voice
 for (const b of $('tideRow').children) b.addEventListener('click', () => { tdOpt ^= +b.dataset.t; save('ice-tide', { o: tdOpt }); syncQual();      // 49.7.1: Tide's four switches; the echo changes at once, the rest on the next note
   if (TD.nodes) { const t = AC.currentTime; TD.nodes.send.gain.setTargetAtTime(tdOn(1) ? 0 : 0.42, t, 0.2); TD.nodes.wet.gain.setTargetAtTime(tdOn(1) ? 0.95 : 0.8, t, 0.2); }
   if (isTide() && settings.sound && AC && AC.state === 'running' && !TD.nodes) { try { tidePreview(); } catch (_) {} } });
@@ -9325,7 +9354,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.7.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.7.2 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

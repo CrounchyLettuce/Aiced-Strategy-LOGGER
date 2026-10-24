@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -2462,8 +2462,8 @@ const SHOP_TEXT = {
   endToken: n => n === 1 ? 'You earned a token. Spend it in the Shop.' : `You earned ${n} tokens. Spend them in the Shop.`,
   starTokens: n => `New stars: +${n} ${n === 1 ? 'token' : 'tokens'} for the Shop.`,
   starsAtStart: n => `The Shop is open. Your challenge stars earned you ${n} ${n === 1 ? 'token' : 'tokens'}. Find it on the main menu.`,
-  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon', ink: 'Ink' },
-  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain', tide: 'Tide' },
+  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon', ink: 'Ink', sand: 'Sand' },
+  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain', tide: 'Tide', bowl: 'Bowl' },
   blurb: {
     classic: 'Clean squares and triangles, soft round tones. Always yours.',
     ember: 'A fire seen from afar. A banked hum and crackles that follow the fighting.',
@@ -2473,7 +2473,8 @@ const SHOP_TEXT = {
     rime: 'A winter night. Frost grows over what you hold; glass and cracking ice.',
     clockwork: 'Brass and springs. Gears that turn while you hold them; a room of clocks that ticks with the fighting.',     // 49.4: placeholder words for Henry and WC
     neon: 'A city at night in the rain. Signs in your colour on wet streets; rain that grows heavy with the fighting.',     // 49.5: placeholder words for Henry and WC
-    ink: 'Ink on paper. Brush circles and washes that bleed into the page; a soft piano in a quiet room.' }     // 49.5: placeholder words for Henry and WC
+    ink: 'Ink on paper. Brush circles and washes that bleed into the page; a soft piano in a quiet room.',     // 49.6: placeholder words for Henry and WC
+    sand: 'A raked sand garden at dusk. Stones ringed by the rake; wooden notes and singing bowls.' }     // 49.7: placeholder words for Henry and WC     // 49.5: placeholder words for Henry and WC
 };
 // Prices and earning. Only Classic earns: a win pays size x strength, a loss pays the size only; quits, Custom and Spectate pay nothing.
 // Each challenge star pays 1 token, once. curve: points needed for each token in turn; the last number repeats from then on.
@@ -2482,7 +2483,7 @@ const SHOP = { one: 3, pair: 5, curve: [1, 2, 2, 3, 3, 4, 4, 5],
 // The pairs, in Shop order. A new pair is one more line here (plus its name and blurb above, and the style itself).
 const SHOP_PAIRS = [{ id: 'classic', v: 'classic', s: 'simple', free: true }, { id: 'ember', v: 'ember', s: 'hearth' }, { id: 'atlas', v: 'atlas', s: 'drift' },
   { id: 'pixel', v: 'pixel', s: 'chip' }, { id: 'nebula', v: 'nebula', s: 'cosmos' }, { id: 'rime', v: 'rime', s: 'floe' },
-  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }, { id: 'ink', v: 'ink', s: 'tide' }];          // 49.4, 49.5, 49.6
+  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }, { id: 'ink', v: 'ink', s: 'tide' }, { id: 'sand', v: 'sand', s: 'bowl' }];          // 49.4, 49.5, 49.6, 49.7
 let shopReal = null;      // while the Shop is open: the styles you actually have selected (the map may be showing a preview)
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
@@ -2615,13 +2616,13 @@ settings.sound = settings.sound !== false; settings.rivals = settings.rivals ===
 if (settings.tone === 'felt') settings.tone = 'soft'; else if (settings.tone === 'hum') settings.tone = 'drift';     // retired profiles move to their closest relative
 if (settings.tone === 'bright' || settings.tone === 'soft') settings.tone = 'simple';                                // Build 36: the two became Simple
 if (settings.tone === 'overdrive') settings.tone = 'hearth';                                                         // Build 48.2: Overdrive was replaced by Hearth
-if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide'].includes(settings.tone)) settings.tone = 'simple';
+if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide', 'bowl'].includes(settings.tone)) settings.tone = 'simple';
 delete settings.woods;                                                                                               // 48.9.7: the night-woods trial is gone
 settings.screen = 'auto';                                                                                            // 48.8: the Screen setting is gone, Auto (follow the phone's rotation lock) is baked in
 settings.menuSound = 'on';                                                                                           // 48.8: the Menu sound switch is gone; a saved Off must not silence the menus with nothing to turn it back on (the volume slider does the muting)
 if (settings.visual === 'spark') settings.visual = 'classic';
 if (settings.visual === 'overload') settings.visual = 'ember';                                                        // Build 48.1.5: Overload was replaced by Ember                                                        // Build 36: Spark was folded into Classic
-if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork', 'neon', 'ink'].includes(settings.visual)) settings.visual = 'classic';
+if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork', 'neon', 'ink', 'sand'].includes(settings.visual)) settings.visual = 'classic';
 // The Shop's save: tokens, progress toward the next one, how many have been earned by playing, stars already paid for, and what you own.
 // Kept apart from Stats like the unlocks, so resetting Stats never takes styles away. Test pages (?perf) with no Shop save own everything.
 const shop = (() => {
@@ -3140,6 +3141,7 @@ function vfxHits(ev) {                               // sparks where hits land, 
   if (isClock()) { if (!reduceMotion) clockHits(ev); return; }
   if (isNeon()) { if (!reduceMotion) neonHits(ev); return; }
   if (isInk()) { if (!reduceMotion) inkHits(ev); return; }
+  if (isSand()) { if (!reduceMotion) sandHits(ev); return; }
   if (!fxOn()) return;
   const OV = isOver(), LT = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), mult = OV ? 3 : 1;
   let budget = OV ? 16 : LT ? 6 : 10, numbers = 0;
@@ -3214,7 +3216,7 @@ function trailPath(arr, len, w) {                   // a thin wedge behind every
 }
 const PB = [];                                        // reusable particle batches: [color][brightness step]
 function drawParts() {
-  ctx.globalCompositeOperation = isInk() ? 'source-over' : 'lighter';     // ink on paper is laid down, never added like light
+  ctx.globalCompositeOperation = isInk() || isSand() ? 'source-over' : 'lighter';     // ink on paper is laid down, never added like light
   const colors = [];
   for (const p of parts) {
     if (!inV(p.x, p.y)) continue;
@@ -3410,6 +3412,7 @@ function drawDeco(now) {
   if (isClock()) { drawClockDeco(D); return; }
   if (isNeon()) { drawNeonDeco(D); return; }
   if (isInk()) { drawInkDeco(D); return; }
+  if (isSand()) { drawSandDeco(D); return; }
   if (D.kind === 'river') {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.strokeStyle = 'rgba(70,120,200,0.07)'; ctx.lineWidth = D.hw * 1.7; ctx.beginPath();
@@ -3438,7 +3441,7 @@ function bridgeTies() {                              // crossties along every br
 }
 function drawBridges() {                             // crossties along every bridge, so chokepoints read at a glance
   if (!G.bridges.size) return;
-  ctx.strokeStyle = isInk() ? 'rgba(60,52,45,0.5)' : 'rgba(255,255,255,0.34)'; ctx.lineWidth = isInk() ? 1.1 : 1.5; ctx.beginPath();
+  ctx.strokeStyle = isSand() ? 'rgba(200,182,150,0.4)' : isInk() ? 'rgba(60,52,45,0.5)' : 'rgba(255,255,255,0.34)'; ctx.lineWidth = isInk() ? 1.1 : 1.5; ctx.beginPath();
   const T = bridgeTies();
   for (let i = 0; i < T.length; i += 4) { if (!inV(T[i], T[i + 1])) continue; ctx.moveTo(T[i], T[i + 1]); ctx.lineTo(T[i + 2], T[i + 3]); }
   ctx.stroke();
@@ -3446,10 +3449,10 @@ function drawBridges() {                             // crossties along every br
 function drawEdges(now) {
   const nodes = G.nodes, lw = Math.max(1.4, 1.1 / V.s) * (HC ? 1.35 : 1);
   const slow = reduceMotion ? 0 : -now * 3, fast = reduceMotion ? 0 : -now * 9;
-  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), IK_ = isInk(), DASH = IK_ ? [0.1, 3.6] : NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
+  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), IK_ = isInk(), SD_ = isSand(), DASH = SD_ ? [0.1, 6] : IK_ ? [0.1, 3.6] : NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
   for (let i = 0; i < 5; i++) { inner[i].length = 0; out[i].length = 0; }
-  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = IK_ ? lw * 0.75 : NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
-  ctx.strokeStyle = IK_ ? (HC ? 'rgba(50,44,38,0.7)' : 'rgba(70,62,55,0.45)') : HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
+  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = SD_ ? lw * 1.7 : IK_ ? lw * 0.75 : NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
+  ctx.strokeStyle = SD_ ? (HC ? 'rgba(220,200,165,0.6)' : 'rgba(200,182,150,0.32)') : IK_ ? (HC ? 'rgba(50,44,38,0.7)' : 'rgba(70,62,55,0.45)') : HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
   ctx.beginPath();
   for (const [a, b] of G.edges) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
@@ -3465,20 +3468,20 @@ function drawEdges(now) {
     const L = inner[i];
     if (L.length) {
       if (IK_) ctx.setLineDash([]);                  // Ink: ground you hold is joined by a plain pen line
-      ctx.strokeStyle = IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
+      ctx.strokeStyle = SD_ ? hexA(TEAM_COLORS[i], HC ? 0.8 : 0.55) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       for (let j = 0; j < L.length; j += 2) { if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
       ctx.stroke(); if (IK_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.09); ctx.lineWidth = lw * 4.5; ctx.stroke(); ctx.lineWidth = lw * 0.9; ctx.globalCompositeOperation = 'source-over'; }   // Neon: every line glows
     }
     const O = out[i];
     if (O.length) {   // drawn from the owner outward, so the dashes drift toward what they can attack
-      if (IK_) ctx.setLineDash([7, 4]);              // and its ways out by a dashed one, drifting toward what it can attack
-      ctx.strokeStyle = IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 1 : 0.85) : hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
+      if (IK_) ctx.setLineDash([7, 4]); if (SD_) ctx.setLineDash([4, 5]);              // and its ways out by a dashed one, drifting toward what it can attack
+      ctx.strokeStyle = SD_ ? hexA(TEAM_COLORS[i], HC ? 1 : 0.85) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 1 : 0.85) : hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = SD_ ? lw * 0.95 : lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
       }
-      ctx.stroke(); ctx.lineWidth = lw; if (IK_) ctx.setLineDash(DASH);
+      ctx.stroke(); ctx.lineWidth = SD_ ? lw * 1.7 : lw; if (IK_ || SD_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.16); ctx.lineWidth = lw * 5; ctx.stroke(); ctx.lineWidth = lw; ctx.globalCompositeOperation = 'source-over'; }   // Neon: the ways out glow brightest
       if (isOver()) {                                // Overload: the same lines again, wide and glowing, on the beat
         ctx.setLineDash([]); ctx.globalCompositeOperation = 'lighter';
@@ -3837,7 +3840,7 @@ function draw(now) {
   const OV = isOver(), dtD = Math.min(0.1, Math.max(0, now - lastDrawT)); lastDrawT = now;
   kick = OV ? beatKick(now) : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : isNeon() ? NE_BG : isInk() ? IK_BG : '#000';   // Overload never fully clears, so everything leaves a smear
+  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : isNeon() ? NE_BG : isInk() ? IK_BG : isSand() ? SA_BG : '#000';   // Overload never fully clears, so everything leaves a smear
   ctx.fillRect(0, 0, cv.width, cv.height);
   if (!G || (mode === 'demo' && pvOnly)) return;      // setup screens show their map in the preview card instead
   const fogD = fogOn();
@@ -3855,7 +3858,7 @@ function draw(now) {
   ctx.beginPath(); ctx.rect(F.x, F.y, F.w, F.h); ctx.clip();
   applyView(sx, sy);
   updateVis();
-  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NE_ = isNeon(), IN_ = isInk(), TCP = IN_ ? ikHex(TEAM_COLORS[PLAYER]) : TEAM_COLORS[PLAYER];
+  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NE_ = isNeon(), IN_ = isInk(), SD_ = isSand(), TCP = IN_ ? ikHex(TEAM_COLORS[PLAYER]) : TEAM_COLORS[PLAYER];
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   vfxFx(); stepParts();
   if (OV) drawOverloadBg(now, dtD);
@@ -3866,6 +3869,7 @@ function draw(now) {
   else if (CK) { drawClockBack(now); applyView(sx, sy); }
   else if (NE_) { drawNeonBack(now); applyView(sx, sy); }
   else if (IN_) { drawInkBack(now); applyView(sx, sy); }
+  else if (SD_) { drawSandBack(now); applyView(sx, sy); }
 
   if (isAtlas()) drawAtlasBack(now);
   if (PERF && window.__bgOnly) { ctx.restore(); return; }          // test hook: only the background, so tests can measure it alone
@@ -3917,6 +3921,7 @@ function draw(now) {
     else if (CK) drawGear(n, c, now);
     else if (NE_) drawNeonBase(n, c, now);
     else if (IN_) drawInkBase(n, c, now);
+    else if (SD_) drawSandBase(n, c, now);
     else if (SP) {                                   // Overload's base: soft glow, a slowly turning frame, a breathing core
       const mv = reduceMotion ? 0 : 1, own = n.owner >= 0, cc = c;
       const br = (1 + 0.07 * Math.sin(now * 2.2 + n.id) * mv) * (OV ? 1 + 0.35 * kick : 1);
@@ -3962,9 +3967,9 @@ function draw(now) {
     } else {
       ctx.fillStyle = NEUTRAL_COLOR; ctx.fillRect(n.x - 5.5, n.y - 5.5, 11, 11);
     }
-    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK || NE_ || IN_) && G.t - n.lastHitT < 0.07);
+    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK || NE_ || IN_ || SD_) && G.t - n.lastHitT < 0.07);
     if (n.crown) drawCrown(n, now);
-    if (!EM && !CK && !NE_ && !IN_ && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it; Neon's segments do)
+    if (!EM && !CK && !NE_ && !IN_ && !SD_ && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it; Neon's segments do)
       const f = Math.max(0, n.hp / n.maxHp), hit = G.t - n.lastHitT < 0.15;
       ctx.lineWidth = 2.2;
       ctx.strokeStyle = hit ? 'rgba(255,255,255,0.3)' : HC ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)';
@@ -4047,7 +4052,8 @@ function draw(now) {
   if (EM) drawEmberTroops(buckets);
   else if (NE_) drawNeonTroops(buckets);
   else if (IN_) drawInkTroops(buckets);
-  for (let b = 0; b < 6 && !EM && !NE_ && !IN_; b++) {
+  else if (SD_) drawSandTroops(buckets);
+  for (let b = 0; b < 6 && !EM && !NE_ && !IN_ && !SD_; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
     ctx.fillStyle = b === 0 ? (NB && !HC ? '#9097ad' : NEUTRAL_COLOR) : TEAM_COLORS[b - 1];   // Nebula: empty bases' guards a shade dimmer than the stars they guard
     ctx.beginPath();
@@ -4080,6 +4086,7 @@ function draw(now) {
   else if (!reduceMotion && CK) drawClockFx(now);
   else if (!reduceMotion && NE_) drawNeonFx(now);
   else if (!reduceMotion && IN_) drawInkFx(now);
+  else if (!reduceMotion && SD_) drawSandFx(now);
   else if (!reduceMotion) {
     ctx.lineWidth = 1.1;
     for (const f of G.fx) {
@@ -4122,7 +4129,7 @@ function draw(now) {
     ctx.globalAlpha = 1;
   }
   if (isAtlas()) drawAtlasFront(now);
-  if (SP || CL || NB || RM || EM || NE_ || IN_) drawParts();
+  if (SP || CL || NB || RM || EM || NE_ || IN_ || SD_) drawParts();
   for (let i = uiFx.length - 1; i >= 0; i--) {
     const f = uiFx[i], age = now - f.b;
     if (age > 0.5) { uiFx.splice(i, 1); continue; }
@@ -4167,6 +4174,9 @@ function drawSelRing(sn, now, kk, al) {                       // called with the
     g.strokeStyle = hexA('#bfe6ff', 0.4 + 0.3 * flash); g.lineWidth = 1.3 * u; hexFrac(g, hx, hy, R, 1);
     g.strokeStyle = hexA(col, 1); g.lineWidth = 3.2 * u; hexFrac(g, hx, hy, R, f);
     g.fillStyle = hexA('#e8f6ff', 0.85); for (let i = 0; i < 6; i++) { const a = T + i * Math.PI / 3; g.beginPath(); g.arc(hx + Math.cos(a) * R, hy + Math.sin(a) * R, 1.8 * u, 0, TAU); g.fill(); }
+  } else if (isSand()) {                              // a raked ring round the stone: a plain groove, with the share you send raked in your colour and a pebble where it ends
+    g.strokeStyle = SA_GROOVE; g.lineWidth = 1.8 * u; arc(R, 0, TAU); g.strokeStyle = SA_RIDGE; g.lineWidth = 1.1 * u; arc(R - 1.6 * u, 0, TAU);
+    g.strokeStyle = hexA(col, 1); g.lineWidth = 3.2 * u; arc(R, T, E); cap(R, '#e8dcc4', 2.6);
   } else if (isInk()) {                               // a pencil circle, and the share you send brushed over it in your ink
     const ink = ikHex(col); g.strokeStyle = hexA(ink, 0.3 + 0.3 * flash); g.lineWidth = 0.9 * u; arc(R, 0, TAU);
     ikBrush(hx, hy, R, 0, f, ink, 3.4 * u, 0.95);
@@ -5344,6 +5354,200 @@ function drawInkFx(now) {                              // drops, blots, lifted i
   ctx.globalAlpha = 1;
 }
 
+// ---- "Sand" (49.7): a raked sand garden at dusk. The tenth pair, with "Bowl" for its sound (both names are placeholders for Henry and WC) ----
+// The ground is fine sand raked in long, slightly wavering lines, seen in low evening light, so it is mid-dark (Henry, 49.6: Ink was the
+// only style that brightened the game that much; this one stays in the dusk). Every groove is a shadow with a lit ridge beside it. A base is
+// a stone set in the sand with the rake's rings round it, and the straight lines stop where the rings begin, as in a real garden. Ground
+// you hold has its rings dyed with your colour (a tint in the sand inside them, the rings themselves in your colour); the innermost ring is
+// the gauge, lit for the health left from the top, clockwise. A capture: the rake sweeps new rings outward from the stone. A base you lose
+// has its rings smoothed away toward the stone. A knockout is one spiral raked round where they fell. Troops are pale grains in their
+// colour, each dragging a short furrow; lines are paths of stepping stones (dots), dashed on the ways out. Rivers are raked waves, islands
+// are ringed by the rake. Never: glow added like light, bright backgrounds, hard bitmap edges.
+// Edgeless by construction: the grain is a tile laid edge to edge, and the raked lines are drawn across whatever is on screen, so nothing
+// has a border. The rings are part of the cached background and are painted again when a base changes hands. Reduce motion: no sweeps,
+// smoothing or spiral animation (the result simply appears).
+const SA_BG = '#3b342c', SA_GROOVE = 'rgba(14,10,6,0.42)', SA_RIDGE = 'rgba(232,212,178,0.13)', SA_STONE = [44, 46, 50], SA_NEUTRAL = '#a99c86';
+const SA = { tile: null, layer: null, lx: null, own: new Map(), og: null, stones: new Map(), back: null };
+const isSand = () => settings.visual === 'sand';
+function saReset() { if (SA.og !== G) { SA.og = G; SA.own.clear(); SA.stones.clear(); SA.back = null; } }
+function saRand(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function saTile() {                                    // the grain of the sand: a seamless tile of tiny light and dark specks, at device resolution
+  if (SA.tile) return SA.tile;
+  const S = 192, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), rnd = saRand(0x9e3779b9);
+  g.fillStyle = SA_BG; g.fillRect(0, 0, S, S);
+  for (let i = 0; i < 2600; i++) { const a = rnd(); g.fillStyle = a < 0.45 ? 'rgba(235,215,180,0.07)' : a < 0.9 ? 'rgba(0,0,0,0.12)' : 'rgba(250,235,205,0.16)'; const z = 0.6 + rnd() * 0.8; g.fillRect(rnd() * S, rnd() * S, z, z); }
+  return (SA.tile = c);
+}
+const SA_R0 = 13, SA_DR = 5, SA_RINGS = 5;              // the rings round a stone: the first at 13, then every 5 (the gauge is the first)
+const saOuter = () => SA_R0 + SA_DR * (SA_RINGS - 1) + 3;
+function saBack() { return SA.back && SA.back.g === G ? SA.back : (SA.back = { g: G }); }
+function saOwnKey() { let k = settings.colors + (HC ? 'h' : ''); for (const n of G.nodes) k += String.fromCharCode(66 + n.owner); return k; }
+function drawSandBack(now) {                           // called with the world transform in place; leaves it in place
+  saReset();
+  const tile = saTile();
+  bgCache(SA_BG, 'sand' + saOwnKey(), saBack(), g => {
+    const m = g.getTransform(), S = tile.width;
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);        // the grain, laid edge to edge in device pixels, pinned to the map
+    const ox = ((m.e % S) + S) % S - S, oy = ((m.f % S) + S) % S - S;
+    for (let y = oy; y < cv.height; y += S) for (let x = ox; x < cv.width; x += S) g.drawImage(tile, x, y);
+    g.restore();
+    // the raked lines, drawn onto a layer of their own so the rings round each stone can clear them
+    const L = SA.layer || (SA.layer = document.createElement('canvas')); if (L.width !== cv.width || L.height !== cv.height) { L.width = cv.width; L.height = cv.height; }
+    const x = L.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, L.width, L.height); x.setTransform(m);
+    const sp = 10, y0 = Math.floor(VIS.y0 / sp) * sp, y1 = VIS.y1, xa = VIS.x0 - 10, xb = VIS.x1 + 10, step = 22;
+    const vs = m.a / dpr, lw = Math.max(1.6, 0.9 / vs), rw = Math.max(1.1, 0.7 / vs), rl = (dy, col, w) => {
+      x.strokeStyle = col; x.lineWidth = w; x.beginPath();
+      for (let yy = y0; yy < y1; yy += sp) { for (let xx = xa; xx <= xb; xx += step) { const yv = yy + dy + Math.sin(xx / 97 + yy / 41) * 1.6 + Math.sin(xx / 31 + yy * 0.7) * 0.35; xx === xa ? x.moveTo(xx, yv) : x.lineTo(xx, yv); } }
+      x.stroke();
+    };
+    x.lineCap = 'round'; rl(0, SA_GROOVE, lw); rl(-Math.max(1.5, 1 / vs), SA_RIDGE, rw);
+    x.globalCompositeOperation = 'destination-out'; x.fillStyle = '#000'; const R = saOuter();
+    x.beginPath(); for (const n of G.nodes) { if (!inV(n.x, n.y)) continue; x.moveTo(n.x + R, n.y); x.arc(n.x, n.y, R, 0, Math.PI * 2); } x.fill();
+    saIslandsClear(x);
+    x.globalCompositeOperation = 'source-over';
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(L, 0, 0); g.restore();
+    for (const n of G.nodes) { if (inV(n.x, n.y)) saRings(g, n); }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);              // dusk: the light falls off toward the frame's edges (screen space, so it never ends where the map ends)
+    const vg = g.createRadialGradient(F.x + F.w * 0.4, F.y + F.h * 0.35, Math.min(F.w, F.h) * 0.2, F.x + F.w / 2, F.y + F.h / 2, Math.hypot(F.w, F.h) * 0.62);
+    vg.addColorStop(0, 'rgba(255,220,170,0.05)'); vg.addColorStop(0.6, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.3)'); g.fillStyle = vg; g.fillRect(F.x, F.y, F.w, F.h);
+    g.setTransform(m);
+  });
+}
+function saIslandsClear(x) { }                         // (islands keep the straight lines; their shore is raked round in drawSandDeco)
+function saRingPair(g, x, y, r, col, a, w) {           // one raked ring: the groove, and its lit ridge just inside it
+  g.strokeStyle = col ? hexA(col, a) : SA_GROOVE; g.lineWidth = w || 1.6; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = SA_RIDGE; g.lineWidth = 1.1; g.beginPath(); g.arc(x, y, r - 1.5, 0, Math.PI * 2); g.stroke();
+}
+function saRings(g, n) {                               // the rake's rings round a stone (part of the cached background): in the holder's colour, or plain sand
+  const own = n.owner >= 0, c = own ? colorOf(n.owner) : null, R = saOuter();
+  if (own) { const gr = g.createRadialGradient(n.x, n.y, 6, n.x, n.y, R); gr.addColorStop(0, hexA(c, HC ? 0.2 : 0.14)); gr.addColorStop(0.8, hexA(c, HC ? 0.12 : 0.08)); gr.addColorStop(1, hexA(c, 0)); g.fillStyle = gr; g.beginPath(); g.arc(n.x, n.y, R, 0, Math.PI * 2); g.fill(); }
+  for (let i = 1; i < SA_RINGS; i++) saRingPair(g, n.x, n.y, SA_R0 + SA_DR * i, c, own ? (HC ? 0.75 : 0.55) * (1 - i * 0.12) : 0, own ? 1.5 : 1.6);
+}
+function saStone(n) {                                  // each stone's outline: a rounded, uneven shape from the map's seed, worked out once
+  let s = SA.stones.get(n.id); if (s) return s;
+  const rnd = saRand((G.seed | 0) * 31 + n.id * 977 + 5), N = 9, P = [], a0 = rnd() * 6;
+  for (let i = 0; i < N; i++) { const a = a0 + i / N * Math.PI * 2, r = 0.82 + rnd() * 0.26; P.push([Math.cos(a) * r, Math.sin(a) * r * (0.86 + rnd() * 0.1)]); }
+  s = { P, tilt: rnd() * 0.6 - 0.3 }; SA.stones.set(n.id, s); return s;
+}
+function saStonePath(n, x, y, r) {                     // the stone as a smooth closed curve through its points
+  const P = saStone(n).P, N = P.length;
+  ctx.beginPath();
+  for (let i = 0; i <= N; i++) { const p = P[i % N], q = P[(i + 1) % N], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2; i ? ctx.quadraticCurveTo(x + p[0] * r, y + p[1] * r, x + mx * r, y + my * r) : ctx.moveTo(x + mx * r, y + my * r); }
+  ctx.closePath();
+}
+function saRec(n) {
+  let r = SA.own.get(n.id); const t = performance.now() / 1000;
+  if (!r) { r = { o: n.owner, t: -99, p: -1 }; SA.own.set(n.id, r); }
+  else if (r.o !== n.owner) { const seen = !reduceMotion && G.fx.some(f => f.k === 'ring' && f.x === n.x && f.y === n.y && G.t - f.b < 0.6); r.p = r.o; r.o = n.owner; r.t = seen ? t : -99; }
+  return r;
+}
+function drawSandBase(n, c, now) {
+  saRec(n);
+  const own = n.owner >= 0, x = n.x, y = n.y, h = Math.max(0, Math.min(1, n.hp / n.maxHp)), r = (own || n.kind ? (n.kind ? 9.5 : 8) : 6) * (HC ? 1.1 : 1);
+  ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.lineCap = 'round';
+  const TAU = Math.PI * 2, T = -Math.PI / 2;
+  if (own) {                                           // the gauge: the first ring, lit in your colour for the health left; the rest of it a plain groove
+    ctx.strokeStyle = SA_GROOVE; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, SA_R0, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = hexA(c, 1); ctx.lineWidth = HC ? 3.2 : 2.6; ctx.beginPath(); ctx.arc(x, y, SA_R0, T, T + TAU * h); ctx.stroke();
+  } else {
+    ctx.strokeStyle = SA_GROOVE; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, SA_R0, 0, TAU); ctx.stroke();
+    if (h < 0.995) { ctx.strokeStyle = hexA(SA_NEUTRAL, 0.7); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, SA_R0, T, T + TAU * h); ctx.stroke(); }
+  }
+  const st = saStone(n), struck = G.t - n.lastHitT < 0.07, k = own ? 1 : 0.8;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; saStonePath(n, x + 1.6, y + 2, r); ctx.fill();                         // its shadow, thrown away from the low sun
+  const gr = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  gr.addColorStop(0, emCss(emMix(SA_STONE, [150, 150, 152], 0.55 * k), 1)); gr.addColorStop(0.55, emCss(SA_STONE, 1)); gr.addColorStop(1, emCss(emMix(SA_STONE, [0, 0, 0], 0.4), 1));
+  ctx.fillStyle = gr; saStonePath(n, x, y, r); ctx.fill();
+  if (struck) { ctx.fillStyle = 'rgba(255,240,215,0.25)'; ctx.fill(); }
+  if (n.kind) return;                                  // a special's glyph is drawn on the stone after this
+  if (own) {                                           // the holder's mark: a small daub of their colour on top of the stone
+    ctx.fillStyle = c; ctx.beginPath();
+    if (SYM) symPath(ctx, symOf(n.owner), x, y - r * 0.05, 3.4 * (HC ? 1.1 : 1)); else ctx.arc(x, y, 2.6 * (HC ? 1.15 : 1), 0, TAU);
+    ctx.fill();
+  } else if (SYM) { ctx.strokeStyle = SA_NEUTRAL; ctx.lineWidth = 1.3; ctx.strokeRect(x - 2.6, y - 2.6, 5.2, 5.2); }
+}
+function drawSandDeco(D) {                             // terrain the way a garden shows it: a river is raked waves, islands are ringed by the rake, the ring a raked circle
+  ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (D.kind === 'river') {
+    const path = () => { ctx.beginPath(); D.line.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); };
+    path(); ctx.strokeStyle = 'rgba(30,26,22,0.35)'; ctx.lineWidth = D.hw * 1.9; ctx.stroke();                  // a smoothed band, darker
+    for (const [k, a] of [[1.6, 0.5], [1.0, 0.6], [0.4, 0.5]]) {                                              // and waves raked along it
+      ctx.strokeStyle = 'rgba(232,212,178,' + 0.12 * a + ')'; ctx.lineWidth = 1.1; ctx.setLineDash([16, 6, 3, 6]); ctx.lineDashOffset = k * 7; ctx.lineWidth = D.hw * k; ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    ctx.setLineDash([]); ctx.lineDashOffset = 0;
+  } else if (D.kind === 'islands') {                  // each island is ringed by the rake: its shore smoothed into curves, raked round twice
+    for (const h of islandHulls()) {
+      const cx = h.reduce((a, p) => a + p[0], 0) / h.length, cy = h.reduce((a, p) => a + p[1], 0) / h.length, N = h.length;
+      const ring = d => { ctx.beginPath(); const P = h.map(([x, y]) => { const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1; return [x + dx / l * d, y + dy / l * d]; });
+        for (let i = 0; i <= N; i++) { const p = P[i % N], q = P[(i + 1) % N], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2; i ? ctx.quadraticCurveTo(p[0], p[1], mx, my) : ctx.moveTo(mx, my); } ctx.closePath(); };
+      ring(0); ctx.fillStyle = 'rgba(0,0,0,0.07)'; ctx.fill();
+      for (const d of [0, 7]) { ring(d); ctx.strokeStyle = SA_GROOVE; ctx.lineWidth = 1.8; ctx.stroke(); ring(d - 1.6); ctx.strokeStyle = SA_RIDGE; ctx.lineWidth = 1.1; ctx.stroke(); }
+    }
+  } else if (D.kind === 'ring') {
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(D.cx, D.cy, D.rx - k * 6, D.ry - k * 6, 0, 0, Math.PI * 2); ctx.strokeStyle = SA_GROOVE; ctx.lineWidth = 1.6; ctx.stroke(); ctx.beginPath(); ctx.ellipse(D.cx, D.cy, D.rx - k * 6 - 1.5, D.ry - k * 6 - 1.5, 0, 0, Math.PI * 2); ctx.strokeStyle = SA_RIDGE; ctx.lineWidth = 1.1; ctx.stroke(); }
+  }
+}
+function sandHits(ev) {                                // a blow kicks up a little spray of sand
+  let budget = 8;
+  for (const e of ev) {
+    if (budget-- <= 0 || e.tx === undefined) break;
+    if (e.base) emit(e.tx, e.ty, Math.random() < 0.6 ? '#d8c4a0' : colorOf(e.team), 3, 45, 0.45, 1.1, 0, e.tx - e.x, e.ty - e.y, 1.6);
+    else if (Math.random() < 0.35) emit(e.tx, e.ty, '#c8b490', 1, 35, 0.35, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.2);
+  }
+}
+function drawSandTroops(buckets) {                     // pale grains in their colour, each dragging a short furrow
+  if (!reduceMotion) { ctx.fillStyle = 'rgba(10,7,4,0.35)'; for (let b = 0; b < 6; b++) { const arr = buckets[b]; if (arr.length) trailPath(arr, 9, 1.1); } }
+  const sc = 0.68 * (HC ? 1.2 : 1);
+  for (let b = 1; b < 6; b++) {
+    const arr = buckets[b]; if (!arr.length) continue;
+    ctx.fillStyle = emCss(emCol(TEAM_COLORS[b - 1]).tr, 1); ctx.beginPath();
+    const kind = SYM ? symOf(b - 1) : 'circle', kk = SYM ? sc * 1.2 : sc;
+    for (const t of arr) troopShape(ctx, kind, t.x, t.y, t.nx, t.ny, kk);
+    ctx.fill();
+  }
+  if (buckets[0].length) { ctx.fillStyle = hexA(SA_NEUTRAL, 0.75); ctx.beginPath(); for (const t of buckets[0]) troopShape(ctx, 'circle', t.x, t.y, t.nx, t.ny, 0.6); ctx.fill(); }
+}
+function saSpiral(x, y, c, e0) {                       // a knockout: one spiral raked round where they fell, held, then filled in
+  const fade = e0 < 2.0 ? 1 : Math.max(0, 1 - (e0 - 2.0) / 0.9); if (fade <= 0) return;
+  const q = reduceMotion ? 1 : Math.min(1, e0 / 0.9), turns = 3.2, Nn = 90, upto = Math.ceil(Nn * q);
+  const pt = i => { const u = i / Nn, a = -Math.PI / 2 + u * turns * Math.PI * 2, r = 9 + u * 38; return [x + Math.cos(a) * r, y + Math.sin(a) * r]; };
+  ctx.lineCap = 'round';
+  for (const [col, w, dr] of [[hexA(c, 0.85 * fade), 2.2, 0], ['rgba(232,212,178,' + (0.16 * fade) + ')', 1.1, -1.5]]) {
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
+    for (let i = 0; i <= upto; i++) { const p = pt(i), ox = x + (p[0] - x) * (1 + dr / 40), oy = y + (p[1] - y) * (1 + dr / 40); i ? ctx.lineTo(ox, oy) : ctx.moveTo(ox, oy); }
+    ctx.stroke();
+  }
+}
+function drawSandFx(now) {                             // the rake sweeping rings, rings smoothed away, the knockout's spiral, puffs of sand
+  const fogD = fogOn();
+  ctx.setLineDash([]); ctx.lineCap = 'round';
+  for (const f of G.fx) {
+    const age = G.t - f.b;
+    if (f.x === undefined || (fogD && !seenXY(f.x, f.y))) continue;
+    if (f.k === 'pop' && age < 0.5) {                 // a lost troop: a small dent in the sand, its grains thrown up
+      const p = age / 0.5; ctx.globalAlpha = (1 - p) * 0.6; ctx.strokeStyle = 'rgba(232,212,178,0.5)'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.arc(f.x, f.y, 1.5 + p * 4.5, 0, Math.PI * 2); ctx.stroke();
+    } else if (f.k === 'ring' && age < 1.3) {         // a capture: the rake sweeps the new rings outward, one after another, bright as it passes
+      const c = colorOf(f.c);
+      for (let i = 0; i < SA_RINGS; i++) {
+        const at = i * 0.12, q = (age - at) / 0.5; if (q <= 0 || q >= 1) continue;
+        const r = SA_R0 + SA_DR * i; ctx.globalAlpha = (1 - q) * 0.9; ctx.strokeStyle = c; ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.arc(f.x, f.y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, q * 1.6)); ctx.stroke();
+      }
+      if (lostMine(f) && age < 1.1) {                 // the rings you held, smoothed away in toward the stone
+        const q = age / 1.1, mine = colorOf(PLAYER); ctx.strokeStyle = mine; ctx.lineWidth = 1.8;
+        for (let i = 0; i < 3; i++) { const r = (SA_R0 + SA_DR * (SA_RINGS - 1 - i)) * (1 - q * 0.7); ctx.globalAlpha = (1 - q) * 0.7 * (1 - i * 0.2); ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, Math.PI * 2); ctx.stroke(); }
+      }
+    } else if (f.k === 'elim' && age > 0.35 && age < 3.0) saSpiral(f.x, f.y, colorOf(f.c), age - 0.35);
+    else if (f.k === 'retreat' && age < 1.1) {        // called off: a furrow drawn back toward home
+      const p = age / 1.1, g = rtSeg(f, p, 40);
+      if (g) { ctx.globalAlpha = (1 - p) * 0.9; ctx.strokeStyle = colorOf(f.c); ctx.lineWidth = 1.8; ctx.setLineDash([0.1, 4]); ctx.beginPath(); ctx.moveTo(g[0], g[1]); ctx.lineTo(g[2], g[3]); ctx.stroke(); ctx.setLineDash([]); }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 // ---- "Pixel": the battlefield as an 8-bit console would have drawn it ----
 // The world is painted onto a coarse grid of its own (about three world units to a pixel, never finer than two screen pixels or
 // coarser than six), every shape lands on whole pixels, and the grid is then blown up without smoothing, with faint scanlines
@@ -5748,6 +5952,7 @@ const PF_STYLE = {
   nebula:   { n: 44, kind: 'dust', cols: ['#ffffff', '#cfe0ff', '#ffe6c4', '#b8ccff'], v: [24, 80], life: [1.2, 2.0], flare: true },
   rime:     { n: 22, kind: 'shard', cols: ['#bfe6ff', '#e8f6ff', '#8fd0ff'], v: [90, 220], life: [1.0, 1.5], hex: true },
   clockwork: { n: 22, kind: 'cog', cols: [CW_BRASS, CW_LIGHT, '#b08a48'], v: [80, 200], life: [0.8, 1.3], key: true },
+  sand:     { n: 24, kind: 'streak', cols: ['#e8d4ac', '#c8b088', '#f4e8d0'], w: 1.2, v: [60, 160], life: [0.6, 1.0], len: 0.035 },
   ink:      { n: 18, kind: 'streak', cols: ['#2b2724', '#4a4038', '#6a5e52'], w: 1.4, v: [60, 150], life: [0.6, 1.0], len: 0.04 },
   neon:     { n: 20, kind: 'streak', cols: ['#bfe3ff', '#ffffff', '#8fc8ff'], w: 1.2, v: [70, 170], life: [0.5, 0.9], len: 0.05, add: true, arrow: true },
   ember:    { n: 30, kind: 'streak', cols: ['#ffd9a8', '#ff9a4a', '#fff1dc'], w: 1.6, v: [60, 170], life: [0.8, 1.4], len: 0.06, add: true }
@@ -5799,6 +6004,7 @@ function ptsChime(N, t) {                              // N: the running (or pre
     case 'floe': { const b = 1150 * (0.9 + 0.45 * share); flTink(N, t, b, 0.055, 0, 0.9, 0, true); flTink(N, t + 0.12, b * 1.5, 0.055, 0, 0.9, 0, true); break; }
     case 'musicbox': mbRatchet(N, t, 2, 0.3, 0); mbTine(N, t + 0.1, 2349.32, 0.05, 0, 0, true); break;      // two ratchet clicks, then one bright tine
     case 'rain': rnTransformer(N, t); break;
+    case 'bowl': bwBowl(N, t, 1174.66, 0.04, 0, 2.2); bwWood(N, t + 0.12, bwMidi(12), 0.045, 0, 0.9); break;          // a small bowl, and a wooden note above it
     case 'tide': tdKey(N, t, tdMidi(13), 0.05, 0, 1.6); tdKey(N, t + 0.13, tdMidi(16), 0.05, 0, 2.0); break;          // two high keys, a fourth apart                                                                // a transformer hum swells and resolves to one bright tone
     default: {
       const m = ROOT[PLAYER] - 12 + 4;
@@ -5808,8 +6014,8 @@ function ptsChime(N, t) {                              // N: the running (or pre
 }
 function ptsSound() {                                  // an upgrade point was earned in a match you are playing
   if (!AC || !settings.sound || !audible() || awatch() || AC.state !== 'running') return;
-  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes, rain: RN.nodes, tide: TD.nodes })[settings.tone];
-  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide'].includes(settings.tone)) return;     // that style's sound is not up yet
+  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes, rain: RN.nodes, tide: TD.nodes, bowl: BW.nodes })[settings.tone];
+  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide', 'bowl'].includes(settings.tone)) return;     // that style's sound is not up yet
   try { ptsChime(N || null, AC.currentTime + 0.01); PF.chimes.push({ tone: settings.tone, at: performance.now() }); if (PF.chimes.length > 40) PF.chimes.shift(); } catch (e) { /* a missing voice must never stop the game */ }
 }
 let lastChimePrev = 0;
@@ -5827,6 +6033,7 @@ function ptsPreview() {                                // the "Hear it" button i
       case 'floe': N = flBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); break;
       case 'musicbox': N = mbBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
       case 'rain': N = rnBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
+      case 'bowl': N = bwBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); break;
       case 'tide': N = tdBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 5000); break;
     }
     ptsChime(N, t); if (off) off();
@@ -6060,7 +6267,7 @@ const pick = a => a[(Math.random() * a.length) | 0];
 // volume slider is perceptual (squared). "Simple" (the old Bright and Soft, folded together) sits an octave low, rounds off each blip's start and filters the top end
 const MASTER_BOOST = 2;                              // +6 dB: a 70% slider now sounds like the old 100%
 const soundGain = () => settings.sound ? MASTER_BOOST * Math.pow(settings.volume / 100, 2) : 0;
-const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000, rain: 6000, tide: 5200 })[settings.tone] || 1500;
+const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000, rain: 6000, tide: 5200, bowl: 6000 })[settings.tone] || 1500;
 let kickT = 0, lostSince = 0, lostToast = false, hushed = false;
 function audioKick() {                                // the phone can pause or interrupt web audio (a text, another app, the screen): ask for the sound back
   if (!AC || !settings.sound || document.hidden || hushed) return;
@@ -6145,6 +6352,7 @@ function playSfx(nowMs, dt) {
   if (isMusicBox()) { musicboxHits(ev); return; }
   if (isRain()) { rainHits(ev); return; }
   if (isTide()) { tideHits(ev); return; }
+  if (isBowl()) { bowlHits(ev); return; }
   if (isHearth()) { heHits(ev); return; }
   if (nowMs - lastBloop > 150) {              // base hits: a low, round bloop that drops in pitch
     const e = h.baseMine || h.base;
@@ -6998,6 +7206,164 @@ function mvTide(t, back) {                            // one soft key, short, no
   const N = { dry: out, send: AC.createGain(), wet: AC.createGain() };                     // the key's echo and room sends go nowhere: a menu tap is dry
   tdKey(N, t, tdMidi(back ? 5 : 9), 0.04, 0, 0.8);
   setTimeout(() => { try { out.disconnect(); } catch (_) {} }, 1500);
+}
+
+// ---- "Bowl" (49.7; placeholder name for Henry and WC): the sound for Sand ----
+// A garden at dusk: soft wooden notes and singing bowls in still air. It keeps the frame Henry likes from Cosmos and Tide (a slot clock,
+// troop hits gathered into one note per slot, a pad that only swells with the fighting, an echo, a room) but loosens it: every note lands a
+// little off the clock (up to 70 ms, at random), so nothing ever ticks like a metronome. Troop hits are soft wooden notes (a warm marimba-
+// like bar: a round fundamental, its fourth partial for the wood, gone fast, and a breath of the mallet) on the Japanese "in" scale (D, Eb,
+// G, A, Bb), higher the more ground you hold. A base under fire is a low wooden note, every other slot, taking turns between D and A. A
+// capture is a singing bowl struck (inharmonic partials that beat slowly as they ring); a base lost, a bowl touched and stopped with a hand,
+// sinking; a knockout, a large low bowl left to ring. The bed is almost nothing: one bowl's hum, very faint, breathing.
+// Never: hiss or wind noise as a bed (49.5.3: filtered noise reads as frying), hard knocks, a steady beat.
+const BW_STEP = 60 / 64 / 2, BW_LEVEL = 1.1, BW_SCALE = [0, 1, 5, 7, 8];          // D "in" scale: D Eb G A Bb
+const bwMidi = d => 62 + 12 * Math.floor(d / 5) + BW_SCALE[((d % 5) + 5) % 5];
+const BW_PAD = [[50, 57, 62, 69], [50, 55, 62, 67], [46, 53, 58, 62], [45, 52, 57, 62]];   // open voicings that never rub: D5, Gsus over D, Bb, A
+const BW = { nodes: null, pool: [], low: null, caps: [], deg: 6, next: 0, step: 0, ir: null, irT: -1, ret: null, ftCh: null };
+const isBowl = () => settings.tone === 'bowl';
+const bwJit = () => Math.random() * 0.07;               // nothing lands exactly on the clock
+function bwIR() {                                      // still evening air in a walled garden: two and a half seconds, soft, a little bright
+  if (BW.ir && BW.ir.sampleRate === AC.sampleRate && BW.irT === AQ()) return BW.ir;
+  const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 2.6 * k); BW.ir = AC.createBuffer(2, len, sr); BW.irT = AQ();
+  for (let c = 0; c < 2; c++) { const d = BW.ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.45; d[i] = lp * 1.3 * Math.exp(-i / sr * 2.2 / k) * Math.min(1, i / (sr * 0.02)); } }
+  return BW.ir;
+}
+function bwBuild(withBed) {
+  const t = AC.currentTime, N = { oscs: [], tier: AQ() };
+  N.out = AC.createGain(); N.out.gain.value = 0.0001; N.out.gain.setTargetAtTime(BW_LEVEL, t, withBed ? 0.8 : 0.01); N.out.connect(outBus());
+  N.dry = AC.createGain(); N.dry.gain.value = 0.66; N.dry.connect(N.out);
+  N.rev = AC.createConvolver(); N.rev.buffer = bwIR(); const rg = AC.createGain(); rg.gain.value = 0.5; N.rev.connect(rg); rg.connect(N.out);
+  N.dl = AC.createDelay(2); N.dl.delayTime.value = BW_STEP * 3 + 0.037;                     // an echo off the garden wall, a little off the clock too
+  const fb = AC.createGain(), dlp = AC.createBiquadFilter(), dg = AC.createGain();
+  fb.gain.value = 0.26; dlp.type = 'lowpass'; dlp.frequency.value = 2000; dg.gain.value = 0.4;
+  N.dl.connect(dlp); dlp.connect(fb); fb.connect(N.dl); dlp.connect(dg); dg.connect(N.out); dg.connect(N.rev);
+  N.send = AC.createGain(); N.send.gain.value = 0.38; N.send.connect(N.dl);
+  N.wet = AC.createGain(); N.wet.gain.value = 0.75; N.wet.connect(N.rev);
+  if (withBed) {
+    const f = 293.66, o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), d = AC.createGain();   // one bowl's hum, very faint: two near notes beating slowly
+    o.frequency.value = f; o2.frequency.value = f * 1.0035; g.gain.value = 0.006; l.frequency.value = 0.07; d.gain.value = 0.003;
+    l.connect(d); d.connect(g.gain); o.connect(g); o2.connect(g); g.connect(N.dry); g.connect(N.wet); o.start(t); o2.start(t); l.start(t); N.oscs.push(o, o2, l);
+    N.padLP = AC.createBiquadFilter(); N.padLP.type = 'lowpass'; N.padLP.frequency.value = 600; N.padLP.Q.value = 0.5;
+    N.padG = AC.createGain(); N.padG.gain.value = 0.0001;
+    N.padLP.connect(N.padG); N.padG.connect(N.dry); N.padG.connect(N.wet);
+    N.voices = [];
+    const vib = AC.createOscillator(), vd = AC.createGain(); vib.frequency.value = 0.13; vd.gain.value = 4; vib.connect(vd); vib.start(t); N.oscs.push(vib);
+    BW_PAD[0].forEach((m, i) => { if (AQ() >= 2 && i >= 3) return;                       // the pad: soft sines, a breath of a reed organ
+      const a = AC.createOscillator(), b = AC.createOscillator(), ga = AC.createGain(), gb = AC.createGain();
+      a.frequency.value = hz(m); b.type = 'triangle'; b.frequency.value = hz(m) * 2; b.detune.value = (i % 2 ? 5 : -5); vd.connect(b.detune);
+      ga.gain.value = 0.15; gb.gain.value = 0.025; a.connect(ga); b.connect(gb); ga.connect(N.padLP); gb.connect(N.padLP);
+      a.start(t); N.voices.push([a, b]); N.oscs.push(a); if (AQ() < 1) { b.start(t); N.oscs.push(b); }
+    });
+  }
+  return N;
+}
+function bwPan(g, pan) { if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = pan; g.connect(p); return p; } return g; }
+function bwWood(N, t, midi, peak, pan, len) {           // a soft wooden bar: a round fundamental, the wood's fourth partial gone at once, and the breath of a yarn mallet
+  const f = hz(midi), L = len || 1.1, lite = AQ() >= 2;
+  const o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter();
+  o.frequency.value = f; lp.type = 'lowpass'; lp.Q.value = 0.3; lp.frequency.value = Math.min(4000, f * 6);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.008); g.gain.exponentialRampToValueAtTime(peak * 0.25, t + 0.18); g.gain.exponentialRampToValueAtTime(0.0001, t + L);
+  o.connect(g); g.connect(lp);
+  const o4 = AC.createOscillator(), g4 = AC.createGain(); o4.frequency.value = f * 3.93;
+  g4.gain.setValueAtTime(0.0001, t); g4.gain.exponentialRampToValueAtTime(peak * 0.3, t + 0.004); g4.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  o4.connect(g4); g4.connect(lp); o4.start(t); o4.stop(t + 0.12);
+  if (!lite) {
+    const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), ng = AC.createGain(); n.buffer = noise(); bp.type = 'bandpass'; bp.frequency.value = Math.min(1800, f * 1.5); bp.Q.value = 1.2;
+    ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(peak * 0.15, t + 0.002); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+    n.connect(bp); bp.connect(ng); ng.connect(lp); n.start(t, Math.random() * 0.3, 0.04);
+  }
+  const out = bwPan(lp, pan || 0); out.connect(N.dry); out.connect(N.send); out.connect(N.wet);
+  o.start(t); o.stop(t + L + 0.05);
+}
+const BW_BOWL = [[1, 1, 1], [2.71, 0.5, 0.7], [5.15, 0.22, 0.4], [8.43, 0.08, 0.2]];   // a singing bowl's partials: ratio, level, share of the ring
+function bwBowl(N, t, f, peak, pan, len, damp, bend) { // a bowl struck: each partial a pair of near notes beating slowly; damped (a hand on the rim) it stops short and sinks
+  const L = len || 4, lite = AQ() >= 2;
+  BW_BOWL.forEach(([r, a, sh], i) => {
+    if (lite && i > 1) return;
+    const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), ff = f * r, dur = damp ? 0.45 + 0.2 * (1 - i / 4) : L * sh;
+    o.frequency.setValueAtTime(ff, t); o2.frequency.setValueAtTime(ff * (1 + 0.0028 / r), t);
+    if (bend) { o.frequency.exponentialRampToValueAtTime(ff * bend, t + dur); o2.frequency.exponentialRampToValueAtTime(ff * bend * (1 + 0.0028 / r), t + dur); }
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak * a * 0.5, t + 0.01 + i * 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); o2.connect(g); const out = bwPan(g, pan || 0); out.connect(N.dry); out.connect(N.wet); if (!damp) out.connect(N.send);
+    o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+  });
+}
+const bwPad = () => BW_PAD[Math.floor(BW.step / 16) % 4];
+function bwLow(N, t, peak, pan, k) { bwWood(N, t, k % 2 ? 57 : 50, peak, pan * 0.6, 1.3); }      // a base under fire: a low wooden note, D and A taking turns
+function bwSink(N, t) { bwBowl(N, t, 146.83, 0.09, 0, 6.5); bwWood(N, t + 0.02, 38 + 12, 0.05, 0, 2.4); }
+function bwRetreat(N, t, centre, pan) { bwWood(N, t, bwMidi(centre - 3), 0.04, pan, 1.0); bwWood(N, t + BW_STEP / 2 + bwJit(), bwMidi(centre - 5), 0.03, pan, 1.0); }
+function bowlHits(ev) {
+  for (const e of ev) {
+    if (e.base) { if (!BW.low || isMine(e)) BW.low = { mine: isMine(e), pan: screenPan(e.x, e.y) }; }
+    else BW.pool.push(e);
+  }
+  if (BW.pool.length > 40) BW.pool.splice(0, BW.pool.length - 40);
+}
+const bwFT = () => (isBowl() && mode === 'play' && (FT.phase === 'build' || FT.phase === 'hold') && FT.kind) ? { g: FT.phase === 'hold' ? 0.4 : FT.g, kind: FT.kind } : null;
+function bwGlide(N, ch, t, tc) { N.voices.forEach(([a, b], i) => { a.frequency.setTargetAtTime(hz(ch[i]), t, tc); b.frequency.setTargetAtTime(hz(ch[i]) * 2, t, tc); }); }
+function bwSlot(N, t0, heat) {
+  const fc = bwFT(), t = t0 + bwJit();
+  if (N.voices && fc && BW.ftCh !== fc.kind) { BW.ftCh = fc.kind; bwGlide(N, BW_PAD[fc.kind === 'loss' ? 2 : 1], t0, 1.6); }
+  else if (N.voices && !fc && BW.ftCh) { BW.ftCh = null; bwGlide(N, bwPad(), t0, 1.6); }
+  if (BW.step % 16 === 0 && N.voices && !fc) bwGlide(N, bwPad(), t0, 1.4);
+  if (N.voices) {
+    const fallen = (FT.phase === 'tail' && G.result === 'lose') || (FT.phase === 'hold' && FT.kind === 'loss');
+    const lift = fallen ? 0 : Math.min(1, Math.max(heat * 1.8, fc ? fc.g * 0.9 : 0)), tc = fallen ? 0.45 : 1.6;
+    N.padG.gain.setTargetAtTime(0.0001 + 0.06 * lift * lift, t0, tc); N.padLP.frequency.setTargetAtTime(500 + 1500 * lift, t0, tc);
+  }
+  const share = (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
+  const centre = 5 + Math.round(share * 5);
+  if (BW.caps.length) { const c = BW.caps.shift(); if (c.lost) bwBowl(N, t, 392, 0.07, c.pan, 1, true, 0.94); else bwBowl(N, t, c.mine ? 587.33 : 440, c.mine ? 0.075 : 0.04, c.pan, 4.5); }
+  if (fc && fc.kind === 'loss' && fc.g > 0.08 && BW.step % 2 === 0 && !BW.low) BW.low = { mine: true, pan: 0, lvl: 0.03 + 0.07 * fc.g };
+  if (fc && fc.kind === 'win' && fc.g > 0.08 && BW.step % 2 === 1 && !(BW.pool.length && heat > 0.3)) bwWood(N, t, bwMidi(centre + Math.floor(fc.g * 4)), 0.03 + 0.03 * fc.g, 0, 1.4);
+  if (BW.low && BW.step % 2 === 0) { bwLow(N, t, BW.low.lvl || (BW.low.mine ? 0.075 : 0.04), BW.low.pan, BW.step / 2); BW.low = null; }
+  let retDone = false;
+  if (BW.ret && BW.step % 2 === 0) { bwRetreat(N, t, centre, BW.ret.pan); BW.ret = null; retDone = true; }
+  const n = BW.pool.length;
+  if (n && !retDone && (BW.step % 2 === 0 || heat > 0.3)) {
+    let e = BW.pool[n - 1], mine = false;
+    if (!awatch()) for (let i = n - 1; i >= 0; i--) if (BW.pool[i].team === PLAYER) { e = BW.pool[i]; mine = true; break; }
+    let st = [-2, -1, -1, 0, 1, 1, 2][(Math.random() * 7) | 0];
+    if (BW.deg > centre + 3 && st > 0) st = -1; if (BW.deg < centre - 3 && st < 0) st = 1;
+    BW.deg = Math.max(1, Math.min(14, BW.deg + st));
+    const d = mine || awatch() ? BW.deg : BW.deg - 5, pan = screenPan(e.x, e.y);
+    bwWood(N, t, bwMidi(d), mine ? 0.065 : awatch() ? 0.045 : 0.026, pan);
+    if (n >= 8 && heat > 0.5 && AQ() < 1) bwWood(N, t + BW_STEP / 2 + bwJit(), bwMidi(d + 2), mine ? 0.032 : 0.016, -pan, 0.9);
+    BW.pool.length = 0;
+  }
+}
+function bowlTick() {
+  const want = AC && AC.state === 'running' && settings.sound && isBowl() && audible() && G && (!G.over || ftLive());
+  if (!want || (BW.nodes && BW.nodes.tier !== AQ())) {
+    if (BW.nodes) { const N = BW.nodes, t = AC.currentTime; BW.nodes = null; N.out.gain.cancelScheduledValues(t); N.out.gain.setTargetAtTime(0.0001, t, 0.5); for (const o of N.oscs) o.stop(t + 3); setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 7000); }
+    if (!want) { BW.pool.length = 0; BW.caps.length = 0; BW.low = null; BW.ret = null; return; }
+  }
+  if (!BW.nodes) { BW.nodes = bwBuild(true); BW.next = AC.currentTime + 0.05; BW.step = 0; }
+  const N = BW.nodes, now = AC.currentTime, heat = 1 - Math.exp(-shotRate / 30);
+  for (const f of G.fx) {
+    if (f.bw) continue; f.bw = 1; if (f.ftq) continue;
+    if (fogOn() && f.x !== undefined && !seenXY(f.x, f.y)) continue;
+    if (f.k === 'ring') BW.caps.push({ mine: !awatch() && f.c === PLAYER, lost: lostMine(f), pan: screenPan(f.x, f.y) });
+    else if (f.k === 'elim') bwSink(N, now + 0.02);
+    else if (f.k === 'retreat') { if (rtOK('bw', 2.5)) BW.ret = { pan: f.x !== undefined ? screenPan(f.x, f.y) : 0 }; }
+  }
+  if (BW.caps.length > 2) BW.caps.splice(0, BW.caps.length - 2);
+  if (BW.next < now - 0.25) { const k = Math.ceil((now - BW.next) / BW_STEP); BW.next += k * BW_STEP; BW.step += k; }
+  while (BW.next < now + 0.08) { bwSlot(N, BW.next, heat); BW.next += BW_STEP; BW.step++; }
+}
+function bowlPreview() {                               // three wooden notes, a low one, a bowl struck
+  const N = bwBuild(false), t = AC.currentTime + 0.05;
+  [6, 8, 7].forEach((d, i) => bwWood(N, t + 0.15 + i * BW_STEP + bwJit(), bwMidi(d), 0.06, (i - 1) * 0.4));
+  bwWood(N, t + 1.6, 50, 0.07, 0, 1.3);
+  bwBowl(N, t + 2.3, 587.33, 0.075, 0, 4.5);
+  setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 9000);
+}
+function mvBowl(t, back) {                             // one soft wooden note, short and dry
+  const out = AC.createGain(); out.gain.value = BW_LEVEL; out.connect(pbus);
+  const c0 = AC.currentTime; if (MV.bw) { try { MV.bw.gain.cancelScheduledValues(c0); MV.bw.gain.setTargetAtTime(0, c0, 0.05); } catch (_) {} } MV.bw = out;
+  bwWood({ dry: out, send: AC.createGain(), wet: AC.createGain() }, t, bwMidi(back ? 4 : 7), 0.045, 0, 0.5);
+  setTimeout(() => { try { out.disconnect(); } catch (_) {} }, 1200);
 }
 
 // ---- "Floe" and "Floe-1": ice for Rime ----
@@ -7978,7 +8344,7 @@ function menuVoice(kind) {                                 // kind: 'tap' or 'ba
   if (mode !== 'play' && settings.menuSound === 'off') return;
   audioOn(); if (!AC || AC.state !== 'running') return;
   const ms = performance.now(); if (ms - MV.t < 70) return; MV.t = ms;
-  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox, rain: mvRain, tide: mvTide }[settings.tone] || mvSimple;
+  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox, rain: mvRain, tide: mvTide, bowl: mvBowl }[settings.tone] || mvSimple;
   try { f(AC.currentTime + 0.005, kind === 'back'); } catch (e) { /* a missing voice must never stop the menus */ }
 }
 document.addEventListener('click', e => {                   // every button in the menus and on the play screen's rail; the map, the upgrade panel and the sound-style row have sounds of their own
@@ -8013,13 +8379,14 @@ function orderTap(moved) {                                 // your order was sen
     else if (isFloe()) { if (FL.nodes) flTink(FL.nodes, t, 780 + 120 * k, 0.04, 0, 0.6, 2200, true); }
     else if (isMusicBox()) { if (MB.nodes) mbTick(MB.nodes, t, 3600 + 300 * k, 0.32, 0, 0.009); }      // one ratchet click
     else if (isRain()) { if (RN.nodes) rnSplash(RN.nodes, t, k); }
+    else if (isBowl()) { if (BW.nodes) bwWood(BW.nodes, t, bwMidi(3 + Math.round(k * 2)), 0.045, 0, 0.6); }     // one soft wooden note
     else if (isTide()) { if (TD.nodes) tdKey(TD.nodes, t, tdMidi(4 + Math.round(k * 2)), 0.045, 0, 0.8); }     // one soft key                                      // a small footstep splash
     else if (settings.tone === 'simple' || !settings.tone) mvNoteOn(t, hz(72), hz(71), 0.06, 0.04 + 0.01 * k, 0);
   } catch (e) { /* a missing voice must never stop an order */ }
 }
 function previewSound() {                       // a sample bleep and bloop so you can hear the setting
   const now = performance.now();
-  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600, rain: 5000, tide: 4400 })[settings.tone] || 140;
+  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600, rain: 5000, tide: 4400, bowl: 4600 })[settings.tone] || 140;
   if (!AC || AC.state !== 'running' || !soundGain() || now - lastPreview < gap && lastPreviewTone === settings.tone) return;
   const fresh = lastPreviewTone !== settings.tone;
   lastPreview = now; lastPreviewTone = settings.tone;
@@ -8033,6 +8400,7 @@ function previewSound() {                       // a sample bleep and bloop so y
     if (isMusicBox()) { musicboxPreview(); return; }
     if (isRain()) { rainPreview(); return; }
     if (isTide()) { tidePreview(); return; }
+    if (isBowl()) { bowlPreview(); return; }
     const f = hz(ROOT[PLAYER] - 12 + pick(PENTA));
     tone(f, f * 0.94, 0.1, 0.055, 'sine', 0, 0.018); tone(f * 2, f * 1.88, 0.07, 0.009, 'sine', 0, 0.012);
   } finally { previewing = false; }
@@ -8063,12 +8431,14 @@ const SETTINGS_INFO = {
     chip: 'A four-channel console played by the battle: combo runs, buzzy crunches and little fanfares. Pairs with Pixel.', cosmos: 'A deep drone, sonar pings and pads that swell with the fighting. Pairs with Nebula.',
     floe: 'Soft glass, cracking ice and low groans in a long cold echo, played by the fighting. Pairs with Rime.',
     musicbox: 'Ticking clocks, ratchets and the tines of a music box comb, dry and close, played by the fighting. Pairs with Clockwork.',
+    bowl: 'Soft wooden notes and singing bowls in still evening air, played by the fighting, never quite on a beat. Pairs with Sand.',     // 49.7: placeholder
     tide: 'A soft piano in a quiet room, played by the fighting, with a faint pad that swells as it grows. Pairs with Ink.',     // 49.6: placeholder words for Henry and WC
     rain: 'Rain on a city at night: a drizzle that becomes a downpour as the fighting grows, drops on awnings, and signs buzzing on and shorting out. Pairs with Neon.' },
   visual: { classic: 'Clean squares and triangles, with soft glows, light trails and sparks.', ember: 'A fire seen from afar at night: bases burn in their color, crack with orange light when hurt, a capture is a new fire catching. Pairs with Hearth.', atlas: 'A surveyor\'s chart: influence washes and plotted courses.',
     pixel: 'Chunky pixels and scanlines, like an old console. Pairs with Chip.', nebula: 'Deep space: suns, drifting stars and supernova captures. Pairs with Cosmos.',
     rime: 'A winter night: frost grows over what you hold, bases are crystals, and a capture freezes over. Pairs with Floe.',
     clockwork: 'Brass and springs: bases are gears that turn while you hold them, lines are chains, and a capture clicks a gear one notch. Pairs with Music Box.',
+    sand: 'A raked sand garden at dusk: bases are stones ringed by the rake, held ground has its rings dyed in your colour, and a capture rakes new rings outward. Pairs with Bowl.',     // 49.7: placeholder
     ink: 'Ink on paper: bases are brush circles that shorten as they weaken, held ground is a wash soaked into the page, and a capture bleeds outward. Pairs with Tide.',     // 49.6: placeholder
     neon: 'A city at night in the rain: bases are neon signs with their reflections on the wet street, they flicker as they weaken, and a capture strikes a sign on. Pairs with Rain.' },
   menuSound: { on: 'Plays the background match quietly behind the menus.', off: 'Menus stay silent.' },
@@ -8916,7 +9286,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.7 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9609,6 +9979,18 @@ FTS.tide = {                                            // the ending, on Cosmos
   end(kind, t) { const N = TD.nodes; if (!N) return; tdSink(N, t); tdRoll(N, t + 0.1, 0.045, 0, false, true); },
   relief(t) { const N = TD.nodes; if (N) tdRoll(N, t, 0.03, 0, true, false); }
 };
+FTS.bowl = {                                            // the ending, on Cosmos's frame: the pad opens; the peak is the large low bowl and a bowl stopped by hand (a win: two bowls struck, then wood climbing)
+  holdIv: 2.6,
+  hold(t) { const N = BW.nodes; if (N) bwWood(N, t, 50, 0.03, 0, 2.0); },
+  peak(kind, t) {
+    const N = BW.nodes; if (!N) return;
+    if (kind === 'win') { bwBowl(N, t, 587.33, 0.12, 0, 5); bwBowl(N, t + 0.6, 880, 0.08, 0, 4.5); [8, 10, 12].forEach((d, i) => bwWood(N, t + 0.5 + i * BW_STEP * 2 + bwJit(), bwMidi(d), 0.06, 0, 1.6)); return; }
+    if (N.padG) { N.padG.gain.cancelScheduledValues(t); N.padG.gain.setTargetAtTime(0.0001, t, 0.3); N.padLP.frequency.setTargetAtTime(500, t, 0.3); }
+    bwSink(N, t); bwBowl(N, t + 0.15, 392, 0.06, 0, 1, true, 0.94); [6, 4, 2].forEach((d, i) => bwWood(N, t + 0.8 + i * BW_STEP * 2 + bwJit(), bwMidi(d), 0.04, 0, 1.6));
+  },
+  end(kind, t) { const N = BW.nodes; if (!N) return; bwSink(N, t); },
+  relief(t) { const N = BW.nodes; if (N) bwBowl(N, t, 587.33, 0.035, 0, 3.5); }
+};
 FTS.floe = {                                              // ice: low groans under the lake that tighten, a crack now and then (win: glass notes climbing); the peak is the ice giving way, or ringing out
   holdIv: 2.6,
   pulse(g, t, kind) {
@@ -9698,7 +10080,7 @@ function frame(nowMs) {
   stepFling(dt);
   if (G && fogOn()) computeFog();
   if (G) playSfx(nowMs, dt);
-  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); rainTick(); tideTick(); heTick(); mixTick(); if (G) ftTick(dt); }
+  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); rainTick(); tideTick(); bowlTick(); heTick(); mixTick(); if (G) ftTick(dt); }
   const fsw = G ? fogSwap() : null;                 // under fog, bases out of sight are drawn as last seen
   const gap = mode === 'paused' ? Math.min(250, Math.max(33, pauseDrawMs * 4)) : mode === 'demo' ? 28 : 0;      // paused: the slow decoration (snow, stars, drift) moves at up to about 30 a second, but never uses more than about a quarter of the time, so a slow phone backs off toward the old 4 a second; the demo behind the menus shows at about 30 a second
   if (!gap || drawDirty || nowMs - lastDrawAt >= gap) {

@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -812,8 +812,6 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p class="specintro">Sound weight: Full is the whole sound. Light and Lite use a shorter echo, fewer notes at once and fewer layers, for slower phones. Auto follows the picture level.</p>
     <div class="seg tight" id="audRow"><button data-a="-1">Auto</button><button data-a="0">Full</button><button data-a="1">Light</button><button data-a="2">Lite</button></div>
     <p class="specintro" id="hwNow" role="status" aria-live="polite"></p>
-    <p class="specintro">Rain level (Neon + Rain only): the faint rain under the city's hum. Off is the plain hum. Each tap plays a short sample if Rain is your sound style; in a match the rain follows the fighting and dips round your own actions.</p>
-    <div class="seg tight" id="rainRow"><button data-r="0">Off</button><button data-r="1">Faint</button><button data-r="2">Medium</button><button data-r="3">Loud</button></div>
     <button id="hwRun" class="ghost small">Run the phone check again</button>
     <button id="bUnlockAll" class="ghost small">Unlock everything</button>
   </section>
@@ -2722,7 +2720,7 @@ function hwBench() {                                   // best of three short ru
 let quality = startQ(), slowSince = 0, frameAvg = 16.7, calmSince = 0, ceilQ = 0, lastUpAt = -1e9;     // calmSince: smooth since when; ceilQ: highest level (lowest number) Auto may use after a step up bounced back
 const IOS = /iP(hone|od|ad)/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);     // iPhone, iPod, or an iPad that calls itself a Mac
 let audFix = (() => { try { const v = JSON.parse(localStorage.getItem('ice-audio')); return v && Number.isInteger(v.a) && v.a >= 0 && v.a < 3 ? v.a : -1; } catch (e) { return -1; } })();   // -1 = Auto
-let rainLvl = (() => { try { const v = JSON.parse(localStorage.getItem('ice-audio')); return v && Number.isInteger(v.r) && v.r >= 0 && v.r <= 3 ? v.r : 0; } catch (e) { return 0; } })();   // 49.5.3: the rain's tester level (0 Off, 1 Faint, 2 Medium, 3 Loud); 49.5.4: Off unless chosen (the dense ticks sounded like frying)
+let rainLvl = 0;                                      // 49.5.6: the rain bed stays off (the dense ticks sounded like frying); the tester rows for it are gone
 const AQ = () => audFix >= 0 ? audFix : quality >= 3 ? 2 : quality >= 2 ? 1 : 0;       // sound weight: 0 Full, 1 Light, 2 Lite (Auto follows the picture level)
 const AQ_IR = [1, 0.55, 0.35];                         // how long the echo tails are, against Full
 function watchFrameRate(frameMs, nowMs) {
@@ -7088,6 +7086,12 @@ function rnThunk(N, t, peak, pan, lite) {              // a base hit: a relay cl
   g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.28, t + 0.01); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
   o2.connect(lp); lp.connect(g2); rnOut(N, g2, pan, 0.4); o2.start(t); o2.stop(t + 0.2);
 }
+function rnBase(N, t, peak, pan, knock) {              // a base hit: a heavier, lower spark with no thump (chosen by ear in 49.5.5); every third of yours gets a second, lower spark right behind it
+  RN.thunks++;
+  rnNoise(N, t, 'bandpass', 2000, 1.3, peak * 0.45, 0.008, pan, 0.2);
+  rnZap(N, t, 380 + Math.random() * 60, peak * 1.1, pan, false);
+  if (knock) { RN.thunks++; rnZap(N, t + 0.012, 240, peak * 0.7, pan, true); }
+}
 function rnBuzz(N, t, peak, pan, len) {                // a sign failing: a mains buzz that stutters
   const o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 120;
   bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = 2.5; const L = len || 0.12;
@@ -7177,17 +7181,17 @@ function rainHits(ev) {
   const e = h.baseMine || h.base;
   if (e) {
     const mine = isMine(e), nd = G.nodes[e.ni], threat = !w && !mine && nd && nd.owner === PLAYER;
-    const lane = mine || w ? 'a' : threat ? 'b' : 'c', gap = (w ? [190, 250, 330] : { a: [260, 340, 440], b: [420, 520, 650], c: [900, 1100, 1400] }[lane])[AQ()];
+    const lane = mine || w ? 'a' : threat ? 'b' : 'c', gap = (w ? [190, 250, 330] : { a: [260, 340, 440], b: [420, 520, 650], c: [900, 1100, 1400] }[lane])[AQ()] * 1.4;
     if (nowMs - RN.cAt[lane] > gap) {
       const pan = screenPan(e.x, e.y), hf = e.hf === undefined ? 1 : e.hf, knock = (mine || w) && RN.kn++ % (w ? 2 : 3) === 0;
-      rnThunk(N, t, mine ? 0.07 : w ? 0.066 : threat ? 0.045 : 0.02, pan, !knock); if (mine || w) rnDuck(N, t);
+      rnBase(N, t, mine ? 0.07 : w ? 0.066 : threat ? 0.045 : 0.02, pan, knock); if (mine || w) rnDuck(N, t);
       if (lane !== 'c') {                              // another quarter of the base gone: its sign buzzes
         const st = Math.floor((1 - hf) * 4), r = RN.st[e.ni] || (RN.st[e.ni] = { t: -9, s: -1 });
         if (nowMs - r.t > 1600) r.s = -1;
         r.t = nowMs;
         if (st > r.s && st > 0) { r.s = st; rnBuzz(N, t + 0.01, mine ? 0.016 : w ? 0.012 : 0.009, pan, 0.08 + 0.04 * st); }
       }
-      RN.cAt[lane] = nowMs + Math.random() * 60;
+      RN.cAt[lane] = nowMs + Math.random() * 220;
     }
   }
   if (h.shotMine && !w && nowMs - RN.tAt.a > [200, 260, 340][AQ()]) {               // your troop hits: a bright drop on the awning, on a sparse beat of its own
@@ -7783,7 +7787,6 @@ function syncQual() {
   for (const b of $('qualRow').children) b.setAttribute('aria-pressed', String(+b.dataset.q === qualFix));
   $('qualNow').textContent = qualFix < 0 ? 'Auto: the game picks the level.' : 'Held at ' + QNAMES[qualFix] + ' (' + Math.round(QUALITY[qualFix] * 100) + '% sharpness).';
   for (const b of $('audRow').children) b.setAttribute('aria-pressed', String(+b.dataset.a === audFix));
-  for (const b of $('rainRow').children) b.setAttribute('aria-pressed', String(+b.dataset.r === rainLvl));
   $('hwNow').textContent = 'Phone check: ' + (HW.done ? HW.ms.toFixed(1) + ' ms (last readings ' + HW.list.map(x => x.toFixed(0)).join(', ') + ')' : 'not run yet') + (HW.mem ? ', ' + HW.mem + ' GB memory' : '') + (HW.cores ? ', ' + HW.cores + ' cores' : '') + '. Auto starts at ' + QNAMES[[0, 2, 3][hwTier()]] + '. Now: picture ' + QNAMES[quality] + ', sound ' + ['Full', 'Light', 'Lite'][AQ()] + '.';
   $('qualNote').hidden = qualFix < 0; $('qualNote').textContent = qualFix < 0 ? '' : 'Picture quality held at ' + QNAMES[qualFix];
 }
@@ -7791,8 +7794,7 @@ for (const b of $('qualRow').children) b.addEventListener('click', () => {
   qualFix = +b.dataset.q; save('ice-quality', { q: qualFix });
   quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); syncQual();
 });
-for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix, r: rainLvl }); syncQual(); });
-for (const b of $('rainRow').children) b.addEventListener('click', () => { rainLvl = +b.dataset.r; save('ice-audio', { a: audFix, r: rainLvl }); syncQual(); if (isRain() && settings.sound && AC && AC.state === 'running') { try { rainPreview(); } catch (_) {} } });     // 49.5.3: a short preview of Rain at the new level
+for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix }); syncQual(); });
 function runPhoneCheck() {                            // the speed test: on every start (a moment after launch), or again from the hidden screen; the last five readings are kept
   HW.list = [...HW.list, hwBench()].slice(-5); HW.ms = hwMedian(HW.list); HW.done = true; save('ice-hw', { v: 3, list: HW.list });
   if (qualFix < 0 && mode !== 'play') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
@@ -8512,7 +8514,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.5.4 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.5.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

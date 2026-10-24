@@ -777,7 +777,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.7 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.8 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -9808,7 +9808,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.9.7 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.9.8 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -10154,6 +10154,11 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { res
 for (const ev of ['pagehide', 'freeze']) window.addEventListener(ev, audioHush);                // the app is being closed or frozen: stop the sound now, don't wait for the hidden event
 document.addEventListener('freeze', audioHush);
 window.addEventListener('pageshow', () => { hushed = false; audioKick(); });
+// 49.9.8: no pinch-zoom of the page, on any browser. CSS touch-action and the viewport tag were not enough on Henry's phone, so the second finger's default action is cancelled in script
+// (only the browser's own zoom: the game's pinch handlers read pointer events, which still arrive). Gesture events cover Safari and some Android browsers.
+for (const ev of ['touchstart', 'touchmove']) document.addEventListener(ev, e => { if (e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault(); }, { passive: false, capture: true });
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault(), { passive: false, capture: true });
+window.addEventListener('wheel', e => { if (e.ctrlKey && e.cancelable) e.preventDefault(); }, { passive: false, capture: true });      // a trackpad pinch or Ctrl+wheel on a computer
 if (IOS) {                                            // everything below runs on iPhone and iPad only
   for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });     // Safari ignores "no zoom" in the viewport tag; this stops a two-finger pinch zooming the page
   const wake = () => {                                // sound only starts after a touch, and Safari can leave it "suspended" or "interrupted": a touch wakes it with a silent blip

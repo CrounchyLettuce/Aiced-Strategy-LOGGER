@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.5.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -2462,8 +2462,8 @@ const SHOP_TEXT = {
   endToken: n => n === 1 ? 'You earned a token. Spend it in the Shop.' : `You earned ${n} tokens. Spend them in the Shop.`,
   starTokens: n => `New stars: +${n} ${n === 1 ? 'token' : 'tokens'} for the Shop.`,
   starsAtStart: n => `The Shop is open. Your challenge stars earned you ${n} ${n === 1 ? 'token' : 'tokens'}. Find it on the main menu.`,
-  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon' },
-  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain' },
+  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon', ink: 'Ink' },
+  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain', tide: 'Tide' },
   blurb: {
     classic: 'Clean squares and triangles, soft round tones. Always yours.',
     ember: 'A fire seen from afar. A banked hum and crackles that follow the fighting.',
@@ -2472,7 +2472,8 @@ const SHOP_TEXT = {
     nebula: 'Deep space. A drone, sonar pings and pads that swell with the fighting.',
     rime: 'A winter night. Frost grows over what you hold; glass and cracking ice.',
     clockwork: 'Brass and springs. Gears that turn while you hold them; a room of clocks that ticks with the fighting.',     // 49.4: placeholder words for Henry and WC
-    neon: 'A city at night in the rain. Signs in your colour on wet streets; rain that grows heavy with the fighting.' }     // 49.5: placeholder words for Henry and WC
+    neon: 'A city at night in the rain. Signs in your colour on wet streets; rain that grows heavy with the fighting.',     // 49.5: placeholder words for Henry and WC
+    ink: 'Ink on paper. Brush circles and washes that bleed into the page; a soft piano in a quiet room.' }     // 49.5: placeholder words for Henry and WC
 };
 // Prices and earning. Only Classic earns: a win pays size x strength, a loss pays the size only; quits, Custom and Spectate pay nothing.
 // Each challenge star pays 1 token, once. curve: points needed for each token in turn; the last number repeats from then on.
@@ -2481,7 +2482,7 @@ const SHOP = { one: 3, pair: 5, curve: [1, 2, 2, 3, 3, 4, 4, 5],
 // The pairs, in Shop order. A new pair is one more line here (plus its name and blurb above, and the style itself).
 const SHOP_PAIRS = [{ id: 'classic', v: 'classic', s: 'simple', free: true }, { id: 'ember', v: 'ember', s: 'hearth' }, { id: 'atlas', v: 'atlas', s: 'drift' },
   { id: 'pixel', v: 'pixel', s: 'chip' }, { id: 'nebula', v: 'nebula', s: 'cosmos' }, { id: 'rime', v: 'rime', s: 'floe' },
-  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }];          // 49.4, 49.5
+  { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }, { id: 'ink', v: 'ink', s: 'tide' }];          // 49.4, 49.5, 49.6
 let shopReal = null;      // while the Shop is open: the styles you actually have selected (the map may be showing a preview)
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
@@ -2614,13 +2615,13 @@ settings.sound = settings.sound !== false; settings.rivals = settings.rivals ===
 if (settings.tone === 'felt') settings.tone = 'soft'; else if (settings.tone === 'hum') settings.tone = 'drift';     // retired profiles move to their closest relative
 if (settings.tone === 'bright' || settings.tone === 'soft') settings.tone = 'simple';                                // Build 36: the two became Simple
 if (settings.tone === 'overdrive') settings.tone = 'hearth';                                                         // Build 48.2: Overdrive was replaced by Hearth
-if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain'].includes(settings.tone)) settings.tone = 'simple';
+if (!['simple', 'hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide'].includes(settings.tone)) settings.tone = 'simple';
 delete settings.woods;                                                                                               // 48.9.7: the night-woods trial is gone
 settings.screen = 'auto';                                                                                            // 48.8: the Screen setting is gone, Auto (follow the phone's rotation lock) is baked in
 settings.menuSound = 'on';                                                                                           // 48.8: the Menu sound switch is gone; a saved Off must not silence the menus with nothing to turn it back on (the volume slider does the muting)
 if (settings.visual === 'spark') settings.visual = 'classic';
 if (settings.visual === 'overload') settings.visual = 'ember';                                                        // Build 48.1.5: Overload was replaced by Ember                                                        // Build 36: Spark was folded into Classic
-if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork', 'neon'].includes(settings.visual)) settings.visual = 'classic';
+if (!['classic', 'ember', 'atlas', 'pixel', 'nebula', 'rime', 'clockwork', 'neon', 'ink'].includes(settings.visual)) settings.visual = 'classic';
 // The Shop's save: tokens, progress toward the next one, how many have been earned by playing, stars already paid for, and what you own.
 // Kept apart from Stats like the unlocks, so resetting Stats never takes styles away. Test pages (?perf) with no Shop save own everything.
 const shop = (() => {
@@ -3099,7 +3100,7 @@ function drawFogOverlay() {
   const fs = Math.min(1, 1 / (dpr * 1.5)) * dpr * 0.5, fw = Math.max(1, Math.round(cv.width / dpr * fs)), fh = Math.max(1, Math.round(cv.height / dpr * fs));
   if (fogCv.width !== fw || fogCv.height !== fh) { fogCv.width = fw; fogCv.height = fh; }
   const x = fogCx; x.globalCompositeOperation = 'source-over'; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, fw, fh);
-  x.fillStyle = 'rgba(0,0,0,0.8)'; x.fillRect(0, 0, fw, fh);
+  x.fillStyle = isInk() ? 'rgba(206,201,193,0.9)' : 'rgba(0,0,0,0.8)'; x.fillRect(0, 0, fw, fh);        // Ink: the unseen part of the page is paper-coloured haze, not black
   x.globalCompositeOperation = 'destination-out';
   for (let i = 0; i < fogN; i += 3) { const p = toScreen(fogSrc[i], fogSrc[i + 1]), r = fogSrc[i + 2] * V.s * fs * 1.12 / dpr * dpr; x.drawImage(fogSprite, p.x * fs - r, p.y * fs - r, r * 2, r * 2); }
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.save(); ctx.beginPath(); ctx.rect(F.x * dpr, F.y * dpr, F.w * dpr, F.h * dpr); ctx.clip();
@@ -3138,6 +3139,7 @@ function vfxHits(ev) {                               // sparks where hits land, 
   if (isPixel() && !reduceMotion) { pxHits(ev); return; }
   if (isClock()) { if (!reduceMotion) clockHits(ev); return; }
   if (isNeon()) { if (!reduceMotion) neonHits(ev); return; }
+  if (isInk()) { if (!reduceMotion) inkHits(ev); return; }
   if (!fxOn()) return;
   const OV = isOver(), LT = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), mult = OV ? 3 : 1;
   let budget = OV ? 16 : LT ? 6 : 10, numbers = 0;
@@ -3212,7 +3214,7 @@ function trailPath(arr, len, w) {                   // a thin wedge behind every
 }
 const PB = [];                                        // reusable particle batches: [color][brightness step]
 function drawParts() {
-  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalCompositeOperation = isInk() ? 'source-over' : 'lighter';     // ink on paper is laid down, never added like light
   const colors = [];
   for (const p of parts) {
     if (!inV(p.x, p.y)) continue;
@@ -3287,7 +3289,7 @@ function islandHulls() {                             // a soft outline around ea
 }
 // Special-base marks: white on neutral bases, the owner's color once held. Four silhouettes you can tell apart at a glance.
 function drawSpecialMark(n, now, struck) {
-  const own = n.owner >= 0, col = own ? colorOf(n.owner) : NEUTRAL_COLOR, g = HC ? 8.2 : 7.4;
+  const IK_ = isInk(), own = n.owner >= 0, col = own ? (IK_ ? ikHex(colorOf(n.owner)) : colorOf(n.owner)) : (IK_ ? IK_NEUTRAL : NEUTRAL_COLOR), g = HC ? 8.2 : 7.4;
   ctx.save(); ctx.translate(n.x, n.y); ctx.setLineDash([]);
   if (SYM && own) {                                  // with team symbols on, the holder's shape rings the glyph so both read
     const h = HC ? 11.5 : 10.5; ctx.strokeStyle = col; ctx.lineWidth = HC ? 2.2 : 1.8; ctx.globalAlpha = 0.9; ctx.beginPath();
@@ -3296,7 +3298,7 @@ function drawSpecialMark(n, now, struck) {
     ctx.stroke();
   }
   ctx.globalAlpha = 1; ctx.fillStyle = col; ctx.beginPath(); glyphPath(ctx, n.kind, 0, 0, g); ctx.fill();
-  if (struck) { ctx.globalAlpha = 0.55; ctx.fillStyle = '#fff'; ctx.fill(); }
+  if (struck) { ctx.globalAlpha = 0.55; ctx.fillStyle = IK_ ? IK_BG : '#fff'; ctx.fill(); }
   if (n.kind === 'beacon' && !reduceMotion) {        // a beacon keeps sending out slow pulses
     const ph = (now * 0.6 + n.id * 0.37) % 1;
     ctx.globalAlpha = 0.5 * (1 - ph); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, 1.2 / V.s); ctx.beginPath(); ctx.arc(0, 0, 14 + ph * 14, 0, Math.PI * 2); ctx.stroke();
@@ -3407,6 +3409,7 @@ function drawDeco(now) {
   if (isEmber()) { drawEmberDeco(D); return; }
   if (isClock()) { drawClockDeco(D); return; }
   if (isNeon()) { drawNeonDeco(D); return; }
+  if (isInk()) { drawInkDeco(D); return; }
   if (D.kind === 'river') {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.strokeStyle = 'rgba(70,120,200,0.07)'; ctx.lineWidth = D.hw * 1.7; ctx.beginPath();
@@ -3435,7 +3438,7 @@ function bridgeTies() {                              // crossties along every br
 }
 function drawBridges() {                             // crossties along every bridge, so chokepoints read at a glance
   if (!G.bridges.size) return;
-  ctx.strokeStyle = 'rgba(255,255,255,0.34)'; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.strokeStyle = isInk() ? 'rgba(60,52,45,0.5)' : 'rgba(255,255,255,0.34)'; ctx.lineWidth = isInk() ? 1.1 : 1.5; ctx.beginPath();
   const T = bridgeTies();
   for (let i = 0; i < T.length; i += 4) { if (!inV(T[i], T[i + 1])) continue; ctx.moveTo(T[i], T[i + 1]); ctx.lineTo(T[i + 2], T[i + 3]); }
   ctx.stroke();
@@ -3443,10 +3446,10 @@ function drawBridges() {                             // crossties along every br
 function drawEdges(now) {
   const nodes = G.nodes, lw = Math.max(1.4, 1.1 / V.s) * (HC ? 1.35 : 1);
   const slow = reduceMotion ? 0 : -now * 3, fast = reduceMotion ? 0 : -now * 9;
-  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), DASH = NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
+  const inner = EDGE_IN, out = EDGE_OUT, NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NO = isNeon(), IK_ = isInk(), DASH = IK_ ? [0.1, 3.6] : NB || RM || NO ? [] : EM ? [2, 6] : CK ? [0.1, 4.4] : [5, 7];
   for (let i = 0; i < 5; i++) { inner[i].length = 0; out[i].length = 0; }
-  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
-  ctx.strokeStyle = HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
+  ctx.setLineDash(DASH); ctx.lineDashOffset = slow; ctx.lineWidth = IK_ ? lw * 0.75 : NB ? lw * 0.8 : RM ? lw * 0.85 : CK ? lw * 1.6 : NO ? lw * 0.9 : lw;
+  ctx.strokeStyle = IK_ ? (HC ? 'rgba(50,44,38,0.7)' : 'rgba(70,62,55,0.45)') : HC ? 'rgba(255,255,255,0.4)' : NB ? 'rgba(190,200,255,0.11)' : RM ? 'rgba(175,215,245,0.18)' : EM ? 'rgba(150,108,84,0.22)' : CK ? 'rgba(210,174,104,0.3)' : NO ? 'rgba(170,150,235,0.2)' : 'rgba(255,255,255,0.17)';
   ctx.beginPath();
   for (const [a, b] of G.edges) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
@@ -3461,19 +3464,21 @@ function drawEdges(now) {
   for (let i = 0; i < 5; i++) {
     const L = inner[i];
     if (L.length) {
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
+      if (IK_) ctx.setLineDash([]);                  // Ink: ground you hold is joined by a plain pen line
+      ctx.strokeStyle = IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       for (let j = 0; j < L.length; j += 2) { if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
-      ctx.stroke();
+      ctx.stroke(); if (IK_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.09); ctx.lineWidth = lw * 4.5; ctx.stroke(); ctx.lineWidth = lw * 0.9; ctx.globalCompositeOperation = 'source-over'; }   // Neon: every line glows
     }
     const O = out[i];
     if (O.length) {   // drawn from the owner outward, so the dashes drift toward what they can attack
-      ctx.strokeStyle = hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
+      if (IK_) ctx.setLineDash([7, 4]);              // and its ways out by a dashed one, drifting toward what it can attack
+      ctx.strokeStyle = IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 1 : 0.85) : hexA(TEAM_COLORS[i], HC ? 1 : NB ? 0.42 : RM ? 0.85 : EM ? 0.72 : CK ? 0.9 : NO ? 0.9 : 0.6); ctx.lineDashOffset = fast; ctx.lineWidth = lw * (NB ? 1 : RM ? 1.1 : CK ? 1.9 : NO ? 1.1 : 1.25); ctx.beginPath();
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
       }
-      ctx.stroke(); ctx.lineWidth = lw;
+      ctx.stroke(); ctx.lineWidth = lw; if (IK_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.16); ctx.lineWidth = lw * 5; ctx.stroke(); ctx.lineWidth = lw; ctx.globalCompositeOperation = 'source-over'; }   // Neon: the ways out glow brightest
       if (isOver()) {                                // Overload: the same lines again, wide and glowing, on the beat
         ctx.setLineDash([]); ctx.globalCompositeOperation = 'lighter';
@@ -3832,7 +3837,7 @@ function draw(now) {
   const OV = isOver(), dtD = Math.min(0.1, Math.max(0, now - lastDrawT)); lastDrawT = now;
   kick = OV ? beatKick(now) : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : isNeon() ? NE_BG : '#000';   // Overload never fully clears, so everything leaves a smear
+  ctx.fillStyle = OV ? 'rgba(0,0,0,0.45)' : isAtlas() ? '#04070d' : isNebula() ? '#01020a' : isRime() ? '#030a14' : isEmber() ? '#050302' : isClock() ? CW_BG : isNeon() ? NE_BG : isInk() ? IK_BG : '#000';   // Overload never fully clears, so everything leaves a smear
   ctx.fillRect(0, 0, cv.width, cv.height);
   if (!G || (mode === 'demo' && pvOnly)) return;      // setup screens show their map in the preview card instead
   const fogD = fogOn();
@@ -3850,7 +3855,7 @@ function draw(now) {
   ctx.beginPath(); ctx.rect(F.x, F.y, F.w, F.h); ctx.clip();
   applyView(sx, sy);
   updateVis();
-  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NE_ = isNeon();
+  const nodes = G.nodes, SP = isSpark(), CL = isClassic(), NB = isNebula(), RM = isRime(), EM = isEmber(), CK = isClock(), NE_ = isNeon(), IN_ = isInk(), TCP = IN_ ? ikHex(TEAM_COLORS[PLAYER]) : TEAM_COLORS[PLAYER];
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   vfxFx(); stepParts();
   if (OV) drawOverloadBg(now, dtD);
@@ -3860,6 +3865,7 @@ function draw(now) {
   else if (EM) { drawEmberBack(now); applyView(sx, sy); }
   else if (CK) { drawClockBack(now); applyView(sx, sy); }
   else if (NE_) { drawNeonBack(now); applyView(sx, sy); }
+  else if (IN_) { drawInkBack(now); applyView(sx, sy); }
 
   if (isAtlas()) drawAtlasBack(now);
   if (PERF && window.__bgOnly) { ctx.restore(); return; }          // test hook: only the background, so tests can measure it alone
@@ -3870,7 +3876,7 @@ function draw(now) {
   for (let i = hl.length - 1; i >= 0; i--) {
     const h = hl[i], age = now - h.b;
     if (age > 0.9) { hl.splice(i, 1); continue; }
-    ctx.strokeStyle = hexA(TEAM_COLORS[PLAYER], (1 - age / 0.9) * 0.6); ctx.lineWidth = 2.6; ctx.setLineDash([]);
+    ctx.strokeStyle = hexA(TCP, (1 - age / 0.9) * 0.6); ctx.lineWidth = 2.6; ctx.setLineDash([]);
     ctx.beginPath();
     for (const [a, b] of h.edges) { ctx.moveTo(nodes[a].x, nodes[a].y); ctx.lineTo(nodes[b].x, nodes[b].y); }
     ctx.stroke();
@@ -3888,7 +3894,7 @@ function draw(now) {
   }
   if (hover && mode === 'play') {
     ctx.save(); ctx.translate(hover.x, hover.y); ctx.rotate(Math.PI / 4);
-    ctx.strokeStyle = hexA(TEAM_COLORS[PLAYER], .8); ctx.lineWidth = 1.3; ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = hexA(TCP, .8); ctx.lineWidth = 1.3; ctx.setLineDash([3, 3]);
     ctx.strokeRect(-17, -17, 34, 34); ctx.restore();
   }
 
@@ -3899,7 +3905,7 @@ function draw(now) {
     if (!watching && i !== PLAYER) continue;
     const n = nodes[L];
     ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(Math.PI / 4 + (reduceMotion ? 0 : now * 0.7) + i * 0.3);
-    ctx.strokeStyle = TEAM_COLORS[i]; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = IN_ ? ikHex(TEAM_COLORS[i]) : TEAM_COLORS[i]; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
     ctx.strokeRect(-19, -19, 38, 38); ctx.restore();
   }
   for (const n of nodes) {
@@ -3910,6 +3916,7 @@ function draw(now) {
     else if (EM) drawEmberBase(n, c, now);
     else if (CK) drawGear(n, c, now);
     else if (NE_) drawNeonBase(n, c, now);
+    else if (IN_) drawInkBase(n, c, now);
     else if (SP) {                                   // Overload's base: soft glow, a slowly turning frame, a breathing core
       const mv = reduceMotion ? 0 : 1, own = n.owner >= 0, cc = c;
       const br = (1 + 0.07 * Math.sin(now * 2.2 + n.id) * mv) * (OV ? 1 + 0.35 * kick : 1);
@@ -3955,9 +3962,9 @@ function draw(now) {
     } else {
       ctx.fillStyle = NEUTRAL_COLOR; ctx.fillRect(n.x - 5.5, n.y - 5.5, 11, 11);
     }
-    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK || NE_) && G.t - n.lastHitT < 0.07);
+    if (n.kind) drawSpecialMark(n, now, (SP || CL || NB || RM || EM || CK || NE_ || IN_) && G.t - n.lastHitT < 0.07);
     if (n.crown) drawCrown(n, now);
-    if (!EM && !CK && !NE_ && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it; Neon's segments do)
+    if (!EM && !CK && !NE_ && !IN_ && n.hp < n.maxHp - 0.5) {          // (Ember draws its own ring, above the troops; Clockwork's teeth and rim carry it; Neon's segments do)
       const f = Math.max(0, n.hp / n.maxHp), hit = G.t - n.lastHitT < 0.15;
       ctx.lineWidth = 2.2;
       ctx.strokeStyle = hit ? 'rgba(255,255,255,0.3)' : HC ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)';
@@ -3981,7 +3988,7 @@ function draw(now) {
     ctx.lineWidth = 1 / V.s;                      // one screen pixel at any zoom
     for (let b = 0; b < 6; b++) {
       const arr = buckets[b]; if (!arr.length) continue;
-      const col = b === 0 ? NEUTRAL_COLOR : TEAM_COLORS[b - 1], fresh = [];
+      const col = b === 0 ? (IN_ ? IK_NEUTRAL : NEUTRAL_COLOR) : IN_ ? ikHex(TEAM_COLORS[b - 1]) : TEAM_COLORS[b - 1], fresh = [];
       ctx.strokeStyle = hexA(col, 0.3 * af); ctx.beginPath();
       for (const t of arr) {
         const a = t.aim; if (!a) continue;
@@ -4039,7 +4046,8 @@ function draw(now) {
   }
   if (EM) drawEmberTroops(buckets);
   else if (NE_) drawNeonTroops(buckets);
-  for (let b = 0; b < 6 && !EM && !NE_; b++) {
+  else if (IN_) drawInkTroops(buckets);
+  for (let b = 0; b < 6 && !EM && !NE_ && !IN_; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
     ctx.fillStyle = b === 0 ? (NB && !HC ? '#9097ad' : NEUTRAL_COLOR) : TEAM_COLORS[b - 1];   // Nebula: empty bases' guards a shade dimmer than the stars they guard
     ctx.beginPath();
@@ -4071,6 +4079,7 @@ function draw(now) {
   else if (!reduceMotion && EM) drawEmberFx();
   else if (!reduceMotion && CK) drawClockFx(now);
   else if (!reduceMotion && NE_) drawNeonFx(now);
+  else if (!reduceMotion && IN_) drawInkFx(now);
   else if (!reduceMotion) {
     ctx.lineWidth = 1.1;
     for (const f of G.fx) {
@@ -4113,7 +4122,7 @@ function draw(now) {
     ctx.globalAlpha = 1;
   }
   if (isAtlas()) drawAtlasFront(now);
-  if (SP || CL || NB || RM || EM || NE_) drawParts();
+  if (SP || CL || NB || RM || EM || NE_ || IN_) drawParts();
   for (let i = uiFx.length - 1; i >= 0; i--) {
     const f = uiFx[i], age = now - f.b;
     if (age > 0.5) { uiFx.splice(i, 1); continue; }
@@ -4121,9 +4130,9 @@ function draw(now) {
     ctx.save(); ctx.translate(f.x, f.y); ctx.globalAlpha = 1 - p;
     if (f.k === 'go') {
       ctx.rotate(Math.PI / 4); const s = 18 + p * 22;
-      ctx.strokeStyle = TEAM_COLORS[PLAYER]; ctx.lineWidth = 1.8; ctx.strokeRect(-s / 2, -s / 2, s, s);
+      ctx.strokeStyle = TCP; ctx.lineWidth = 1.8; ctx.strokeRect(-s / 2, -s / 2, s, s);
     } else if (f.k === 'rip') {
-      ctx.strokeStyle = TEAM_COLORS[PLAYER]; ctx.lineWidth = 1.6;
+      ctx.strokeStyle = TCP; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.arc(0, 0, 12 + p * 34, 0, Math.PI * 2); ctx.stroke();
     } else {
       ctx.strokeStyle = '#9a9aa0'; ctx.lineWidth = 2; const s = 7;
@@ -4158,6 +4167,9 @@ function drawSelRing(sn, now, kk, al) {                       // called with the
     g.strokeStyle = hexA('#bfe6ff', 0.4 + 0.3 * flash); g.lineWidth = 1.3 * u; hexFrac(g, hx, hy, R, 1);
     g.strokeStyle = hexA(col, 1); g.lineWidth = 3.2 * u; hexFrac(g, hx, hy, R, f);
     g.fillStyle = hexA('#e8f6ff', 0.85); for (let i = 0; i < 6; i++) { const a = T + i * Math.PI / 3; g.beginPath(); g.arc(hx + Math.cos(a) * R, hy + Math.sin(a) * R, 1.8 * u, 0, TAU); g.fill(); }
+  } else if (isInk()) {                               // a pencil circle, and the share you send brushed over it in your ink
+    const ink = ikHex(col); g.strokeStyle = hexA(ink, 0.3 + 0.3 * flash); g.lineWidth = 0.9 * u; arc(R, 0, TAU);
+    ikBrush(hx, hy, R, 0, f, ink, 3.4 * u, 0.95);
   } else if (isNeon()) {                              // a ring of neon tube: the lit stretch is the share you send, the rest is dark glass
     g.strokeStyle = hexA('#8ea4c8', 0.25 + 0.25 * flash); g.lineWidth = 1.4 * u; arc(R, 0, TAU);
     g.globalCompositeOperation = 'lighter';
@@ -5110,6 +5122,228 @@ function drawNeonLift() {                              // a knockout: the whole 
   ctx.globalAlpha = 0.045 * a; ctx.fillStyle = '#c8d8ff'; ctx.fillRect(F.x, F.y, F.w, F.h); ctx.restore();
 }
 
+// ---- "Ink" (49.6): ink on paper. The ninth pair, with "Tide" for its sound (both names are placeholders for Henry and WC) ----
+// The ground is warm grey paper, fine fibres and the odd fleck, never perfectly even. A held base is a brush circle (an enso): one stroke of
+// ink round a solid dot, pressed down at the start, thinning, and ending in a dry-brush tail. Its health is how far round the stroke reaches
+// (from the top, clockwise, like every other style's gauge); the missing share is left as a faint pencil line. Ground you hold is an ink
+// wash soaked into the paper round each base, with the darker tide line a drying wash leaves at its rim. A capture: the brush sweeps the
+// circle in, a drop's wet ring opens, and the wash bleeds outward over a couple of seconds while the old holder's fades. A base you lose has
+// its ink lifted off, as if blotted. A knockout is one big brush circle drawn fast round where they fell, held, then faded. Troops are dots
+// of ink with the faint drag of a wet nib; lines are pen lines (dotted where nobody holds them). Team colours become inks (darker, a little
+// muted) so they read on a light page. Never: glow, light, black backgrounds, anything bright or neon, hard bitmap edges, and no moon
+// phases (Henry, 49.6: the paper-and-piano mood came from an album cover; its moons are that artist's, not ours).
+// Edgeless by construction: the paper is a repeating tile laid edge to edge, so no picture has a
+// border to show (the 49.5.2 lesson); its light (a lamp over the page) is in screen space. Reduce motion: no bleed (washes appear at full size), no ripples, no brush sweeps.
+const IK_BG = '#d6d2cb', IK_PAPER = [214, 210, 203], IK_NEUTRAL = '#7a746c', IK_NIB = '#2b2724';
+const IK = { cols: new Map(), stip: new Map(), wash: new Map(), tile: null, own: new Map(), og: null, back: null, ps: -1 };
+const isInk = () => settings.visual === 'ink';
+function ikReset() { if (IK.og !== G) { IK.og = G; IK.own.clear(); IK.back = null; } }
+function ikHex(hex) {                                  // a team colour as an ink: darker and a little muted, so it reads on light paper
+  if (!hex || hex[0] !== '#') return IK_NEUTRAL;
+  let k = IK.cols.get(hex + (HC ? 'h' : '')); if (k) return k;
+  const n = parseInt(hex.slice(1), 16); let r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l0 = (mx + mn) / 2, d = mx - mn;
+  let h = 0, s = 0;
+  if (d > 0) { s = d / (1 - Math.abs(2 * l0 - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+  const L = Math.min(l0, HC ? 0.33 : 0.4) * (hex === NEUTRAL_COLOR ? 1 : 1), S = Math.min(1, s * 0.78);
+  const c = (1 - Math.abs(2 * L - 1)) * S, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = L - c / 2;
+  const [r1, g1, b1] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  const to = v => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+  k = '#' + to(r1) + to(g1) + to(b1); IK.cols.set(hex + (HC ? 'h' : ''), k); return k;
+}
+const ikOf = o => o >= 0 ? ikHex(colorOf(o)) : IK_NEUTRAL;
+function ikRand(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function ikTile() {                                    // the paper: a seamless tile of fibres and flecks, drawn once at device resolution
+  if (IK.tile) return IK.tile;
+  const S = 256, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), rnd = ikRand(0x1b873593);
+  g.fillStyle = IK_BG; g.fillRect(0, 0, S, S);
+  const wrap = f => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) f(ox, oy); };
+  for (let i = 0; i < 1400; i++) {                     // the grain: tiny light and dark specks
+    const x = rnd() * S, y = rnd() * S, a = rnd(), z = 0.6 + rnd() * 0.9;
+    g.fillStyle = a < 0.55 ? 'rgba(255,253,248,0.22)' : 'rgba(70,60,50,0.07)'; g.fillRect(x, y, z, z);
+  }
+  g.lineCap = 'round';
+  for (let i = 0; i < 260; i++) {                      // fibres: short faint curved strokes, mostly lighter than the sheet
+    const x = rnd() * S, y = rnd() * S, an = rnd() * Math.PI, L = 3 + rnd() * 11, bend = (rnd() - 0.5) * 4, lite = rnd() < 0.7;
+    g.strokeStyle = lite ? 'rgba(250,247,240,0.28)' : 'rgba(90,78,66,0.09)'; g.lineWidth = 0.5 + rnd() * 0.5;
+    wrap((ox, oy) => { g.beginPath(); g.moveTo(x + ox, y + oy); g.quadraticCurveTo(x + ox + Math.cos(an) * L / 2 - Math.sin(an) * bend, y + oy + Math.sin(an) * L / 2 + Math.cos(an) * bend, x + ox + Math.cos(an) * L, y + oy + Math.sin(an) * L); g.stroke(); });
+  }
+  for (let i = 0; i < 9; i++) {                        // the odd fleck: a dark speck or a short hair in the pulp
+    const x = rnd() * S, y = rnd() * S, an = rnd() * Math.PI, L = rnd() < 0.5 ? 0 : 2 + rnd() * 4;
+    g.fillStyle = g.strokeStyle = 'rgba(55,45,38,0.35)'; g.lineWidth = 0.6;
+    wrap((ox, oy) => { if (L) { g.beginPath(); g.moveTo(x + ox, y + oy); g.lineTo(x + ox + Math.cos(an) * L, y + oy + Math.sin(an) * L); g.stroke(); } else g.fillRect(x + ox, y + oy, 1.1, 1.1); });
+  }
+  return (IK.tile = c);
+}
+function ikBack() { return IK.back && IK.back.g === G ? IK.back : (IK.back = { g: G }); }       // the cache's source: one per map
+function drawInkBack(now) {                            // called with the world transform in place; leaves it in place (the washes are part of the ground)
+  ikReset();
+  const B = ikBack(), tile = ikTile();
+  bgCache(IK_BG, 'ink' + (HC ? 'h' : ''), B, g => {
+    const m = g.getTransform(), S = tile.width;                                    // the grain: the tile laid edge to edge in device pixels (plain copies, no scaling), pinned to the map so it pans with it
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    const ox = ((m.e % S) + S) % S - S, oy = ((m.f % S) + S) % S - S;
+    for (let y = oy; y < cv.height; y += S) for (let x = ox; x < cv.width; x += S) g.drawImage(tile, x, y);
+    g.restore();
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);              // the page under a lamp: a little lighter toward the upper left, a gentle darkening at the frame's edges (screen space, so neither ends where the map ends)
+    const lg = g.createLinearGradient(F.x, F.y, F.x + F.w, F.y + F.h); lg.addColorStop(0, 'rgba(255,252,244,0.12)'); lg.addColorStop(0.55, 'rgba(255,252,244,0)'); lg.addColorStop(1, 'rgba(120,100,80,0.05)'); g.fillStyle = lg; g.fillRect(F.x, F.y, F.w, F.h);
+    const vg = g.createRadialGradient(F.x + F.w / 2, F.y + F.h / 2, Math.min(F.w, F.h) * 0.35, F.x + F.w / 2, F.y + F.h / 2, Math.hypot(F.w, F.h) * 0.6);
+    vg.addColorStop(0, 'rgba(90,70,50,0)'); vg.addColorStop(1, 'rgba(90,70,50,0.16)'); g.fillStyle = vg; g.fillRect(F.x, F.y, F.w, F.h);
+    g.setTransform(m);
+  });
+  drawInkWashes(now);
+}
+function ikWash(hex, v) {                              // a wash that has dried on the paper: an irregular soft pool with a darker tide line at its rim (three shapes per ink)
+  const key = hex + v; let s = IK.wash.get(key); if (s) return s;
+  const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), rnd = ikRand(parseInt(hex.slice(1), 16) * 7 + v * 131 + 17), N = 48, R = S / 2 - 3;
+  const off = []; let a = rnd() * 6, b = rnd() * 6;
+  for (let i = 0; i < N; i++) { const t = i / N * Math.PI * 2; off.push(0.82 + 0.08 * Math.sin(t * 3 + a) + 0.05 * Math.sin(t * 7 + b) + 0.04 * (rnd() - 0.5)); }
+  const ring = k => { g.beginPath(); for (let i = 0; i <= N; i++) { const t = i / N * Math.PI * 2, r = R * off[i % N] * k; i ? g.lineTo(S / 2 + Math.cos(t) * r, S / 2 + Math.sin(t) * r) : g.moveTo(S / 2 + Math.cos(t) * r, S / 2 + Math.sin(t) * r); } g.closePath(); };
+  ring(1); g.save(); g.clip();                                                                    // the body: lighter in the middle, where the water carried the pigment out to the rim
+  const gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, R); gr.addColorStop(0, hexA(hex, 0.2)); gr.addColorStop(0.7, hexA(hex, 0.3)); gr.addColorStop(1, hexA(hex, 0.42));
+  g.fillStyle = gr; g.fillRect(0, 0, S, S);
+  for (let i = 0; i < 70; i++) { const a2 = rnd() * 6.283, d = rnd() * R, z = 2 + rnd() * 7; g.fillStyle = hexA(hex, 0.05 + rnd() * 0.06); g.beginPath(); g.arc(S / 2 + Math.cos(a2) * d, S / 2 + Math.sin(a2) * d, z, 0, 6.283); g.fill(); }   // granulation: the pigment settled unevenly
+  g.restore();
+  ring(1); g.strokeStyle = hexA(hex, 0.5); g.lineWidth = 1.1; g.stroke();                         // the tide line where it dried
+  IK.wash.set(key, c); return c;
+}
+function ikRec(n) {                                    // what Ink remembers about a base: who held it, since when, and who held it before
+  let r = IK.own.get(n.id), now = performance.now() / 1000;
+  if (!r) { r = { o: n.owner, t: -99, p: -1, pt: -99 }; IK.own.set(n.id, r); }
+  else if (r.o !== n.owner) {
+    const seen = !reduceMotion && G.fx.some(f => f.k === 'ring' && f.x === n.x && f.y === n.y && G.t - f.b < 0.6);
+    r.p = r.o; r.pt = seen ? now : -99; r.o = n.owner; r.t = seen ? now : -99;
+  }
+  return r;
+}
+function drawInkWashes(now) {                          // the ground you hold, soaked into the paper (world transform)
+  const t = performance.now() / 1000, base = HC ? 0.85 : 0.62, R0 = 64;
+  for (const n of G.nodes) {
+    if (!inV(n.x, n.y)) continue;
+    const r = ikRec(n);
+    if (r.p >= 0 && t - r.pt < 1.6) {                 // the old holder's wash, fading as the new one comes in
+      const q = (t - r.pt) / 1.6; ctx.globalAlpha = base * (1 - q) * (1 - q);
+      const s = ikWash(ikOf(r.p), n.id % 3), z = R0 * (1 + 0.08 * q); ctx.drawImage(s, n.x - z, n.y - z, 2 * z, 2 * z);
+    }
+    if (n.owner < 0) continue;
+    const age = t - r.t, e = age >= 2.4 ? 1 : 1 - Math.pow(1 - Math.max(0, age) / 2.4, 2.6), z = R0 * (0.25 + 0.75 * e);   // the bleed: fast at first, then creeping out
+    ctx.globalAlpha = base * Math.min(1, 0.45 + e);
+    const s = ikWash(ikOf(n.owner), n.id % 3);
+    ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.id * 2.39); ctx.drawImage(s, -z, -z, 2 * z, 2 * z); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+const IK_DRY = [[6, 1.2, 2, 2.5, 9, 1.5], [9, 0.8, 4, 2, 3, 1], [4, 2, 7, 1, 2, 3.2], [7, 3, 3, 1.4, 5, 0.9]];   // the bristles break at uneven places
+function ikBrush(x, y, r, from, to, ink, w, al) {       // one brush stroke round a circle, from..to (shares of the way round from the top): pressed at the start, thinning, a dry-brush tail
+  const L = to - from; if (L <= 0.004) return;
+  const TAU = Math.PI * 2, T = -Math.PI / 2, a0 = T + from * TAU, aE = T + to * TAU, N = Math.max(3, Math.ceil(L * 14));
+  ctx.setLineDash([]); ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.globalAlpha = al; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(x + Math.cos(a0) * r, y + Math.sin(a0) * r, w * 0.68, 0, TAU); ctx.fill();          // where the brush was pressed down
+  const wet = 0.78;                                                                                          // the first part of the stroke is wet ink, thinning as the brush empties
+  for (let i = 0; i < N; i++) {
+    const u0 = i / N, u1 = (i + 1) / N; if (u0 >= wet) break;
+    ctx.lineWidth = w * (1.05 - 0.5 * Math.min(1, u0 / wet)); ctx.beginPath(); ctx.arc(x, y, r, a0 + (aE - a0) * u0, a0 + (aE - a0) * Math.min(wet, u1 + 0.02)); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';                                                                                      // then the dry brush: four bristle streaks, broken where the hairs ran out, running on a little past the stroke
+  const aT = a0 + (aE - a0) * (wet - 0.03), over = Math.min(0.12, L * 0.15) * TAU;
+  for (let k = 0; k < 4; k++) {
+    const off = (k - 1.5) * w * 0.2; ctx.lineWidth = Math.max(0.45, w * 0.13); ctx.globalAlpha = al * (0.9 - 0.12 * Math.abs(k - 1.5));
+    ctx.setLineDash(IK_DRY[k]); ctx.lineDashOffset = k * 2.3;
+    ctx.beginPath(); ctx.arc(x, y, r + off, aT, aE + over * (1 - Math.abs(k - 1.5) * 0.35)); ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.lineDashOffset = 0; ctx.lineCap = 'round'; ctx.globalAlpha = 1;
+}
+function drawInkBase(n, c, now) {
+  const own = n.owner >= 0, x = n.x, y = n.y, h = Math.max(0, Math.min(1, n.hp / n.maxHp)), lw = (HC ? 1.6 : 1.15);
+  const r = (own || n.kind ? (n.kind ? 11.5 : 10) : 6.2) * (HC ? 1.1 : 1);
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+  if (!own) {                                          // nobody's: a thin ring of grey ink; what has been knocked off it goes faint and broken
+    ctx.strokeStyle = hexA(IK_NEUTRAL, HC ? 0.95 : 0.75); ctx.lineWidth = lw; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * h); ctx.stroke();
+    if (h < 0.995) { ctx.strokeStyle = hexA(IK_NEUTRAL, 0.3); ctx.setLineDash([1, 2.5]); ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2 + Math.PI * 2 * h, Math.PI * 1.5); ctx.stroke(); ctx.setLineDash([]); }
+    if (SYM && !n.kind) { ctx.strokeStyle = IK_NEUTRAL; ctx.lineWidth = 1.4; ctx.strokeRect(x - 3, y - 3, 6, 6); }
+    return;
+  }
+  const ink = ikHex(c), rec = ikRec(n), age = performance.now() / 1000 - rec.t, struck = G.t - n.lastHitT < 0.07, w = (HC ? 4 : 3.4) * (struck ? 1.2 : 1);
+  const sw = age >= 0 && age < 0.45 ? 1 - Math.pow(1 - age / 0.45, 2) : 1;                                  // a capture: the brush sweeps the circle in
+  ctx.fillStyle = hexA(IK_BG, 0.55); ctx.beginPath(); ctx.arc(x, y, r + w, 0, Math.PI * 2); ctx.fill();          // a cleaner patch of paper under the circle, so the wash never muddies it
+  if (h < 0.995) { ctx.strokeStyle = hexA(ink, 0.22); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2 + Math.PI * 2 * h * sw, Math.PI * 1.5); ctx.stroke(); }   // the share knocked off: a faint pencil line
+  ikBrush(x, y, r, 0, h * sw, ink, w, 0.95);
+  if (n.kind) return;                                  // a special keeps its glyph (drawn after this) inside the circle
+  if (SYM) { ctx.fillStyle = ink; ctx.beginPath(); symPath(ctx, symOf(n.owner), x, y, 3.6 * (HC ? 1.1 : 1)); ctx.fill(); return; }
+  ctx.fillStyle = ink; ctx.globalAlpha = sw; ctx.beginPath(); ctx.arc(x, y, 2.5 * (HC ? 1.15 : 1), 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+}
+function drawInkDeco(D) {                              // terrain as marks on the page: a river is a feathered water stain with a dotted current, islands are pale washes with a stippled shore, the ring a dotted circle
+  ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (D.kind === 'river') {
+    const path = () => { ctx.beginPath(); D.line.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); };
+    path();                                           // a pale water stain, feathered at its banks (three widths, each faint), with the current as a fine dotted line
+    for (const [k, a] of [[1.9, 0.04], [1.55, 0.045], [1.2, 0.05]]) { ctx.strokeStyle = 'rgba(95,122,145,' + a + ')'; ctx.lineWidth = D.hw * k; ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(70,90,110,0.28)'; ctx.lineWidth = 1; ctx.setLineDash([0.1, 6]); ctx.stroke(); ctx.setLineDash([]);
+  } else if (D.kind === 'islands') {
+    for (const h of islandHulls()) {
+      ctx.beginPath(); h.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+      ctx.fillStyle = 'rgba(150,125,95,0.045)'; ctx.fill(); ctx.strokeStyle = 'rgba(70,60,50,0.32)'; ctx.lineWidth = 1.1; ctx.setLineDash([0.1, 4]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  } else if (D.kind === 'ring') {
+    ctx.strokeStyle = 'rgba(70,60,50,0.3)'; ctx.lineWidth = 1.1; ctx.setLineDash([0.1, 5]);
+    ctx.beginPath(); ctx.ellipse(D.cx, D.cy, D.rx, D.ry, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+function inkHits(ev) {                                 // a blow flicks a speck or two of ink off the nib where it lands
+  let budget = 8;
+  for (const e of ev) {
+    if (budget-- <= 0 || e.tx === undefined) break;
+    if (e.base) emit(e.tx, e.ty, Math.random() < 0.5 ? IK_NIB : ikHex(colorOf(e.team)), 2, 40, 0.5, 1.2, 0, e.tx - e.x, e.ty - e.y, 1.4);
+    else if (Math.random() < 0.3) emit(e.tx, e.ty, ikHex(colorOf(e.team)), 1, 30, 0.4, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.1);
+  }
+}
+function drawInkTroops(buckets) {                      // dots of ink, each with the faint drag of a wet nib behind it
+  if (!reduceMotion) for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (!arr.length) continue; ctx.fillStyle = hexA(ikHex(TEAM_COLORS[b - 1]), 0.22); trailPath(arr, 8, 1.0); }
+  const sc = 0.7 * (HC ? 1.2 : 1);
+  for (let b = 1; b < 6; b++) {
+    const arr = buckets[b]; if (!arr.length) continue;
+    ctx.fillStyle = ikHex(TEAM_COLORS[b - 1]); ctx.beginPath();
+    const kind = SYM ? symOf(b - 1) : 'circle', kk = SYM ? sc * 1.2 : sc;
+    for (const t of arr) troopShape(ctx, kind, t.x, t.y, t.nx, t.ny, kk);
+    ctx.fill();
+  }
+  if (buckets[0].length) { ctx.fillStyle = hexA(IK_NEUTRAL, 0.7); ctx.beginPath(); for (const t of buckets[0]) troopShape(ctx, 'circle', t.x, t.y, t.nx, t.ny, 0.6); ctx.fill(); }
+}
+function ikEnso(x, y, c, e0) {                         // a knockout: one big brush circle drawn fast round where they fell, held, then faded
+  const fade = e0 < 1.9 ? 1 : Math.max(0, 1 - (e0 - 1.9) / 0.9); if (fade <= 0) return;
+  ikBrush(x, y, 28, 0, reduceMotion ? 1 : Math.min(1, e0 / 0.55), ikHex(c), 4.2, 0.85 * fade);
+}
+function drawInkFx(now) {                              // drops, blots, lifted ink and the knockout's brush circle
+  const fogD = fogOn();
+  ctx.setLineDash([]); ctx.lineCap = 'round';
+  for (const f of G.fx) {
+    const age = G.t - f.b;
+    if (f.x === undefined || (fogD && !seenXY(f.x, f.y))) continue;
+    if (f.k === 'pop' && age < 0.6) {                 // a lost troop: a tiny blot that spreads and soaks away
+      const p = age / 0.6, ink = ikHex(colorOf(f.c));
+      ctx.globalAlpha = (1 - p) * 0.55; ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(f.x, f.y, 1.2 + p * 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = (1 - p) * 0.35; ctx.strokeStyle = ink; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + p * 6, 0, Math.PI * 2); ctx.stroke();
+    } else if (f.k === 'ring' && age < 1.4) {         // a capture: a drop lands, a wet ring opens round it
+      const p = Math.min(1, age / 1.1), e = 1 - Math.pow(1 - p, 2.4), ink = ikHex(colorOf(f.c));
+      if (p < 1) {
+        ctx.globalAlpha = (1 - p) * 0.55; ctx.strokeStyle = ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(f.x, f.y, 12 + e * 30, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = (1 - p) * 0.25; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.arc(f.x, f.y, 8 + e * 46, 0, Math.PI * 2); ctx.stroke();
+      }
+      if (lostMine(f) && age < 1.2) {                 // the circle you held has its ink lifted off, as if blotted
+        const q = age / 1.2, r = 9 * (HC ? 1.1 : 1) * (1 + 0.3 * q);
+        ikBrush(f.x, f.y, r, 0, 1, ikHex(colorOf(PLAYER)), 2.6 * (1 + q), 0.6 * (1 - q) * (1 - q));
+      }
+    } else if (f.k === 'elim' && age > 0.35 && age < 3.0) ikEnso(f.x, f.y, colorOf(f.c), age - 0.35);
+    else if (f.k === 'retreat' && age < 1.1) {        // called off: a dotted pen line walks back toward home
+      const p = age / 1.1, g = rtSeg(f, p, 40);
+      if (g) { ctx.globalAlpha = (1 - p) * 0.9; ctx.strokeStyle = ikHex(colorOf(f.c)); ctx.lineWidth = 1.6; ctx.setLineDash([0.1, 3.4]); ctx.beginPath(); ctx.moveTo(g[0], g[1]); ctx.lineTo(g[2], g[3]); ctx.stroke(); ctx.setLineDash([]); }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 // ---- "Pixel": the battlefield as an 8-bit console would have drawn it ----
 // The world is painted onto a coarse grid of its own (about three world units to a pixel, never finer than two screen pixels or
 // coarser than six), every shape lands on whole pixels, and the grid is then blown up without smoothing, with faint scanlines
@@ -5514,6 +5748,7 @@ const PF_STYLE = {
   nebula:   { n: 44, kind: 'dust', cols: ['#ffffff', '#cfe0ff', '#ffe6c4', '#b8ccff'], v: [24, 80], life: [1.2, 2.0], flare: true },
   rime:     { n: 22, kind: 'shard', cols: ['#bfe6ff', '#e8f6ff', '#8fd0ff'], v: [90, 220], life: [1.0, 1.5], hex: true },
   clockwork: { n: 22, kind: 'cog', cols: [CW_BRASS, CW_LIGHT, '#b08a48'], v: [80, 200], life: [0.8, 1.3], key: true },
+  ink:      { n: 18, kind: 'streak', cols: ['#2b2724', '#4a4038', '#6a5e52'], w: 1.4, v: [60, 150], life: [0.6, 1.0], len: 0.04 },
   neon:     { n: 20, kind: 'streak', cols: ['#bfe3ff', '#ffffff', '#8fc8ff'], w: 1.2, v: [70, 170], life: [0.5, 0.9], len: 0.05, add: true, arrow: true },
   ember:    { n: 30, kind: 'streak', cols: ['#ffd9a8', '#ff9a4a', '#fff1dc'], w: 1.6, v: [60, 170], life: [0.8, 1.4], len: 0.06, add: true }
 };
@@ -5563,7 +5798,8 @@ function ptsChime(N, t) {                              // N: the running (or pre
     case 'cosmos': csPing(N, t, csMidi(14), 0.05, 0, 1.5); csPing(N, t + 0.13, csMidi(18), 0.05, 0, 1.8); break;
     case 'floe': { const b = 1150 * (0.9 + 0.45 * share); flTink(N, t, b, 0.055, 0, 0.9, 0, true); flTink(N, t + 0.12, b * 1.5, 0.055, 0, 0.9, 0, true); break; }
     case 'musicbox': mbRatchet(N, t, 2, 0.3, 0); mbTine(N, t + 0.1, 2349.32, 0.05, 0, 0, true); break;      // two ratchet clicks, then one bright tine
-    case 'rain': rnTransformer(N, t); break;                                                                // a transformer hum swells and resolves to one bright tone
+    case 'rain': rnTransformer(N, t); break;
+    case 'tide': tdKey(N, t, tdMidi(13), 0.05, 0, 1.6); tdKey(N, t + 0.13, tdMidi(16), 0.05, 0, 2.0); break;          // two high keys, a fourth apart                                                                // a transformer hum swells and resolves to one bright tone
     default: {
       const m = ROOT[PLAYER] - 12 + 4;
       ptsOsc(hz(m), t, 0.16, 0.05, 0.012, hz(m) * 0.99); ptsOsc(hz(m + 5), t + 0.1, 0.3, 0.05, 0.012, hz(m + 5) * 0.99); ptsOsc(hz(m + 17), t + 0.1, 0.2, 0.007, 0.012);
@@ -5572,8 +5808,8 @@ function ptsChime(N, t) {                              // N: the running (or pre
 }
 function ptsSound() {                                  // an upgrade point was earned in a match you are playing
   if (!AC || !settings.sound || !audible() || awatch() || AC.state !== 'running') return;
-  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes, rain: RN.nodes })[settings.tone];
-  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain'].includes(settings.tone)) return;     // that style's sound is not up yet
+  const N = ({ hearth: HE.nodes, drift: DR.nodes, chip: CH.nodes, cosmos: CS.nodes, floe: FL.nodes, musicbox: MB.nodes, rain: RN.nodes, tide: TD.nodes })[settings.tone];
+  if (settings.tone !== 'simple' && !N && ['hearth', 'drift', 'chip', 'cosmos', 'floe', 'musicbox', 'rain', 'tide'].includes(settings.tone)) return;     // that style's sound is not up yet
   try { ptsChime(N || null, AC.currentTime + 0.01); PF.chimes.push({ tone: settings.tone, at: performance.now() }); if (PF.chimes.length > 40) PF.chimes.shift(); } catch (e) { /* a missing voice must never stop the game */ }
 }
 let lastChimePrev = 0;
@@ -5591,6 +5827,7 @@ function ptsPreview() {                                // the "Hear it" button i
       case 'floe': N = flBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); break;
       case 'musicbox': N = mbBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
       case 'rain': N = rnBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 3000); break;
+      case 'tide': N = tdBuild(false); off = () => setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 5000); break;
     }
     ptsChime(N, t); if (off) off();
   } finally { previewing = false; }
@@ -5823,7 +6060,7 @@ const pick = a => a[(Math.random() * a.length) | 0];
 // volume slider is perceptual (squared). "Simple" (the old Bright and Soft, folded together) sits an octave low, rounds off each blip's start and filters the top end
 const MASTER_BOOST = 2;                              // +6 dB: a 70% slider now sounds like the old 100%
 const soundGain = () => settings.sound ? MASTER_BOOST * Math.pow(settings.volume / 100, 2) : 0;
-const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000, rain: 6000 })[settings.tone] || 1500;
+const cutoff = () => ({ simple: 1500, hearth: 7000, drift: 6500, chip: 7000, cosmos: 5200, floe: 4800, musicbox: 7000, rain: 6000, tide: 5200 })[settings.tone] || 1500;
 let kickT = 0, lostSince = 0, lostToast = false, hushed = false;
 function audioKick() {                                // the phone can pause or interrupt web audio (a text, another app, the screen): ask for the sound back
   if (!AC || !settings.sound || document.hidden || hushed) return;
@@ -5907,6 +6144,7 @@ function playSfx(nowMs, dt) {
   if (isFloe()) { floeHits(ev); return; }
   if (isMusicBox()) { musicboxHits(ev); return; }
   if (isRain()) { rainHits(ev); return; }
+  if (isTide()) { tideHits(ev); return; }
   if (isHearth()) { heHits(ev); return; }
   if (nowMs - lastBloop > 150) {              // base hits: a low, round bloop that drops in pitch
     const e = h.baseMine || h.base;
@@ -6600,6 +6838,166 @@ function cosmosPreview() {                            // a pad chord swelling, t
   csSonar(N, t + 1.6, 0.14, 0);
   csEbb(N, t + 3.1, 8, 0.038, 0);
   setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 11000);
+}
+
+// ---- "Tide" (49.6; placeholder name for Henry and WC): the sound for Ink ----
+// Built on Cosmos (Henry's favourite: soft and mesmerizing) and moved from deep space into a quiet room with a soft-hammered piano in it.
+// The same bones: a slot clock, troop hits gathered into one note per slot, a pad that only swells with the fighting, an echo that keeps
+// coming back duller, a long reverb. What changed: the notes are felt-hammered keys (a soft thump, a bright start that dulls at once, a
+// two-stage fade like a real string), the harmony is a slow minor (A minor: Am9, Cadd9, Em7, G6, one every 16 slots), the room is smaller
+// and warmer, and the bed is a faint held fifth like a pedal left down, pitched where a phone speaker can still play it.
+// Troop hits are single keys on a gentle walk through the scale, higher the more ground you hold (other colours an octave below). A base
+// under fire is a low key on the chord's root or fifth, every other slot, never louder than a troop note by much (49.5.4 lesson: no thump).
+// A capture is the chord rolled upward; a base lost, the chord rolled down and a little flat; a knockout, a low octave left to ring.
+// Never: a sub-bass drone, hard attacks, anything percussive or metallic, sound on a steady loud beat.
+const TD_STEP = 60 / 66 / 2, TD_LEVEL = 0.56, TD_SCALE = [0, 2, 3, 5, 7, 10];          // A minor, without the sixth (so no note ever rubs against the chords)
+const tdMidi = d => 57 + 12 * Math.floor(d / 6) + TD_SCALE[((d % 6) + 6) % 6];
+const TD_CHORDS = [[45, 52, 55, 59, 60], [48, 55, 60, 62, 64], [52, 55, 59, 62, 67], [43, 50, 55, 59, 64]];   // Am9, Cadd9, Em7, G6 (MIDI)
+const TD = { nodes: null, pool: [], low: null, caps: [], deg: 7, next: 0, step: 0, ir: null, irT: -1, ret: null, ftCh: null };
+const isTide = () => settings.tone === 'tide';
+const tdChord = () => TD_CHORDS[Math.floor(TD.step / 16) % 4];
+function tdIR() {                                     // a quiet room: three seconds, warm, the top rolled off
+  if (TD.ir && TD.ir.sampleRate === AC.sampleRate && TD.irT === AQ()) return TD.ir;
+  const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 3.2 * k); TD.ir = AC.createBuffer(2, len, sr); TD.irT = AQ();
+  for (let c = 0; c < 2; c++) { const d = TD.ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.32; d[i] = lp * 1.6 * Math.exp(-i / sr * 1.9 / k) * Math.min(1, i / (sr * 0.03)); } }
+  return TD.ir;
+}
+function tdBuild(withBed) {
+  const t = AC.currentTime, N = { oscs: [], tier: AQ() };
+  N.out = AC.createGain(); N.out.gain.value = 0.0001; N.out.gain.setTargetAtTime(TD_LEVEL, t, withBed ? 0.8 : 0.01); N.out.connect(outBus());
+  N.dry = AC.createGain(); N.dry.gain.value = 0.62; N.dry.connect(N.out);
+  N.rev = AC.createConvolver(); N.rev.buffer = tdIR(); const rg = AC.createGain(); rg.gain.value = 0.55; N.rev.connect(rg); rg.connect(N.out);
+  N.dl = AC.createDelay(2); N.dl.delayTime.value = TD_STEP * 3;                              // the echo: it comes back a few times, duller each time
+  const fb = AC.createGain(), dlp = AC.createBiquadFilter(), dg = AC.createGain();
+  fb.gain.value = 0.32; dlp.type = 'lowpass'; dlp.frequency.value = 1700; dg.gain.value = 0.45;
+  N.dl.connect(dlp); dlp.connect(fb); fb.connect(N.dl); dlp.connect(dg); dg.connect(N.out); dg.connect(N.rev);
+  N.send = AC.createGain(); N.send.gain.value = 0.42; N.send.connect(N.dl);
+  N.wet = AC.createGain(); N.wet.gain.value = 0.8; N.wet.connect(N.rev);
+  if (withBed) {
+    for (const [f, a] of [[110, 0.028], [164.81, 0.016]]) {                                    // the pedal left down: A and E, very faint, breathing
+      const o = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), d = AC.createGain(), lp = AC.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 420; g.gain.value = a; l.frequency.value = 0.05 + f / 5000; d.gain.value = a * 0.5;
+      l.connect(d); d.connect(g.gain); o.connect(lp); lp.connect(g); g.connect(N.dry); g.connect(N.wet); o.start(t); l.start(t); N.oscs.push(o, l);
+    }
+    N.padLP = AC.createBiquadFilter(); N.padLP.type = 'lowpass'; N.padLP.frequency.value = 600; N.padLP.Q.value = 0.5;
+    N.padG = AC.createGain(); N.padG.gain.value = 0.0001;
+    N.padLP.connect(N.padG); N.padG.connect(N.dry); N.padG.connect(N.wet);
+    N.voices = [];
+    const vib = AC.createOscillator(), vd = AC.createGain(); vib.frequency.value = 0.17; vd.gain.value = 5; vib.connect(vd); vib.start(t); N.oscs.push(vib);
+    TD_CHORDS[0].forEach((m, i) => { if (AQ() >= 2 && i >= 3) return;  /* Lite: three voices */                  // the pad: a soft sine and a warm triangle a few cents apart, like strings held under the piano
+      const a = AC.createOscillator(), b = AC.createOscillator(), ga = AC.createGain(), gb = AC.createGain();
+      a.frequency.value = hz(m); b.type = 'triangle'; b.frequency.value = hz(m); b.detune.value = (i % 2 ? 7 : -7); vd.connect(b.detune);
+      ga.gain.value = 0.14; gb.gain.value = 0.05; a.connect(ga); b.connect(gb); ga.connect(N.padLP); gb.connect(N.padLP);
+      a.start(t); N.voices.push([a, b]); N.oscs.push(a); if (AQ() < 1) { b.start(t); N.oscs.push(b); }
+    });
+  }
+  return N;
+}
+function tdPan(g, pan) { if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = pan; g.connect(p); return p; } return g; }
+function tdKey(N, t, midi, peak, pan, len, detune) {    // one felt-hammered key: a soft thump, a bright start that dulls at once, a quick first fade and a long second one
+  const f = hz(midi) * Math.pow(2, (detune || 0) / 1200), L = len || 2.2, lite = AQ() >= 2;
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
+  o.frequency.value = f; o2.frequency.value = f * 2.003;
+  lp.type = 'lowpass'; lp.Q.value = 0.4; lp.frequency.setValueAtTime(Math.min(5200, f * 9), t); lp.frequency.exponentialRampToValueAtTime(Math.max(500, f * 2.2), t + 0.5);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.007); g.gain.exponentialRampToValueAtTime(peak * 0.32, t + 0.28); g.gain.exponentialRampToValueAtTime(0.0001, t + L);
+  g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.42, t + 0.006); g2.gain.exponentialRampToValueAtTime(0.0001, t + L * 0.45);
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp);
+  if (!lite) {                                        // the bloom of the string's third partial, gone in a moment, and the felt meeting the string
+    const o3 = AC.createOscillator(), g3 = AC.createGain(); o3.type = 'triangle'; o3.frequency.value = f * 3.006;
+    g3.gain.setValueAtTime(0.0001, t); g3.gain.exponentialRampToValueAtTime(peak * 0.12, t + 0.005); g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o3.connect(g3); g3.connect(lp); o3.start(t); o3.stop(t + 0.2);
+    const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), ng = AC.createGain(); n.buffer = noise(); bp.type = 'bandpass'; bp.frequency.value = Math.min(1400, 300 + f); bp.Q.value = 0.9;
+    ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(peak * 0.22, t + 0.003); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    n.connect(bp); bp.connect(ng); ng.connect(lp); n.start(t, Math.random() * 0.3, 0.05);
+  }
+  const out = tdPan(lp, pan || 0); out.connect(N.dry); out.connect(N.send); out.connect(N.wet);
+  o.start(t); o2.start(t); o.stop(t + L + 0.05); o2.stop(t + L * 0.45 + 0.05);
+}
+function tdLow(N, t, peak, pan, k) {                  // a base under fire: a low key on the chord's root or its fifth (taking turns, so it never sounds like one note on a beat)
+  const ch = tdChord(), m = (k % 2 ? ch[1] : ch[0]) + (ch[0] < 47 ? 12 : 0);
+  tdKey(N, t, m, peak, pan * 0.6, 1.4);
+}
+function tdRoll(N, t, peak, pan, up, flat) {          // a chord rolled across the keys: upward for a capture; down, slower and a little flat for a base lost
+  const ch = tdChord().slice(1).map(m => m + 12), seq = up ? ch : ch.slice().reverse(), gap = up ? 0.045 : 0.075;
+  seq.forEach((m, i) => tdKey(N, t + i * gap, m, peak * (up ? 1 - i * 0.08 : 0.85 - i * 0.1), pan, up ? 2.6 : 2.2, flat ? -22 : 0));
+}
+function tdSink(N, t) {                               // a colour is out: a low octave, left to ring
+  const r = tdChord()[0]; tdKey(N, t, r, 0.08, 0, 4.2); tdKey(N, t + 0.02, r + 12, 0.05, 0, 3.6);
+}
+function tdRetreat(N, t, centre, pan) { tdKey(N, t, tdMidi(centre - 4), 0.04, pan, 1.4); tdKey(N, t + TD_STEP / 2, tdMidi(centre - 6), 0.03, pan, 1.4); }
+function tideHits(ev) {
+  for (const e of ev) {
+    if (e.base) { if (!TD.low || isMine(e)) TD.low = { mine: isMine(e), pan: screenPan(e.x, e.y) }; }
+    else TD.pool.push(e);
+  }
+  if (TD.pool.length > 40) TD.pool.splice(0, TD.pool.length - 40);
+}
+const tdFT = () => (isTide() && mode === 'play' && (FT.phase === 'build' || FT.phase === 'hold') && FT.kind) ? { g: FT.phase === 'hold' ? 0.4 : FT.g, kind: FT.kind } : null;
+function tdGlide(N, ch, t, tc) { N.voices.forEach(([a, b], i) => { a.frequency.setTargetAtTime(hz(ch[i]), t, tc); b.frequency.setTargetAtTime(hz(ch[i]), t, tc); }); }
+function tdSlot(N, t, heat) {
+  const fc = tdFT();
+  if (N.voices && fc && TD.ftCh !== fc.kind) { TD.ftCh = fc.kind; tdGlide(N, TD_CHORDS[fc.kind === 'loss' ? 2 : 1], t, 1.6); }
+  else if (N.voices && !fc && TD.ftCh) { TD.ftCh = null; tdGlide(N, tdChord(), t, 1.6); }
+  if (TD.step % 16 === 0 && N.voices && !fc) tdGlide(N, tdChord(), t, 1.2);       // a new chord: the pad glides there slowly
+  if (N.voices) {                                     // the pad only swells with the fighting, and fades when it stops
+    const fallen = (FT.phase === 'tail' && G.result === 'lose') || (FT.phase === 'hold' && FT.kind === 'loss');
+    const lift = fallen ? 0 : Math.min(1, Math.max(heat * 1.8, fc ? fc.g * 0.9 : 0)), tc = fallen ? 0.45 : 1.6;
+    N.padG.gain.setTargetAtTime(0.0001 + 0.075 * lift * lift, t, tc); N.padLP.frequency.setTargetAtTime(500 + 1600 * lift, t, tc);
+  }
+  const share = (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
+  const centre = 6 + Math.round(share * 6);           // the keys sit higher the more ground you hold
+  if (TD.caps.length) { const c = TD.caps.shift(); if (c.lost) tdRoll(N, t, 0.045, c.pan, false, true); else tdRoll(N, t, c.mine ? 0.055 : 0.028, c.pan, true, false); }
+  if (fc && fc.kind === 'loss' && fc.g > 0.08 && TD.step % 2 === 0 && !TD.low) TD.low = { mine: true, pan: 0, lvl: 0.03 + 0.08 * fc.g };     // the last base under attack: a slow low pulse, louder as it gives way
+  if (fc && fc.kind === 'win' && fc.g > 0.08 && TD.step % 2 === 1 && !(TD.pool.length && heat > 0.3)) tdKey(N, t, tdMidi(centre + Math.floor(fc.g * 5)), 0.025 + 0.035 * fc.g, 0, 2.4);   // the last base nearly yours: keys climbing on the off beats
+  if (TD.low && TD.step % 2 === 0) { tdLow(N, t, TD.low.lvl || (TD.low.mine ? 0.075 : 0.04), TD.low.pan, TD.step / 2); TD.low = null; }
+  let retDone = false;
+  if (TD.ret && TD.step % 2 === 0) { tdRetreat(N, t, centre, TD.ret.pan); TD.ret = null; retDone = true; }
+  const n = TD.pool.length;
+  if (n && !retDone && (TD.step % 2 === 0 || heat > 0.3)) {
+    let e = TD.pool[n - 1], mine = false;
+    if (!awatch()) for (let i = n - 1; i >= 0; i--) if (TD.pool[i].team === PLAYER) { e = TD.pool[i]; mine = true; break; }
+    let st = [-2, -1, -1, 0, 1, 1, 2, 3][(Math.random() * 8) | 0];
+    if (TD.deg > centre + 3 && st > 0) st = -1; if (TD.deg < centre - 3 && st < 0) st = 1;
+    TD.deg = Math.max(1, Math.min(17, TD.deg + st));
+    const d = mine || awatch() ? TD.deg : TD.deg - 6, pan = screenPan(e.x, e.y);       // other colours' fights sound an octave below
+    tdKey(N, t, tdMidi(d), mine ? 0.06 : awatch() ? 0.04 : 0.024, pan);
+    if (n >= 8 && heat > 0.5 && AQ() < 1) tdKey(N, t + TD_STEP / 2, tdMidi(d + 2), mine ? 0.03 : 0.016, -pan, 1.8);   // a big fight answers itself, a third up
+    TD.pool.length = 0;
+  }
+}
+function tideTick() {
+  const want = AC && AC.state === 'running' && settings.sound && isTide() && audible() && G && (!G.over || ftLive());
+  if (!want || (TD.nodes && TD.nodes.tier !== AQ())) {
+    if (TD.nodes) { const N = TD.nodes, t = AC.currentTime; TD.nodes = null; N.out.gain.cancelScheduledValues(t); N.out.gain.setTargetAtTime(0.0001, t, 0.5); for (const o of N.oscs) o.stop(t + 3); setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); }
+    if (!want) { TD.pool.length = 0; TD.caps.length = 0; TD.low = null; TD.ret = null; return; }
+  }
+  if (!TD.nodes) { TD.nodes = tdBuild(true); TD.next = AC.currentTime + 0.05; TD.step = 0; }
+  const N = TD.nodes, now = AC.currentTime, heat = 1 - Math.exp(-shotRate / 30);
+  for (const f of G.fx) {
+    if (f.td) continue; f.td = 1; if (f.ftq) continue;
+    if (fogOn() && f.x !== undefined && !seenXY(f.x, f.y)) continue;
+    if (f.k === 'ring') TD.caps.push({ mine: !awatch() && f.c === PLAYER, lost: lostMine(f), pan: screenPan(f.x, f.y) });
+    else if (f.k === 'elim') tdSink(N, now + 0.02);
+    else if (f.k === 'retreat') { if (rtOK('td', 2.5)) TD.ret = { pan: f.x !== undefined ? screenPan(f.x, f.y) : 0 }; }
+  }
+  if (TD.caps.length > 2) TD.caps.splice(0, TD.caps.length - 2);
+  if (TD.next < now - 0.25) { const k = Math.ceil((now - TD.next) / TD_STEP); TD.next += k * TD_STEP; TD.step += k; }
+  while (TD.next < now + 0.08) { tdSlot(N, TD.next, heat); TD.next += TD_STEP; TD.step++; }
+}
+function tidePreview() {                              // the pad's chord swelling, three keys, a low key, a chord rolled up
+  const N = tdBuild(false), t = AC.currentTime + 0.05;
+  TD_CHORDS[0].forEach(m => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = hz(m); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.026, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2); o.connect(g); g.connect(N.dry); g.connect(N.wet); o.start(t); o.stop(t + 3.3); });
+  [7, 9, 8].forEach((d, i) => tdKey(N, t + 0.2 + i * TD_STEP, tdMidi(d), 0.06, (i - 1) * 0.4));
+  tdKey(N, t + 1.7, 57, 0.07, 0, 1.4);
+  tdRoll(N, t + 2.6, 0.05, 0, true, false);
+  setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 10000);
+}
+function mvTide(t, back) {                            // one soft key, short, no echo
+  const out = AC.createGain(); out.gain.value = TD_LEVEL; out.connect(pbus);
+  const c0 = AC.currentTime; if (MV.td) { try { MV.td.gain.cancelScheduledValues(c0); MV.td.gain.setTargetAtTime(0, c0, 0.06); } catch (_) {} } MV.td = out;
+  const N = { dry: out, send: AC.createGain(), wet: AC.createGain() };                     // the key's echo and room sends go nowhere: a menu tap is dry
+  tdKey(N, t, tdMidi(back ? 5 : 9), 0.04, 0, 0.8);
+  setTimeout(() => { try { out.disconnect(); } catch (_) {} }, 1500);
 }
 
 // ---- "Floe" and "Floe-1": ice for Rime ----
@@ -7580,7 +7978,7 @@ function menuVoice(kind) {                                 // kind: 'tap' or 'ba
   if (mode !== 'play' && settings.menuSound === 'off') return;
   audioOn(); if (!AC || AC.state !== 'running') return;
   const ms = performance.now(); if (ms - MV.t < 70) return; MV.t = ms;
-  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox, rain: mvRain }[settings.tone] || mvSimple;
+  const f = { hearth: mvHearth, drift: mvDrift, chip: mvChip, cosmos: mvCosmos, floe: mvFloe, musicbox: mvMusicbox, rain: mvRain, tide: mvTide }[settings.tone] || mvSimple;
   try { f(AC.currentTime + 0.005, kind === 'back'); } catch (e) { /* a missing voice must never stop the menus */ }
 }
 document.addEventListener('click', e => {                   // every button in the menus and on the play screen's rail; the map, the upgrade panel and the sound-style row have sounds of their own
@@ -7614,13 +8012,14 @@ function orderTap(moved) {                                 // your order was sen
     else if (settings.tone === 'cosmos') { if (CS.nodes) csPing(CS.nodes, t, csMidi(4 + Math.round(k * 2)), 0.05, 0, 0.7); }
     else if (isFloe()) { if (FL.nodes) flTink(FL.nodes, t, 780 + 120 * k, 0.04, 0, 0.6, 2200, true); }
     else if (isMusicBox()) { if (MB.nodes) mbTick(MB.nodes, t, 3600 + 300 * k, 0.32, 0, 0.009); }      // one ratchet click
-    else if (isRain()) { if (RN.nodes) rnSplash(RN.nodes, t, k); }                                      // a small footstep splash
+    else if (isRain()) { if (RN.nodes) rnSplash(RN.nodes, t, k); }
+    else if (isTide()) { if (TD.nodes) tdKey(TD.nodes, t, tdMidi(4 + Math.round(k * 2)), 0.045, 0, 0.8); }     // one soft key                                      // a small footstep splash
     else if (settings.tone === 'simple' || !settings.tone) mvNoteOn(t, hz(72), hz(71), 0.06, 0.04 + 0.01 * k, 0);
   } catch (e) { /* a missing voice must never stop an order */ }
 }
 function previewSound() {                       // a sample bleep and bloop so you can hear the setting
   const now = performance.now();
-  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600, rain: 5000 })[settings.tone] || 140;
+  const gap = ({ hearth: 11000, drift: 3300, chip: 3200, cosmos: 4400, floe: 5400, musicbox: 4600, rain: 5000, tide: 4400 })[settings.tone] || 140;
   if (!AC || AC.state !== 'running' || !soundGain() || now - lastPreview < gap && lastPreviewTone === settings.tone) return;
   const fresh = lastPreviewTone !== settings.tone;
   lastPreview = now; lastPreviewTone = settings.tone;
@@ -7633,6 +8032,7 @@ function previewSound() {                       // a sample bleep and bloop so y
     if (isFloe()) { floePreview(); return; }
     if (isMusicBox()) { musicboxPreview(); return; }
     if (isRain()) { rainPreview(); return; }
+    if (isTide()) { tidePreview(); return; }
     const f = hz(ROOT[PLAYER] - 12 + pick(PENTA));
     tone(f, f * 0.94, 0.1, 0.055, 'sine', 0, 0.018); tone(f * 2, f * 1.88, 0.07, 0.009, 'sine', 0, 0.012);
   } finally { previewing = false; }
@@ -7663,11 +8063,13 @@ const SETTINGS_INFO = {
     chip: 'A four-channel console played by the battle: combo runs, buzzy crunches and little fanfares. Pairs with Pixel.', cosmos: 'A deep drone, sonar pings and pads that swell with the fighting. Pairs with Nebula.',
     floe: 'Soft glass, cracking ice and low groans in a long cold echo, played by the fighting. Pairs with Rime.',
     musicbox: 'Ticking clocks, ratchets and the tines of a music box comb, dry and close, played by the fighting. Pairs with Clockwork.',
+    tide: 'A soft piano in a quiet room, played by the fighting, with a faint pad that swells as it grows. Pairs with Ink.',     // 49.6: placeholder words for Henry and WC
     rain: 'Rain on a city at night: a drizzle that becomes a downpour as the fighting grows, drops on awnings, and signs buzzing on and shorting out. Pairs with Neon.' },
   visual: { classic: 'Clean squares and triangles, with soft glows, light trails and sparks.', ember: 'A fire seen from afar at night: bases burn in their color, crack with orange light when hurt, a capture is a new fire catching. Pairs with Hearth.', atlas: 'A surveyor\'s chart: influence washes and plotted courses.',
     pixel: 'Chunky pixels and scanlines, like an old console. Pairs with Chip.', nebula: 'Deep space: suns, drifting stars and supernova captures. Pairs with Cosmos.',
     rime: 'A winter night: frost grows over what you hold, bases are crystals, and a capture freezes over. Pairs with Floe.',
     clockwork: 'Brass and springs: bases are gears that turn while you hold them, lines are chains, and a capture clicks a gear one notch. Pairs with Music Box.',
+    ink: 'Ink on paper: bases are brush circles that shorten as they weaken, held ground is a wash soaked into the page, and a capture bleeds outward. Pairs with Tide.',     // 49.6: placeholder
     neon: 'A city at night in the rain: bases are neon signs with their reflections on the wet street, they flicker as they weaken, and a capture strikes a sign on. Pairs with Rain.' },
   menuSound: { on: 'Plays the background match quietly behind the menus.', off: 'Menus stay silent.' },
   colors: { standard: 'Blue, red, green, yellow and purple.', safe: 'Blue, orange, teal, yellow and magenta, chosen to stay distinct for color-blind players.', contrast: 'Brighter colors, bolder lines and stronger text.' },
@@ -8514,7 +8916,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.5.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9195,6 +9597,18 @@ FTS.cosmos = {                                            // slow and wide: the 
   end(kind, t) { const N = CS.nodes; if (!N) return; csSink(N, t); csEbb(N, t + 0.1, 4, 0.05, 0); },
   relief(t) { const N = CS.nodes; if (N) csBloom(N, t, 9, 0.03, 0); }
 };
+FTS.tide = {                                            // the ending, on Cosmos's frame: the pad opens; the peak is the low octave and the chord rolled down (a win: rolled up, then keys climbing)
+  holdIv: 2.5,
+  hold(t) { const N = TD.nodes; if (N) tdKey(N, t, 57, 0.03, 0, 3.0); },
+  peak(kind, t) {
+    const N = TD.nodes; if (!N) return;
+    if (kind === 'win') { tdRoll(N, t, 0.11, 0, true, false); tdRoll(N, t + 0.5, 0.07, 0, true, false); [9, 11, 13].forEach((d, i) => tdKey(N, t + 0.5 + i * TD_STEP * 2, tdMidi(d), 0.07, 0, 2.8)); return; }
+    if (N.padG) { N.padG.gain.cancelScheduledValues(t); N.padG.gain.setTargetAtTime(0.0001, t, 0.3); N.padLP.frequency.setTargetAtTime(500, t, 0.3); }
+    tdSink(N, t); tdRoll(N, t + 0.1, 0.06, 0, false, true); [7, 5, 3].forEach((d, i) => tdKey(N, t + 0.7 + i * TD_STEP * 2, tdMidi(d), 0.04, 0, 2.6));
+  },
+  end(kind, t) { const N = TD.nodes; if (!N) return; tdSink(N, t); tdRoll(N, t + 0.1, 0.045, 0, false, true); },
+  relief(t) { const N = TD.nodes; if (N) tdRoll(N, t, 0.03, 0, true, false); }
+};
 FTS.floe = {                                              // ice: low groans under the lake that tighten, a crack now and then (win: glass notes climbing); the peak is the ice giving way, or ringing out
   holdIv: 2.6,
   pulse(g, t, kind) {
@@ -9284,7 +9698,7 @@ function frame(nowMs) {
   stepFling(dt);
   if (G && fogOn()) computeFog();
   if (G) playSfx(nowMs, dt);
-  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); rainTick(); heTick(); mixTick(); if (G) ftTick(dt); }
+  if (AC) { odTick(); driftClock(); chipTick(); cosmosTick(); floeTick(); musicboxTick(); rainTick(); tideTick(); heTick(); mixTick(); if (G) ftTick(dt); }
   const fsw = G ? fogSwap() : null;                 // under fog, bases out of sight are drawn as last seen
   const gap = mode === 'paused' ? Math.min(250, Math.max(33, pauseDrawMs * 4)) : mode === 'demo' ? 28 : 0;      // paused: the slow decoration (snow, stars, drift) moves at up to about 30 a second, but never uses more than about a quarter of the time, so a slow phone backs off toward the old 4 a second; the demo behind the menus shows at about 30 a second
   if (!gap || drawDirty || nowMs - lastDrawAt >= gap) {

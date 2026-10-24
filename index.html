@@ -375,8 +375,6 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #vol::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 2px; background: var(--blue); }
 #vol:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
-.modbtn { flex: 1; min-width: 0; min-height: 44px; border-radius: var(--rc); font-size: 14px; text-align: left; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; }
-.modbtn::after { content: ''; width: 7px; height: 7px; border-right: 1.6px solid var(--dim); border-top: 1.6px solid var(--dim); transform: rotate(45deg); }
 .mods { display: flex; flex-direction: column; gap: 8px; }
 .modrow { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .modrow b { font-size: 15px; font-weight: 600; }
@@ -387,7 +385,6 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .modrow .sw2::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--dim); transition: transform .15s, background .15s; }
 .modrow[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
 .modrow[aria-pressed="true"] .sw2::after { transform: translateX(20px); background: var(--blue); }
-@media (orientation: landscape) and (max-height: 520px) { #scrMods { width: min(100%, 800px); } #scrMods .mods { display: grid; grid-template-columns: 1fr 1fr; } }
 .koth { display: grid; grid-template-columns: 14px 1fr 8px; align-items: center; gap: 4px 6px; font-size: 12px; font-weight: 600; }
 .koth[hidden] { display: none; }
 .koth svg { width: 14px; height: 11px; }
@@ -450,11 +447,7 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .mode.lockd { opacity: .6; }
 .mode.lockd .lk { display: inline-block; }
 .mode span { font-size: 12.5px; color: var(--dim); line-height: 1.35; }
-.catrow { display: grid; grid-template-columns: 78px 1fr auto; gap: 10px; align-items: center; text-align: left; min-height: 48px; padding: 8px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
-.catrow span { font-size: 13px; color: var(--dim); }
-.catrow b { font-size: 14px; font-weight: 500; line-height: 1.3; }
-.catrow::after { content: ''; width: 7px; height: 7px; border-right: 1.6px solid var(--dim); border-top: 1.6px solid var(--dim); transform: rotate(45deg); }
-.mode:active, .catrow:active { background: rgba(40,40,44,.8); }
+.mode:active { background: rgba(40,40,44,.8); }
 .blurb { margin: -5px 0 0 108px; font-size: 12px; line-height: 1.35; color: var(--dim); min-height: 1.35em; }
 .chcard .best { grid-column: 1; font-size: 11.5px; color: var(--dim); }
 .screen.side { background: rgba(0,0,0,.74); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid var(--hair); border-radius: var(--rk); padding: 12px 14px; }
@@ -633,7 +626,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   #scrPause #bPauseSave:not([hidden]) ~ #bQuit { grid-column: 1 / -1; }      /* 49.5.3: Settings and Save and quit share a row, Quit under them; with no save to offer, Settings and Quit share it */
 }
 
-/* ---------- Build 49.9.2: the setup deck (Classic first). The match map fills the screen; one near-black deck of collapsed rows sits over it. ---------- */
+/* ---------- Build 49.9.2 to 49.9.4: the setup deck (Classic, then Custom and Spectate, then pan and zoom). The match map fills the screen; one near-black deck of collapsed rows sits over it. ---------- */
 #menu.deckOn { z-index: 6; background: none; touch-action: none; }
 #menu.deckOn * { touch-action: none; }
 #menu.deckOn .dkbody { touch-action: pan-y; }
@@ -643,6 +636,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
   background: linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,0) 110px); }
 .screen.deck > *, .screen.deck .dkdeck > * { pointer-events: auto; }
+.screen.deck > header { pointer-events: none; }      /* 49.9.4: the strip beside the header's buttons is map too (drag it) */
+.screen.deck > header > * { pointer-events: auto; }
 .dkdeck { position: absolute; left: 50%; bottom: 0; width: min(100%, 560px); transform: translateX(-50%); pointer-events: none; display: flex; flex-direction: column;
   background: rgba(10,10,14,.95); border: 1px solid var(--faint); border-bottom: 0; border-radius: var(--rk) var(--rk) 0 0; }
 .dkhandle { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 8px 16px; width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -667,10 +662,29 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .drow.open .dp { display: flex; }
 .dp .blurb { margin: 0; }
 .dkbar { display: flex; align-items: center; gap: 12px; padding: 8px 14px calc(22px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--hair); }
-.dksum { flex: 1; min-width: 0; font-size: 12.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dksum { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.3; color: var(--dim); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.dv { overflow-wrap: anywhere; }
+.dsub { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin-top: 4px; }
+.dsub:first-child { margin-top: 0; }
+.dline { display: flex; align-items: center; gap: 10px; }
+.dline .seg { flex: 1; min-width: 0; }
+.dp .info { flex: none; width: 34px; height: 34px; margin: 0; font-size: 15px; }
+.dp .seg button { min-height: 46px; }
+.dp .mods { gap: 6px; }
+.dp .modrow { padding: 8px 10px; }
+.dp .modrow b { font-size: 14.5px; }
+.dkbar .primary.wide { padding: 0 22px; }
+@media (max-width: 420px), (orientation: landscape) {      /* five shapes do not fit one row at this width ("Continent", "Random"): 3 + 2 */
+  .seg.g3 { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .seg.g3 button { border-left: 1px solid var(--faint); border-top: 1px solid var(--faint); font-size: 13px; }
+  .seg.g3 button:nth-child(3n+1) { border-left: 0; }
+  .seg.g3 button:nth-child(-n+3) { border-top: 0; }
+  .seg.g3 button:last-child:nth-child(3n+2) { grid-column: span 2; }
+}
 .dkbar .primary { flex: none; min-height: 48px; padding: 0 30px; font-size: 17px; }
 @media (orientation: landscape) {
   .screen.deck { padding-right: 0; }
+  .screen.deck header { margin-right: calc(330px + env(safe-area-inset-right, 0px) + 12px); }      /* the Randomize button must not sit under the rail */
   .dkdeck { left: auto; right: 0; top: 0; bottom: 0; width: calc(330px + env(safe-area-inset-right, 0px)); transform: translateX(var(--tx, 0px)); transition: transform .26s ease;
     border: 0; border-left: 1px solid var(--faint); border-radius: 0; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) 0; }
   .dkdeck.dragging { transition: none; }
@@ -754,7 +768,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -778,61 +792,45 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   <section class="screen deck" id="scrClassic" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Classic</h2></header>
     <div class="dkdeck" id="dkDeck">
-      <button class="dkhandle" id="dkHandle" aria-label="Show or hide the options"><i></i><span id="dkHint"></span></button>
+      <button class="dkhandle" id="dkHandle" aria-label="Show or hide the options"><i></i><span class="dkhint" id="dkHint"></span></button>
       <div class="dkbody" id="dkBody"><div class="dkrows">
-        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Your team</span><span class="dv" id="dvColor"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg swatches" data-mode="classic" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div></div>
-        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Map size</span><span class="dv" id="dvSize"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg" data-mode="classic" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button></div><p class="blurb" id="classicSize"></p></div></div>
-        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">AI strength</span><span class="dv" id="dvDiff"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg" data-mode="classic" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button></div><p class="blurb" id="classicDiff"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Your team</span><span class="dv" id="dvColor" data-val="color"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg swatches" data-mode="classic" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Map size</span><span class="dv" id="dvSize" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg" data-mode="classic" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button></div><p class="blurb" id="classicSize"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">AI strength</span><span class="dv" id="dvDiff" data-val="diff"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg" data-mode="classic" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button></div><p class="blurb" id="classicDiff"></p></div></div>
       </div></div>
       <div class="dkbar"><span class="dksum" id="dkSum"></span><button id="startClassic" class="primary big" data-start="classic">Start</button></div>
     </div>
   </section>
 
-  <section class="screen side" id="scrCustom" hidden>
+  <section class="screen deck" id="scrCustom" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Custom</h2><button id="bRoll" class="rollbtn" aria-label="Randomize every option"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2.5"/><circle cx="5.5" cy="5.5" r=".9" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r=".9" fill="currentColor" stroke="none"/><circle cx="10.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/></svg>Randomize</button></header>
-    <div class="opts">
-      <div class="opt"><span>Your team</span><div class="seg swatches" data-mode="custom" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div>
-      <button class="catrow" id="catEnemies" data-go="scrEnemies"><span>Enemies</span><b></b></button>
-      <button class="catrow" id="catMap" data-go="scrMap"><span>Map</span><b></b></button>
-      <button class="catrow" id="catRules"><span>Modifiers</span><b id="sumRules"></b></button>
-      <p class="hintline" id="hintCustom">Enemies: rival count, strength and personality. Map: shape, size and special bases. Modifiers: rule changes like fog or no upgrades.</p>
-    </div>
-    <button id="startCustom" class="primary big" data-start="custom">Start</button>
-  </section>
-
-  <section class="screen side" id="scrEnemies" hidden>
-    <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Enemies</h2></header>
-    <div class="opts">
-      <div class="opt"><span>Rivals</span><div class="seg tight" data-mode="custom" data-key="opp"><button data-v="auto">Auto</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div></div>
-      <div class="opt"><span>AI strength</span><div class="seg tight" data-mode="custom" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div></div>
-      <div class="opt"><span>Personality</span><div class="seg tight" data-mode="custom" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div></div>
-      <p class="hintline" id="hintEnemies"></p>
+    <div class="dkdeck">
+      <button class="dkhandle" aria-label="Show or hide the options"><i></i><span class="dkhint"></span></button>
+      <div class="dkbody"><div class="dkrows">
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Your team</span><span class="dv" data-val="color"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg swatches" data-mode="custom" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Enemies</span><span class="dv" data-val="enemies"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dsub">Rivals</div><div class="seg tight" data-mode="custom" data-key="opp"><button data-v="auto">Auto</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div><div class="dsub">AI strength</div><div class="seg tight g3" data-mode="custom" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div><div class="dsub">Personality</div><div class="seg tight" data-mode="custom" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div><p class="blurb" id="hintEnemies"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g3" data-mode="custom" data-key="shape"></div><p class="blurb" id="hintCShape"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Size</span><span class="dv" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight" data-mode="custom" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><p class="blurb" id="hintCSize"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Special bases</span><span class="dv" data-val="special"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dline"><div class="seg" data-mode="custom" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" data-go="scrSpecials" aria-label="What are special bases?">i</button></div><p class="blurb" id="hintCSpecial"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Modifiers</span><span class="dv" data-val="mods"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="mods" id="modsCustom" data-mm="custom"></div></div></div>
+      </div></div>
+      <div class="dkbar"><span class="dksum"></span><button id="startCustom" class="primary big" data-start="custom">Start</button></div>
     </div>
   </section>
 
-  <section class="screen side" id="scrMap" hidden>
-    <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Map</h2></header>
-    <div class="opts">
-      <div class="opt"><span>Shape</span><div class="seg tight" data-mode="custom" data-key="shape"></div></div>
-      <div class="opt"><span class="hasnote">Size<em>Tap again for a new map.</em></span><div class="seg tight" data-mode="custom" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div></div>
-      <div class="opt"><span>Special bases</span><div class="seg" data-mode="custom" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" id="infoMap" data-go="scrSpecials" aria-label="What are special bases?">i</button></div>
-      <p class="hintline" id="hintMap"></p>
-    </div>
-  </section>
-
-  <section class="screen side cols" id="scrSpectate" hidden>
+  <section class="screen deck" id="scrSpectate" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Spectate</h2></header>
-    <div class="opts">
-      <div class="opt"><span>Colors</span><div class="seg tight" data-mode="spec" data-key="opp"><button data-v="auto">Auto</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
-      <div class="opt"><span>AI strength</span><div class="seg tight" data-mode="spec" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div></div>
-      <div class="opt wide2"><span>Shape</span><div class="seg tight" data-mode="spec" data-key="shape"></div></div>
-      <div class="opt"><span class="hasnote">Size<em>Tap again for a new map.</em></span><div class="seg tight" data-mode="spec" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div></div>
-      <div class="opt"><span>Special bases <button class="info" id="infoSpec" data-go="scrSpecials" aria-label="What are special bases?">i</button></span><div class="seg" data-mode="spec" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
-      <div class="opt"><span>Modifiers</span><button id="bSpecRules" class="ghost modbtn">None</button></div>
-      <div class="opt"><span>Personality</span><div class="seg tight" data-mode="spec" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div></div>
-      <p class="hintline" id="hintSpec"></p>
+    <div class="dkdeck">
+      <button class="dkhandle" aria-label="Show or hide the options"><i></i><span class="dkhint"></span></button>
+      <div class="dkbody"><div class="dkrows">
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Teams</span><span class="dv" data-val="enemies"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dsub">Colors</div><div class="seg tight" data-mode="spec" data-key="opp"><button data-v="auto">Auto</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div><div class="dsub">AI strength</div><div class="seg tight g3" data-mode="spec" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div><div class="dsub">Personality</div><div class="seg tight" data-mode="spec" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div><p class="blurb" id="hintSpEnemies"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g3" data-mode="spec" data-key="shape"></div><p class="blurb" id="hintSShape"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Size</span><span class="dv" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight" data-mode="spec" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><p class="blurb" id="hintSSize"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Special bases</span><span class="dv" data-val="special"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dline"><div class="seg" data-mode="spec" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" data-go="scrSpecials" aria-label="What are special bases?">i</button></div><p class="blurb" id="hintSSpecial"></p></div></div>
+        <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Modifiers</span><span class="dv" data-val="mods"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="mods" id="modsSpec" data-mm="spec"></div></div></div>
+      </div></div>
+      <div class="dkbar"><span class="dksum"></span><button id="startSpec" class="primary big wide" data-start="spec">Start watching</button></div>
     </div>
-    <button id="startSpec" class="primary big" data-start="spec">Start watching</button>
   </section>
 
   <section class="screen" id="scrSpecials" hidden>
@@ -890,11 +888,6 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <h3>Goals</h3>
     <ul id="briefGoals" class="goals"></ul>
     <button id="bBriefStart" class="primary big">Start</button>
-  </section>
-
-  <section class="screen wide" id="scrMods" hidden>
-    <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Modifiers</h2></header>
-    <div id="modsList" class="mods"></div>
   </section>
 
   <section class="screen wide" id="scrStats" hidden>
@@ -2984,67 +2977,157 @@ function placePreview() {
   finally { G.nodes.forEach((n, i) => { n.owner = now[i]; }); }
 }
 // 49.9.2: on a deck screen the preview is the whole screen behind the deck (nothing resizes when the deck moves). Landscape fits the map into the space left of the rail.
+// 49.9.4: the map can be panned (one finger) and pinch-zoomed (1x to 3x, never below the fit); PVV is that view, in screen pixels from the fitted position.
+const PVV = { k: 1, x: 0, y: 0, sig: '', land: null, raf: 0, ptrs: new Map(), tap: null };
+function pvGeom() {                                    // where the fitted map sits (its centre cx, cy and size w, h at 1x) and how big the screen is
+  const B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height);
+  const rail = W > Hh ? 346 : 0, top = 64, mg = 14, aw = W - rail - 2 * mg - 16, ah = Hh - top - mg;
+  if (aw < 90 || ah < 60) return null;
+  const mv = mapView(), k = Math.min(aw / mv.w, ah / mv.h);
+  return { W, Hh, w: Math.max(40, Math.round(mv.w * k)), h: Math.max(30, Math.round(mv.h * k)), cx: (W - rail) / 2, cy: top + ah / 2 };
+}
+// One axis of the limit: a map smaller than the screen stays inside it, a bigger one always covers it. Along the deck's axis the map may also be lifted until its far edge reaches the deck,
+// so the part under the deck can always be brought into view. (off: how far the map's centre is from where it was fitted; cen: where the fitted centre is; S: screen size on this axis.)
+function pvAxis(off, cen, size, S, vfar) {
+  const plain = size >= S ? [S - cen - size / 2, -cen + size / 2] : [-cen + size / 2, S - cen - size / 2];
+  let lo = Math.min(plain[0], plain[1]); const hi = Math.max(plain[0], plain[1]);
+  if (vfar != null) lo = Math.min(lo, vfar - cen - size / 2);
+  return Math.min(hi, Math.max(lo, off));
+}
+function pvClamp(g) {
+  const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'), d = dk ? dk.getBoundingClientRect() : null, L = g.W > g.Hh;
+  PVV.x = pvAxis(PVV.x, g.cx, g.w * PVV.k, g.W, d && L ? Math.min(g.W, d.left - 37) : null);      // landscape: the deck's left edge minus its 37 px tab
+  PVV.y = pvAxis(PVV.y, g.cy, g.h * PVV.k, g.Hh, d && !L ? Math.min(g.Hh, d.top) : null);
+}
 function placeFull(card, pv) {
-  const B = document.body.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2.5), W = Math.round(B.width), Hh = Math.round(B.height);
-  const rail = W > Hh ? 346 : 0, top = 64, mg = 14;
+  const g = pvGeom(), d = Math.min(window.devicePixelRatio || 1, 2.5), B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height);
   card.classList.add('full'); card.hidden = false; card.style.left = card.style.top = '';
-  pv.width = Math.round(W * d); pv.height = Math.round(Hh * d); pv.style.width = W + 'px'; pv.style.height = Hh + 'px';
-  const aw = W - rail - 2 * mg - 16, ah = Hh - top - mg;
-  if (aw < 90 || ah < 60) return;
-  const mv = mapView(), k = Math.min(aw / mv.w, ah / mv.h), w = Math.max(40, Math.round(mv.w * k)), h = Math.max(30, Math.round(mv.h * k));
-  const ox = Math.round((W - rail - w) / 2), oy = Math.round(top + (ah - h) / 2);
+  const nw = Math.round(W * d), nh = Math.round(Hh * d); if (pv.width !== nw || pv.height !== nh) { pv.width = nw; pv.height = nh; }
+  pv.style.width = W + 'px'; pv.style.height = Hh + 'px';
+  if (!g) return;
+  const land = W > Hh; if (PVV.land !== land) { PVV.land = land; pvReset(); }        // turning the phone is a new picture
+  pvClamp(g);
+  const k = PVV.k, w = Math.round(g.w * k), h = Math.round(g.h * k), ox = Math.round(g.cx + PVV.x - w / 2), oy = Math.round(g.cy + PVV.y - h / 2);
   pvCtx = pv.getContext('2d'); pvCtx.setTransform(d, 0, 0, d, 0, 0); pvCtx.clearRect(0, 0, W, Hh); pvCtx.setTransform(d, 0, 0, d, ox * d, oy * d);
   const now = G.nodes.map(n => n.owner);
   if (pvOwners && pvOwners.length === now.length) G.nodes.forEach((n, i) => { n.owner = pvOwners[i]; });
   try { paintMap(pvCtx, w, h, false, Math.max(1, Math.min(2.4, w / 150))); }
   finally { G.nodes.forEach((n, i) => { n.owner = now[i]; }); }
 }
-// ---- the setup deck (49.9.2) ----
+const pvReset = () => { PVV.k = 1; PVV.x = PVV.y = 0; };
+const pvLive = () => pvOnly && !$('menu').hidden && !!dkScr() && !$('pvCard').hidden && !!G && !!G.nodes;
+function pvApply() {                                   // re-limit the view (the deck moved) and redraw only if that changed it
+  if (!pvLive()) return; const g = pvGeom(); if (!g) return;
+  const was = PVV.k + '|' + PVV.x + '|' + PVV.y; pvClamp(g);
+  if (was !== PVV.k + '|' + PVV.x + '|' + PVV.y) placePreview();
+}
+function pvSync() {                                    // while the deck slides, the map follows its limit (a hidden deck lets the map settle back down)
+  cancelAnimationFrame(PVV.raf); const t0 = performance.now();
+  (function loop() { pvApply(); if (performance.now() - t0 < 420) PVV.raf = requestAnimationFrame(loop); })();
+}
+function pvZoomAt(px, py, k2) {
+  const g = pvGeom(); if (!g) return; k2 = Math.min(3, Math.max(1, k2));
+  const ox = px - g.cx, oy = py - g.cy, r = k2 / PVV.k;
+  PVV.x = ox - r * (ox - PVV.x); PVV.y = oy - r * (oy - PVV.y); PVV.k = k2; placePreview();
+}
+const pvOnMap = e => pvLive() && !e.target.closest('.dkdeck, .screen.deck header > *, .ver, .newsBtn');
+window.addEventListener('pointerdown', e => {
+  if (!pvOnMap(e) || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+  PVV.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t0: performance.now(), id: e.pointerId });
+});
+window.addEventListener('pointermove', e => {
+  const p = PVV.ptrs.get(e.pointerId); if (!p) return;
+  if (PVV.ptrs.size === 1) { PVV.x += e.clientX - p.x; PVV.y += e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; placePreview(); return; }
+  const o = [...PVV.ptrs.values()].find(q => q.id !== e.pointerId), mx0 = (p.x + o.x) / 2, my0 = (p.y + o.y) / 2, d0 = Math.hypot(p.x - o.x, p.y - o.y);
+  p.x = e.clientX; p.y = e.clientY;
+  const mx = (p.x + o.x) / 2, my = (p.y + o.y) / 2, d1 = Math.hypot(p.x - o.x, p.y - o.y);
+  PVV.x += mx - mx0; PVV.y += my - my0;                // two fingers carry the map along as well as zoom it
+  if (d0 > 0) pvZoomAt(mx, my, PVV.k * d1 / d0); else placePreview();
+});
+function pvUp(e) {
+  const p = PVV.ptrs.get(e.pointerId); if (!p) return; PVV.ptrs.delete(e.pointerId);
+  if (e.type !== 'pointerup' || PVV.ptrs.size) { PVV.tap = null; return; }
+  const now = performance.now(), still = Math.hypot(e.clientX - p.sx, e.clientY - p.sy) < 12 && now - p.t0 < 300, t = PVV.tap;
+  if (still && t && now - t.t < 350 && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 40) { PVV.tap = null; pvReset(); placePreview(); }      // double tap: back to the whole map
+  else PVV.tap = still ? { t: now, x: e.clientX, y: e.clientY } : null;
+}
+window.addEventListener('pointerup', pvUp); window.addEventListener('pointercancel', pvUp);
+window.addEventListener('wheel', e => { if (!pvOnMap(e)) return; e.preventDefault(); pvZoomAt(e.clientX, e.clientY, PVV.k * Math.exp(-e.deltaY * .0015)); }, { passive: false });
+// ---- the setup deck (49.9.2, shared by Classic, Custom and Spectate in 49.9.3) ----
 // Portrait: a window of collapsed rows over the map. Its height is yours (drag the handle to any height; tap it to hide or bring it back) and expanding a row grows
 // downward inside the window, so a row's header never moves. Landscape: a fixed right rail that slides out, its tab kept 44 px in from the screen edge.
-const DK = { open: true, h: 0, drag: null };
+// One deck is on screen at a time, so one state object serves all three; the elements are found inside the screen that is showing.
+const DK = { open: true, h: 0, drag: null, id: '', keep: false };
+const DECK_OF = { classic: 'scrClassic', custom: 'scrCustom', spec: 'scrSpectate' };
 const dkLand = () => matchMedia('(orientation: landscape)').matches;
-const dkDefaultH = () => Math.min(window.innerHeight * .56, $('dkBody').querySelectorAll('.drow').length * 56 + 150);
+const dkScr = () => { const sc = $(stack[stack.length - 1]); return sc && sc.classList.contains('deck') ? sc : null; };
+const dkDefaultH = sc => Math.min(window.innerHeight * .56, sc.querySelectorAll('.drow').length * 56 + 150);
 function dkApply() {
-  const dk = $('dkDeck'), body = $('dkBody'), land = dkLand();
+  const sc = dkScr(); if (!sc) return;
+  const dk = sc.querySelector('.dkdeck'), body = sc.querySelector('.dkbody'), land = dkLand();
   if (land) { dk.style.setProperty('--tx', DK.open ? '0px' : (dk.getBoundingClientRect().width - 44) + 'px'); body.style.removeProperty('--dh'); }
   else { dk.style.removeProperty('--tx'); body.style.setProperty('--dh', (DK.open ? DK.h : 0) + 'px'); }
-  $('dkHint').textContent = land ? (DK.open ? 'Tap: hide' : 'Tap: options') : (DK.open ? 'Tap to hide · drag to resize' : 'Tap for options');
-  dk.classList.toggle('shut', !DK.open && land); $('dkHandle').setAttribute('aria-expanded', String(DK.open));
+  sc.querySelector('.dkhint').textContent = land ? (DK.open ? 'Tap to close' : 'Tap to open') : (DK.open ? 'Tap to hide · drag to resize' : 'Tap for options');
+  dk.classList.toggle('shut', !DK.open && land); sc.querySelector('.dkhandle').setAttribute('aria-expanded', String(DK.open));
+  pvSync();
 }
-function dkEnter() {
-  DK.open = true; DK.h = dkDefaultH();
-  document.querySelectorAll('#dkBody .drow').forEach(r => { r.classList.remove('open'); r.querySelector('.dh').setAttribute('aria-expanded', 'false'); });
-  $('dkHandle').classList.add('nudge'); dkApply();
+function dkEnter(id) {                                 // a fresh visit: window at its default height, every row collapsed. Coming back from the Special bases page keeps what you had.
+  const sc = $(id), keep = DK.keep && DK.id === id; DK.keep = false; DK.id = id;
+  if (keep) { dkApply(); return; }
+  DK.open = true; DK.h = dkDefaultH(sc);
+  sc.querySelectorAll('.drow').forEach(r => { r.classList.remove('open'); r.querySelector('.dh').setAttribute('aria-expanded', 'false'); });
+  sc.querySelector('.dkbody').scrollTop = 0;
+  sc.querySelector('.dkhandle').classList.add('nudge'); pvReset(); dkApply();
 }
-function dkSync() {                                    // the row values and the one-line summary under the rows
-  const c = settings.classic, sw = document.querySelector(`.seg[data-mode="classic"][data-key="color"] button[data-v="${c.color}"] i`);
-  $('dvColor').innerHTML = `<i class="dot" style="background:${sw ? sw.style.background : '#888'}"></i>${c.color.charAt(0).toUpperCase() + c.color.slice(1)}`;
-  $('dvSize').textContent = SIZE_LABEL[c.size]; $('dvDiff').textContent = DIFF_LABEL[c.diff];
-  $('dkSum').textContent = `${SIZE_LABEL[c.size]} · ${DIFF_LABEL[c.diff]}`;
+const cap1 = w => w.charAt(0).toUpperCase() + w.slice(1);
+function dkSync(m) {                                   // the row values and the one-line summary under the rows
+  const sc = $(DECK_OF[m]), c = settings[m], t = teamsFor(m);
+  const set = (k, v, html) => { const e = sc.querySelector(`.dv[data-val="${k}"]`); if (e) { if (html) e.innerHTML = v; else e.textContent = v; } };
+  const sw = sc.querySelector(`.seg[data-key="color"] button[data-v="${c.color}"] i`);
+  if (sc.querySelector('.dv[data-val="color"]')) set('color', `<i class="dot" style="background:${sw ? sw.style.background : '#888'}"></i>${cap1(c.color)}`, true);
+  set('size', SIZE_LABEL[c.size]); set('diff', DIFF_LABEL[c.diff]);
+  if (m === 'classic') { sc.querySelector('.dksum').textContent = `${SIZE_LABEL[c.size]} · ${DIFF_LABEL[c.diff]}`; return; }
+  const who = m === 'spec' ? `${t} colors` : `${t - 1} ${t === 2 ? 'rival' : 'rivals'}`, shape = c.shape === 'random' ? 'Random' : SHAPE_DEFS[c.shape].label;
+  const nm = MODS.filter(x => modOn(m, x.k)).length + (otActive(m) ? 1 : 0);
+  set('enemies', `${who}${c.opp === 'auto' ? ' (auto)' : ''} · ${DIFF_LABEL[c.diff]}${c.persona !== 'mixed' ? ' · ' + cap1(c.persona) : ''}`);
+  set('shape', shape); set('special', c.special === 'on' ? 'On' : 'Off'); set('mods', modsLabel(m));
+  sc.querySelector('.dksum').textContent = [SIZE_LABEL[c.size], c.shape === 'random' ? '' : shape, who, DIFF_LABEL[c.diff], nm ? nm + (nm === 1 ? ' modifier' : ' modifiers') : ''].filter(Boolean).join(' · ');
 }
-$('dkBody').addEventListener('click', e => { const h = e.target.closest('.dh'); if (!h) return; const r = h.parentNode; r.classList.toggle('open'); h.setAttribute('aria-expanded', String(r.classList.contains('open'))); });
-$('dkHandle').addEventListener('pointerdown', e => {
-  const dk = $('dkDeck'); try { $('dkHandle').setPointerCapture(e.pointerId); } catch (_) {}
-  DK.drag = { x: e.clientX, y: e.clientY, moved: false, h0: DK.open ? DK.h : 0, w: dk.getBoundingClientRect().width - 44, tx0: DK.open ? 0 : dk.getBoundingClientRect().width - 44, max: window.innerHeight * .8 };
-  $('dkHandle').classList.remove('nudge');
+function dkReveal(r) {                                 // an opened row that runs past the bottom of the window scrolls up just far enough, never past its own header
+  const body = r.closest('.dkbody'); if (!body) return;
+  const br = body.getBoundingClientRect(), rr = r.getBoundingClientRect();
+  if (rr.bottom > br.bottom) body.scrollTop += Math.min(rr.bottom - br.bottom, rr.top - br.top);
+}
+document.addEventListener('click', e => {
+  const h = e.target.closest('.dkbody .dh'); if (!h) return;
+  const r = h.parentNode; r.classList.toggle('open'); h.setAttribute('aria-expanded', String(r.classList.contains('open')));
+  if (r.classList.contains('open')) { fitHints(); dkReveal(r); }
 });
-$('dkHandle').addEventListener('pointermove', e => {
+document.addEventListener('pointerdown', e => {
+  const hd = e.target.closest('.dkhandle'); if (!hd) return;
+  const dk = hd.closest('.dkdeck'); try { hd.setPointerCapture(e.pointerId); } catch (_) {}
+  DK.drag = { hd, x: e.clientX, y: e.clientY, moved: false, h0: DK.open ? DK.h : 0, w: dk.getBoundingClientRect().width - 44, tx0: DK.open ? 0 : dk.getBoundingClientRect().width - 44, max: window.innerHeight * .8 };
+  hd.classList.remove('nudge');
+});
+document.addEventListener('pointermove', e => {
   const d = DK.drag; if (!d) return;
+  const dk = d.hd.closest('.dkdeck'), body = dk.querySelector('.dkbody');
   const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) + Math.abs(dy) > 8) d.moved = true; if (!d.moved) return;
-  if (dkLand()) { d.tx = Math.min(d.w, Math.max(0, d.tx0 + dx)); $('dkDeck').classList.add('dragging'); $('dkDeck').style.setProperty('--tx', d.tx + 'px'); }
-  else { d.h = Math.min(d.max, Math.max(0, d.h0 - dy)); $('dkBody').classList.add('dragging'); $('dkBody').style.setProperty('--dh', d.h + 'px'); }
+  if (dkLand()) { d.tx = Math.min(d.w, Math.max(0, d.tx0 + dx)); dk.classList.add('dragging'); dk.style.setProperty('--tx', d.tx + 'px'); }
+  else { d.h = Math.min(d.max, Math.max(0, d.h0 - dy)); body.classList.add('dragging'); body.style.setProperty('--dh', d.h + 'px'); }
+  pvApply();
 });
 function dkEnd() {
   const d = DK.drag; if (!d) return; DK.drag = null;
-  $('dkDeck').classList.remove('dragging'); $('dkBody').classList.remove('dragging');
+  const dk = d.hd.closest('.dkdeck'); dk.classList.remove('dragging'); dk.querySelector('.dkbody').classList.remove('dragging');
   if (!d.moved) DK.open = !DK.open;
   else if (dkLand()) DK.open = d.tx < d.w / 2;
   else if (d.h < 40) DK.open = false; else { DK.open = true; DK.h = d.h; }
   dkApply();
 }
-$('dkHandle').addEventListener('pointerup', dkEnd); $('dkHandle').addEventListener('pointercancel', dkEnd);
-window.addEventListener('resize', () => { if (!$('scrClassic').hidden) { dkApply(); placePreview(); } });
+document.addEventListener('pointerup', dkEnd); document.addEventListener('pointercancel', dkEnd);
+window.addEventListener('resize', () => { if (dkScr()) { dkApply(); placePreview(); } });
 function mmJump(e) {
   const c = $('mm'), r = c.getBoundingClientRect(), mv = mapView(), k = Math.min(c._w / mv.w, c._h / mv.h);
   cam.cu = (e.clientX - r.left) / k + mv.u0; cam.cv = (e.clientY - r.top) / k + mv.v0; fling.vx = fling.vy = 0; updateView();
@@ -8715,7 +8798,8 @@ const SIZE_LABEL = { small: 'Small', medium: 'Medium', large: 'Large', huge: 'Hu
 // Deadly shows in every strength bar. Until it is earned it wears a padlock, and tapping it says how to earn it.
 const LOCK_TEXT = { brutal: 'Locked. Win a Classic match on a Large map against Hard to unlock Brutal.', brutalOther: 'Locked. Beat Brutal in Classic, on any map size, to add it here.', classic: 'Locked. Beat Brutal on a Large map in Classic to unlock Deadly.', other: 'Locked. Beat Deadly in Classic, on any map size, to add it here.' };
 const diffLock = (m, v) => v === 'brutal' ? (m === 'classic' ? (unlocks.brutal ? '' : LOCK_TEXT.brutal) : (unlocks.brutalCustom ? '' : LOCK_TEXT.brutalOther)) : v !== 'deadly' ? '' : m === 'classic' ? (unlocks.deadly ? '' : LOCK_TEXT.classic) : (unlocks.deadlyCustom ? '' : LOCK_TEXT.other);
-const lockHint = (m, text) => { $(m === 'classic' ? 'classicDiff' : m === 'spec' ? 'hintSpec' : 'hintEnemies').textContent = text; };
+const HINT_ID = { custom: { enemies: 'hintEnemies', shape: 'hintCShape', size: 'hintCSize', special: 'hintCSpecial' }, spec: { enemies: 'hintSpEnemies', shape: 'hintSShape', size: 'hintSSize', special: 'hintSSpecial' } };
+const lockHint = (m, text) => { $(m === 'classic' ? 'classicDiff' : HINT_ID[m].enemies).textContent = text; };
 function syncSeg() {
   document.querySelectorAll('.seg[data-mode]').forEach(seg => {
     const v = settings[seg.dataset.mode][seg.dataset.key];
@@ -8730,7 +8814,7 @@ function syncGlobalSeg() {
   $('rowHaptics').hidden = !CAN_BUZZ;                            // sound style, visuals and screen lock live outside the three match setups
   document.querySelectorAll('.seg[data-glob]').forEach(seg => seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === settings[seg.dataset.glob]))));
 }
-// each setup screen has ONE description line that follows whatever you touched last
+// 49.9.3: every row of a setup deck has its own description line; Enemies (Rivals, AI strength, Personality) follows whichever of the three you touched last
 function hintText(m, key) {
   const c = settings[m], t = teamsFor(m);
   switch (key) {
@@ -8744,16 +8828,14 @@ function hintText(m, key) {
   }
   return '';
 }
-const hintKey = { hintEnemies: 'diff', hintMap: 'shape', hintSpec: 'diff' };
+const hintKey = { custom: 'diff', spec: 'diff' };
 function renderHints(m) {
-  if (m === 'custom') { $('hintEnemies').textContent = hintText('custom', hintKey.hintEnemies); $('hintMap').textContent = hintText('custom', hintKey.hintMap); }
-  else if (m === 'spec') $('hintSpec').textContent = hintText('spec', hintKey.hintSpec);
+  const ids = HINT_ID[m];
+  $(ids.enemies).textContent = hintText(m, hintKey[m]);
+  for (const k of ['shape', 'size', 'special']) $(ids[k]).textContent = hintText(m, k);
   placePreview();
 }
-function touchHint(m, key) {
-  const el = m === 'spec' ? 'hintSpec' : ['opp', 'diff', 'persona'].includes(key) ? 'hintEnemies' : 'hintMap';
-  hintKey[el] = key; renderHints(m);
-}
+function touchHint(m, key) { if (['opp', 'diff', 'persona'].includes(key)) hintKey[m] = key; renderHints(m); }
 let settingsKey = 'tone';
 function renderSettingsHint() { const I = SETTINGS_INFO[settingsKey]; if (!I) return; $('hintAccess').textContent = I ? I[settings[settingsKey]] : ''; }
 function syncText(m) {
@@ -8761,20 +8843,15 @@ function syncText(m) {
   if (m === 'classic') {
     $('classicSize').textContent = SIZE_CLAUSE[c.size];
     $('classicDiff').textContent = DIFF_INFO[c.diff];
-    dkSync();
-  } else if (m === 'custom') {
-    const n = MODS.filter(x => modOn('custom', x.k)).length + (otActive('custom') ? 1 : 0); $('sumRules').textContent = n ? n + ' on' : '';     // the one setting that can hide behind a tap
-    renderHints('custom');
+    dkSync('classic');
   } else {
-    $('bSpecRules').textContent = modsLabel('spec');
-    renderHints('spec');
+    renderHints(m); syncModRows(m); dkSync(m);
   }
 }
 const syncAllText = () => { for (const m of ['classic', 'custom', 'spec']) syncText(m); };
 // menu screens work like a little stack: each one you open goes on top, Back (or Android's back gesture) pops it
 let stack = ['scrHome'], previewMode = 'custom', pvOnly = false, pvCtx = null, pvOwners = null;
-const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrEnemies: 'custom', scrMap: 'custom', scrSpectate: 'spec' };
-const HINT_START = { scrEnemies: ['hintEnemies', 'diff'], scrMap: ['hintMap', 'shape'], scrSpectate: ['hintSpec', 'diff'] };
+const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: 'spec' };
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
@@ -8854,8 +8931,10 @@ function fitHints() {
   for (let t = 2; t <= 5; t++) opp.push(`Auto: ${t - 1} ${rv(t - 1)}, based on map size.`, `${t - 1} ${rv(t - 1)} against you.`, `Auto: ${t} colors, based on map size.`, `${t} colors fight it out.`);
   const acc = ['colors', 'symbols', 'haptics'], flat = keys => keys.flatMap(k => V(SETTINGS_INFO[k]));
   fitHint('classicSize', sizeA); fitHint('classicDiff', [...diff, ...lock]);
-  fitHint('hintEnemies', [...diff, ...pers, ...opp, ...lock]); fitHint('hintMap', [...V(SHAPE_INFO), ...V(SPECIAL_INFO), ...sizeB]);
-  fitHint('hintSpec', [...diff, ...pers, ...opp, ...V(SHAPE_INFO), ...V(SPECIAL_INFO), ...sizeB, ...lock]);
+  for (const m of ['custom', 'spec']) {
+    const ids = HINT_ID[m];
+    fitHint(ids.enemies, [...diff, ...pers, ...opp, ...lock]); fitHint(ids.shape, V(SHAPE_INFO)); fitHint(ids.size, sizeB); fitHint(ids.special, V(SPECIAL_INFO));
+  }
   fitHint('hintAccess', flat(acc));
 }
 let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHints, 150); });
@@ -8866,10 +8945,10 @@ function showScreen(id) {
   $('menu').classList.toggle('deckOn', $(id).classList.contains('deck'));      // 49.9.2: the setup deck screens
   if (id === 'scrShop' && !shopReal) { openShop(shopNextOwned); shopNextOwned = false; }
   if (id === 'scrHome') syncShopDot();
-  const m = SCREEN_MODE[id];
-  pvOnly = !!m || id === 'scrMods';                   // setup screens show the map as a small preview card, not behind the settings
-  if (HINT_START[id]) hintKey[HINT_START[id][0]] = HINT_START[id][1];
-  if ($(id).classList.contains('deck')) dkEnter();
+  const m = SCREEN_MODE[id], isDeck = $(id).classList.contains('deck');
+  pvOnly = !!m;                                       // setup screens show the map as a preview behind the deck, not the live world
+  if (m && m !== 'classic' && !(isDeck && DK.keep && DK.id === id)) hintKey[m] = 'diff';
+  if (isDeck) dkEnter(id);
   if (m) { syncSeg(); syncText(m); buildPreview(m); }
   if (id === 'scrSettings') { settingsKey = 'volume'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrAccess') { settingsKey = 'colors'; syncGlobalSeg(); renderSettingsHint(); }
@@ -8881,9 +8960,9 @@ function showScreen(id) {
   placePreview();
   const f = $(id).querySelector('.primary, .back, button'); if (f) f.focus({ preventScroll: true });
 }
-function go(id) { stack.push(id); showScreen(id); armBack(); }
+function go(id) { const cur = dkScr(); if (cur) DK.keep = true; stack.push(id); showScreen(id); armBack(); }
 function back() { if (!$('shopInfo').hidden) { shopInfoClose(); return true; } if (!$('shopConfirm').hidden) { shopAskClose(); return true; } if (!$('unlockPop').hidden) { closeUnlockPop(); return true; } if (stack.length > 1) { stack.pop(); showScreen(stack[stack.length - 1]); return true; } return false; }
-function resetStack(root) { stack = [root]; showScreen(root); }
+function resetStack(root) { DK.keep = false; stack = [root]; showScreen(root); }
 // ---- the Shop: a strip of style pairs over the live map; the centered pair is previewed on the map, chips buy or select ----
 // Opened from Home (everything, with prices) or from Settings > Styles mid-match (only what you own, nothing to buy).
 const DIA = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 11.5 6 6 11.5.5 6Z" fill="currentColor"/></svg>';
@@ -9094,22 +9173,23 @@ function renderRules() {
   if (!show) return;
   const h = rulesHtml(); if (h !== rulesCache) { rulesCache = h; $('rulesBox').innerHTML = h; }
 }
-let modsMode = 'custom';
 const OT_DESC = 'A crown rises when a match drags on or someone is fully upgraded. It plays like King of the hill.';
-function renderMods() {
-  $('modsList').innerHTML = MODS.filter(m => !(modsMode === 'spec' && m.k === 'fog')).map(m =>
-    `<button class="modrow" data-m="${m.k}" aria-pressed="false"><b>${m.n}</b><span></span><i class="sw2"></i></button>`).join('') +
-    `<button class="modrow" data-m="overtime" aria-pressed="false"><b>Overtime</b><span></span><i class="sw2"></i></button>`;
-  syncModRows();
+function renderMods() {                               // 49.9.3: the list lives inside the Modifiers row of each deck
+  for (const m of ['custom', 'spec']) {
+    $(m === 'spec' ? 'modsSpec' : 'modsCustom').innerHTML = MODS.filter(x => !(m === 'spec' && x.k === 'fog')).map(x =>
+      `<button class="modrow" data-m="${x.k}" aria-pressed="false"><b>${x.n}</b><span></span><i class="sw2"></i></button>`).join('') +
+      `<button class="modrow" data-m="overtime" aria-pressed="false"><b>Overtime</b><span></span><i class="sw2"></i></button>`;
+    syncModRows(m);
+  }
 }
-function syncModRows() {                              // pressed state, greyed state and the line under each name, from the settings
-  const c = settings[modsMode];
-  for (const b of $('modsList').children) {
-    const k = b.dataset.m, why = modBlock(modsMode, k), want = k === 'overtime' ? c.ot === true : !!c.mods[k];
+function syncModRows(m) {                             // pressed state, greyed state and the line under each name, from the settings
+  const c = settings[m];
+  for (const b of $(m === 'spec' ? 'modsSpec' : 'modsCustom').children) {
+    const k = b.dataset.m, why = modBlock(m, k), want = k === 'overtime' ? c.ot === true : !!c.mods[k];
     b.classList.toggle('blocked', !!why);
     if (why) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled');
     b.setAttribute('aria-pressed', String(want && !why));
-    b.querySelector('span').textContent = why || (k === 'overtime' ? OT_DESC : MODS.find(m => m.k === k).d);
+    b.querySelector('span').textContent = why || (k === 'overtime' ? OT_DESC : MODS.find(x => x.k === k).d);
   }
 }
 function renderRecord() {
@@ -9197,6 +9277,8 @@ function buildPreview(key) {                         // the map behind the menu 
   layout();
   newGame(optsFor(key));
   pvOwners = G.nodes.map(n => n.owner);
+  const sig = key + '|' + teamsFor(key) + '|' + G.nodes.reduce((a, n, i) => (a * 31 + Math.round(n.x * 3) + Math.round(n.y * 7) * 13 + i) | 0, 7);
+  if (sig !== PVV.sig) { PVV.sig = sig; pvReset(); }      // 49.9.4: the view starts over only when the map itself changes (size, shape, seed, teams, mode), never for a colour or a modifier
   G.autoplay = true; acc = 0; hl = []; uiFx = [];
   resetCam(); layout(); placePreview();
 }
@@ -9698,7 +9780,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.9.2 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.9.4 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9926,7 +10008,7 @@ function rollCustom() {
   c.ot = c.size === 'large' || c.size === 'huge' ? Math.random() < 0.85 : Math.random() < 0.12;
   save('ice-settings', settings); syncSeg(); syncText('custom'); buildPreview('custom');
   const t = teamsFor('custom'), mn = MODS.filter(m => modOn('custom', m.k)).map(m => m.n.toLowerCase()); if (otActive('custom')) mn.push('overtime');
-  $('hintCustom').textContent = `Rolled: ${SIZE_LABEL[c.size]} ${c.shape === 'random' ? 'map' : c.shape}, ${t - 1} ${t === 2 ? 'rival' : 'rivals'}, ${c.diff}${c.special === 'on' ? ', special bases' : ''}${mn.length ? ', ' + mn.join(', ') : ''}.`;
+  $('scrCustom').querySelector('.dksum').textContent = `Rolled: ${SIZE_LABEL[c.size]} ${c.shape === 'random' ? 'map' : c.shape}, ${t - 1} ${t === 2 ? 'rival' : 'rivals'}, ${c.diff}${c.special === 'on' ? ', special bases' : ''}${mn.length ? ', ' + mn.join(', ') : ''}.`;
 }
 $('bRoll').addEventListener('click', rollCustom);
 $('bResume').addEventListener('click', resume);
@@ -9998,15 +10080,13 @@ $('mLadder').addEventListener('click', () => { if (!unlocks.challenge) return; r
 $('ladder').addEventListener('click', e => { const b = e.target.closest('.chcard'); if (b) openBrief(b.dataset.c); });
 $('bBriefStart').addEventListener('click', () => startGame(false, briefId));
 document.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.start; startGame(k === 'spec', null, k); }));
-$('catRules').addEventListener('click', () => { modsMode = 'custom'; renderMods(); go('scrMods'); });
-$('bSpecRules').addEventListener('click', () => { modsMode = 'spec'; renderMods(); go('scrMods'); });
-$('modsList').addEventListener('click', e => {
+document.querySelectorAll('.mods[data-mm]').forEach(list => list.addEventListener('click', e => {
   const b = e.target.closest('.modrow'); if (!b || b.classList.contains('blocked')) return;
-  const c = settings[modsMode], k = b.dataset.m;
+  const m = list.dataset.mm, c = settings[m], k = b.dataset.m;
   if (k === 'overtime') c.ot = !c.ot; else c.mods[k] = !c.mods[k];
   save('ice-settings', settings);
-  syncModRows(); syncText(modsMode); buildPreview(modsMode);
-});
+  syncModRows(m); syncText(m); buildPreview(m);
+}));
 $('vol').addEventListener('input', () => {
   settings.volume = +$('vol').value;
   if (settings.volume > 0) settings.sound = true;

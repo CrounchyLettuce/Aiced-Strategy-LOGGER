@@ -646,7 +646,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -812,6 +812,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p class="specintro">Sound weight: Full is the whole sound. Light and Lite use a shorter echo, fewer notes at once and fewer layers, for slower phones. Auto follows the picture level.</p>
     <div class="seg tight" id="audRow"><button data-a="-1">Auto</button><button data-a="0">Full</button><button data-a="1">Light</button><button data-a="2">Lite</button></div>
     <p class="specintro" id="hwNow" role="status" aria-live="polite"></p>
+    <p class="specintro">Tide (Ink's sound) switches, to try by ear, any mix: No echo (only the room, notes hang instead of bouncing). Strokes (captures swell and thin like a brush; a knockout sweeps up and back down). Pressure (keys harder and brighter the hotter the fight). Build-up (the last base's climbing keys brought forward). All off is Tide as in 49.6.</p>
+    <div class="seg tight" id="tideRow"><button data-t="1">No echo</button><button data-t="2">Strokes</button><button data-t="4">Pressure</button><button data-t="8">Build-up</button></div>
     <button id="hwRun" class="ghost small">Run the phone check again</button>
     <button id="bUnlockAll" class="ghost small">Unlock everything</button>
   </section>
@@ -5145,6 +5147,7 @@ function drawNeonLift() {                              // a knockout: the whole 
 // Edgeless by construction: the paper is a repeating tile laid edge to edge, so no picture has a
 // border to show (the 49.5.2 lesson); its light (a lamp over the page) is in screen space. Reduce motion: no bleed (washes appear at full size), no ripples, no brush sweeps.
 const IK_BG = '#d6d2cb', IK_PAPER = [214, 210, 203], IK_NEUTRAL = '#7a746c', IK_NIB = '#2b2724';
+const IK_WV = 8;                                         // 49.7.1: eight wash shapes per ink, so no two neighbouring bases match
 const IK = { cols: new Map(), stip: new Map(), wash: new Map(), tile: null, own: new Map(), og: null, back: null, ps: -1 };
 const isInk = () => settings.visual === 'ink';
 function ikReset() { if (IK.og !== G) { IK.og = G; IK.own.clear(); IK.back = null; } }
@@ -5155,7 +5158,9 @@ function ikHex(hex) {                                  // a team colour as an in
   const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l0 = (mx + mn) / 2, d = mx - mn;
   let h = 0, s = 0;
   if (d > 0) { s = d / (1 - Math.abs(2 * l0 - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
-  const L = Math.min(l0, HC ? 0.33 : 0.4) * (hex === NEUTRAL_COLOR ? 1 : 1), S = Math.min(1, s * 0.78);
+  const gold = h > 32 && h < 68;                       // 49.7.1: yellow becomes a deep ochre gold (a pale yellow wash read as a stain)
+  if (gold) h -= 9;
+  const L = Math.min(l0, HC ? 0.3 : gold ? 0.34 : 0.4), S = Math.min(1, s * (gold ? 0.72 : 0.78));
   const c = (1 - Math.abs(2 * L - 1)) * S, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = L - c / 2;
   const [r1, g1, b1] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
   const to = v => Math.round((v + m) * 255).toString(16).padStart(2, '0');
@@ -5204,20 +5209,26 @@ function drawInkBack(now) {                            // called with the world 
   });
   drawInkWashes(now);
 }
-function ikWash(hex, v) {                              // a wash that has dried on the paper: an irregular soft pool with a darker tide line at its rim (three shapes per ink)
-  const key = hex + v; let s = IK.wash.get(key); if (s) return s;
-  const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d'), rnd = ikRand(parseInt(hex.slice(1), 16) * 7 + v * 131 + 17), N = 48, R = S / 2 - 3;
-  const off = []; let a = rnd() * 6, b = rnd() * 6;
-  for (let i = 0; i < N; i++) { const t = i / N * Math.PI * 2; off.push(0.82 + 0.08 * Math.sin(t * 3 + a) + 0.05 * Math.sin(t * 7 + b) + 0.04 * (rnd() - 0.5)); }
-  const ring = k => { g.beginPath(); for (let i = 0; i <= N; i++) { const t = i / N * Math.PI * 2, r = R * off[i % N] * k; i ? g.lineTo(S / 2 + Math.cos(t) * r, S / 2 + Math.sin(t) * r) : g.moveTo(S / 2 + Math.cos(t) * r, S / 2 + Math.sin(t) * r); } g.closePath(); };
-  ring(1); g.save(); g.clip();                                                                    // the body: lighter in the middle, where the water carried the pigment out to the rim
-  const gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, R); gr.addColorStop(0, hexA(hex, 0.2)); gr.addColorStop(0.7, hexA(hex, 0.3)); gr.addColorStop(1, hexA(hex, 0.42));
-  g.fillStyle = gr; g.fillRect(0, 0, S, S);
-  for (let i = 0; i < 70; i++) { const a2 = rnd() * 6.283, d = rnd() * R, z = 2 + rnd() * 7; g.fillStyle = hexA(hex, 0.05 + rnd() * 0.06); g.beginPath(); g.arc(S / 2 + Math.cos(a2) * d, S / 2 + Math.sin(a2) * d, z, 0, 6.283); g.fill(); }   // granulation: the pigment settled unevenly
+function ikWash(hex, v) {                              // a wash soaked into the paper (49.7.1): lopsided, lobed, with fibres of ink reaching out along the paper, densest where the drop
+  const key = hex + v; let s = IK.wash.get(key); if (s) return s;   // landed and thinning to nothing at a feathered edge (no dark rim: a rim read as a stain)
+  const S = 160, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), rnd = ikRand(parseInt(hex.slice(1), 16) * 7 + v * 131 + 17), N = 56, R = S / 2 - 18;
+  const cx = S / 2 + (rnd() - 0.5) * R * 0.22, cy = S / 2 + (rnd() - 0.5) * R * 0.22, lobes = [];
+  for (let k = 0; k < 4; k++) lobes.push([2 + Math.floor(rnd() * 5), rnd() * 6.283, (0.05 + rnd() * 0.09) / (k + 1)]);
+  const off = []; for (let i = 0; i < N; i++) { const t = i / N * Math.PI * 2; let r = 0.8; for (const [f, ph, a] of lobes) r += a * Math.sin(t * f + ph); off.push(r + 0.035 * (rnd() - 0.5)); }
+  const ring = (k, wob) => { g.beginPath(); for (let i = 0; i <= N; i++) { const t = i / N * Math.PI * 2, r = R * off[i % N] * k * (1 + wob * Math.sin(t * 5 + k * 9)); const px = cx + Math.cos(t) * r, py = cy + Math.sin(t) * r; i ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); };
+  for (let i = 0; i < 12; i++) { const k = 1.04 - i * 0.07; ring(k, 0.025); g.fillStyle = hexA(hex, 0.028 + i * 0.004); g.fill(); }   // soft layers, many and faint, so the edge feathers and the middle is deepest
+  const fingers = 7 + Math.floor(rnd() * 7);
+  for (let i = 0; i < fingers; i++) {                  // fibres: ink running out along the paper in thin, tapering threads
+    const a = rnd() * 6.283, ii = Math.floor(a / 6.283 * N) % N, r0 = R * off[ii] * 0.9, L = R * (0.12 + rnd() * 0.3), w = 1.2 + rnd() * 2.2, bend = (rnd() - 0.5) * 0.5;
+    for (let j = 0; j < 6; j++) { const u = j / 6, aa = a + bend * u, rr = r0 + L * u; g.fillStyle = hexA(hex, 0.07 * (1 - u)); g.beginPath(); g.arc(cx + Math.cos(aa) * rr, cy + Math.sin(aa) * rr, w * (1 - u * 0.7), 0, 6.283); g.fill(); }
+  }
+  ring(0.98, 0); g.save(); g.clip();
+  for (let i = 0; i < 80; i++) { const a2 = rnd() * 6.283, d = Math.sqrt(rnd()) * R, z = 2 + rnd() * 7; g.fillStyle = hexA(hex, 0.025 + rnd() * 0.04); g.beginPath(); g.arc(cx + Math.cos(a2) * d, cy + Math.sin(a2) * d, z, 0, 6.283); g.fill(); }   // granulation: the pigment settled unevenly
+  const dg = g.createRadialGradient(cx, cy, 0, cx, cy, R * 0.45); dg.addColorStop(0, hexA(hex, 0.12)); dg.addColorStop(1, hexA(hex, 0)); g.fillStyle = dg; g.fillRect(0, 0, S, S);   // where the drop landed: a little deeper
   g.restore();
-  ring(1); g.strokeStyle = hexA(hex, 0.5); g.lineWidth = 1.1; g.stroke();                         // the tide line where it dried
-  IK.wash.set(key, c); return c;
+  ring(1.0, 0.02); g.strokeStyle = hexA(hex, 0.1); g.lineWidth = 0.8; g.setLineDash([9 + rnd() * 9, 6 + rnd() * 12]); g.stroke(); g.setLineDash([]);   // only a faint, broken trace of where it dried
+  s = { c, sx: 0.88 + rnd() * 0.24, sy: 0.88 + rnd() * 0.24 }; IK.wash.set(key, s); return s;
 }
 function ikRec(n) {                                    // what Ink remembers about a base: who held it, since when, and who held it before
   let r = IK.own.get(n.id), now = performance.now() / 1000;
@@ -5229,19 +5240,16 @@ function ikRec(n) {                                    // what Ink remembers abo
   return r;
 }
 function drawInkWashes(now) {                          // the ground you hold, soaked into the paper (world transform)
-  const t = performance.now() / 1000, base = HC ? 0.85 : 0.62, R0 = 64;
+  const t = performance.now() / 1000, base = HC ? 1 : 0.9, R0 = 64 * 160 / 124, BLEED = 5;          // 49.7.1: the bleed takes five seconds, creeping (it was 2.4)
+  const vOf = n => ((n.id * 5 + (G.seed | 0)) % IK_WV + IK_WV) % IK_WV;
+  const put = (n, o, a, z) => { const w = ikWash(ikOf(o), vOf(n)); ctx.globalAlpha = a; ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.id * 2.39); ctx.scale(w.sx, w.sy); ctx.drawImage(w.c, -z, -z, 2 * z, 2 * z); ctx.restore(); };
   for (const n of G.nodes) {
     if (!inV(n.x, n.y)) continue;
     const r = ikRec(n);
-    if (r.p >= 0 && t - r.pt < 1.6) {                 // the old holder's wash, fading as the new one comes in
-      const q = (t - r.pt) / 1.6; ctx.globalAlpha = base * (1 - q) * (1 - q);
-      const s = ikWash(ikOf(r.p), n.id % 3), z = R0 * (1 + 0.08 * q); ctx.drawImage(s, n.x - z, n.y - z, 2 * z, 2 * z);
-    }
+    if (r.p >= 0 && t - r.pt < 2.4) { const q = (t - r.pt) / 2.4; put(n, r.p, base * (1 - q) * (1 - q), R0 * (1 + 0.06 * q)); }   // the old holder's wash, fading as the new one comes in
     if (n.owner < 0) continue;
-    const age = t - r.t, e = age >= 2.4 ? 1 : 1 - Math.pow(1 - Math.max(0, age) / 2.4, 2.6), z = R0 * (0.25 + 0.75 * e);   // the bleed: fast at first, then creeping out
-    ctx.globalAlpha = base * Math.min(1, 0.45 + e);
-    const s = ikWash(ikOf(n.owner), n.id % 3);
-    ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(n.id * 2.39); ctx.drawImage(s, -z, -z, 2 * z, 2 * z); ctx.restore();
+    const age = t - r.t, e = age >= BLEED ? 1 : 1 - Math.pow(1 - Math.max(0, age) / BLEED, 2.2);
+    put(n, n.owner, base * Math.min(1, 0.35 + e), R0 * (0.15 + 0.85 * e));
   }
   ctx.globalAlpha = 1;
 }
@@ -5309,17 +5317,27 @@ function inkHits(ev) {                                 // a blow flicks a speck 
     else if (Math.random() < 0.3) emit(e.tx, e.ty, ikHex(colorOf(e.team)), 1, 30, 0.4, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.1);
   }
 }
-function drawInkTroops(buckets) {                      // dots of ink, each with the faint drag of a wet nib behind it
-  if (!reduceMotion) for (let b = 1; b < 6; b++) { const arr = buckets[b]; if (!arr.length) continue; ctx.fillStyle = hexA(ikHex(TEAM_COLORS[b - 1]), 0.22); trailPath(arr, 8, 1.0); }
-  const sc = 0.7 * (HC ? 1.2 : 1);
-  for (let b = 1; b < 6; b++) {
+function drawInkTroops(buckets) {                      // 49.7.1: blots of ink, most with a satellite drop, leaving a few specks behind them as they move (not a glow trail)
+  const sc = HC ? 1.2 : 1, r = 1.5 * sc;
+  for (let b = 0; b < 6; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
-    ctx.fillStyle = ikHex(TEAM_COLORS[b - 1]); ctx.beginPath();
-    const kind = SYM ? symOf(b - 1) : 'circle', kk = SYM ? sc * 1.2 : sc;
-    for (const t of arr) troopShape(ctx, kind, t.x, t.y, t.nx, t.ny, kk);
+    const ink = b === 0 ? IK_NEUTRAL : ikHex(TEAM_COLORS[b - 1]);
+    if (!reduceMotion && b > 0) {                      // the specks left behind: two small drops, each a little off the line
+      ctx.fillStyle = hexA(ink, 0.45); ctx.beginPath();
+      for (const t of arr) { if (!t.path.length) continue; const j = ((t.id * 37) % 7 - 3) * 0.35, px = -t.ny, py = t.nx;
+        ctx.moveTo(t.x - t.nx * 4.6 + px * j, t.y - t.ny * 4.6 + py * j); ctx.arc(t.x - t.nx * 4.6 + px * j, t.y - t.ny * 4.6 + py * j, 0.6 * sc, 0, 6.283);
+        ctx.moveTo(t.x - t.nx * 8 - px * j, t.y - t.ny * 8 - py * j); ctx.arc(t.x - t.nx * 8 - px * j, t.y - t.ny * 8 - py * j, 0.4 * sc, 0, 6.283); }
+      ctx.fill();
+    }
+    ctx.fillStyle = b === 0 ? hexA(IK_NEUTRAL, 0.7) : ink; ctx.beginPath();
+    if (SYM && b > 0) { for (const t of arr) troopShape(ctx, symOf(b - 1), t.x, t.y, t.nx, t.ny, 0.84 * sc); }
+    else for (const t of arr) {
+      const rr = b === 0 ? r * 0.85 : r * (0.9 + ((t.id * 13) % 5) * 0.06);
+      ctx.moveTo(t.x + rr, t.y); ctx.arc(t.x, t.y, rr, 0, 6.283);
+      if (b > 0 && t.id % 3) { const a = t.id * 2.1, d = rr * 1.3, q = rr * (0.36 + (t.id % 4) * 0.06); ctx.moveTo(t.x + Math.cos(a) * d + q, t.y + Math.sin(a) * d); ctx.arc(t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, q, 0, 6.283); }
+    }
     ctx.fill();
   }
-  if (buckets[0].length) { ctx.fillStyle = hexA(IK_NEUTRAL, 0.7); ctx.beginPath(); for (const t of buckets[0]) troopShape(ctx, 'circle', t.x, t.y, t.nx, t.ny, 0.6); ctx.fill(); }
 }
 function ikEnso(x, y, c, e0) {                         // a knockout: one big brush circle drawn fast round where they fell, held, then faded
   const fade = e0 < 1.9 ? 1 : Math.max(0, 1 - (e0 - 1.9) / 0.9); if (fade <= 0) return;
@@ -7063,6 +7081,12 @@ const tdMidi = d => 57 + 12 * Math.floor(d / 6) + TD_SCALE[((d % 6) + 6) % 6];
 const TD_CHORDS = [[45, 52, 55, 59, 60], [48, 55, 60, 62, 64], [52, 55, 59, 62, 67], [43, 50, 55, 59, 64]];   // Am9, Cadd9, Em7, G6 (MIDI)
 const TD = { nodes: null, pool: [], low: null, caps: [], deg: 7, next: 0, step: 0, ir: null, irT: -1, ret: null, ftCh: null };
 const isTide = () => settings.tone === 'tide';
+// 49.7.1: four things to try by ear, as switches on the hidden screen (Henry: build them as options, not one after another). Bits: 1 no echo
+// (only the room: notes hang instead of bouncing), 2 strokes (a roll swells and thins like a brush pressing and lifting; a knockout is a quick
+// sweep up and back down, like the big brush circle), 4 pressure (keys struck harder and brighter the hotter the fight), 8 build-up (the
+// last base's climbing keys and heartbeat brought forward). All off is 49.6 as it was.
+let tdOpt = (() => { try { const v = JSON.parse(localStorage.getItem('ice-tide')); return v && Number.isInteger(v.o) && v.o >= 0 && v.o < 16 ? v.o : 0; } catch (e) { return 0; } })();
+const tdOn = b => (tdOpt & b) !== 0;
 const tdChord = () => TD_CHORDS[Math.floor(TD.step / 16) % 4];
 function tdIR() {                                     // a quiet room: three seconds, warm, the top rolled off
   if (TD.ir && TD.ir.sampleRate === AC.sampleRate && TD.irT === AQ()) return TD.ir;
@@ -7079,8 +7103,8 @@ function tdBuild(withBed) {
   const fb = AC.createGain(), dlp = AC.createBiquadFilter(), dg = AC.createGain();
   fb.gain.value = 0.32; dlp.type = 'lowpass'; dlp.frequency.value = 1700; dg.gain.value = 0.45;
   N.dl.connect(dlp); dlp.connect(fb); fb.connect(N.dl); dlp.connect(dg); dg.connect(N.out); dg.connect(N.rev);
-  N.send = AC.createGain(); N.send.gain.value = 0.42; N.send.connect(N.dl);
-  N.wet = AC.createGain(); N.wet.gain.value = 0.8; N.wet.connect(N.rev);
+  N.send = AC.createGain(); N.send.gain.value = tdOn(1) ? 0 : 0.42; N.send.connect(N.dl);
+  N.wet = AC.createGain(); N.wet.gain.value = tdOn(1) ? 0.95 : 0.8; N.wet.connect(N.rev);
   if (withBed) {
     for (const [f, a] of [[110, 0.028], [164.81, 0.016]]) {                                    // the pedal left down: A and E, very faint, breathing
       const o = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), d = AC.createGain(), lp = AC.createBiquadFilter();
@@ -7102,11 +7126,11 @@ function tdBuild(withBed) {
   return N;
 }
 function tdPan(g, pan) { if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = pan; g.connect(p); return p; } return g; }
-function tdKey(N, t, midi, peak, pan, len, detune) {    // one felt-hammered key: a soft thump, a bright start that dulls at once, a quick first fade and a long second one
+function tdKey(N, t, midi, peak, pan, len, detune, bright) {    // one felt-hammered key: a soft thump, a bright start that dulls at once, a quick first fade and a long second one
   const f = hz(midi) * Math.pow(2, (detune || 0) / 1200), L = len || 2.2, lite = AQ() >= 2;
   const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
   o.frequency.value = f; o2.frequency.value = f * 2.003;
-  lp.type = 'lowpass'; lp.Q.value = 0.4; lp.frequency.setValueAtTime(Math.min(5200, f * 9), t); lp.frequency.exponentialRampToValueAtTime(Math.max(500, f * 2.2), t + 0.5);
+  lp.type = 'lowpass'; lp.Q.value = 0.4; lp.frequency.setValueAtTime(Math.min(5200, f * 9 * (bright || 1)), t); lp.frequency.exponentialRampToValueAtTime(Math.max(500, f * 2.2), t + 0.5);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.007); g.gain.exponentialRampToValueAtTime(peak * 0.32, t + 0.28); g.gain.exponentialRampToValueAtTime(0.0001, t + L);
   g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(peak * 0.42, t + 0.006); g2.gain.exponentialRampToValueAtTime(0.0001, t + L * 0.45);
   o.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp);
@@ -7127,10 +7151,20 @@ function tdLow(N, t, peak, pan, k) {                  // a base under fire: a lo
 }
 function tdRoll(N, t, peak, pan, up, flat) {          // a chord rolled across the keys: upward for a capture; down, slower and a little flat for a base lost
   const ch = tdChord().slice(1).map(m => m + 12), seq = up ? ch : ch.slice().reverse(), gap = up ? 0.045 : 0.075;
+  if (tdOn(2)) {                                       // a brush stroke: soft as it touches, pressed in the middle, thinning and duller as it lifts
+    const sh = [0.55, 0.9, 1, 0.62], br = [0.8, 1.1, 1, 0.5];
+    seq.forEach((m, i) => tdKey(N, t + i * gap * 1.3, m, peak * sh[i] * (up ? 1 : 0.85), pan, up ? 2.8 : 2.3, flat ? -22 : 0, br[i]));
+    return;
+  }
   seq.forEach((m, i) => tdKey(N, t + i * gap, m, peak * (up ? 1 - i * 0.08 : 0.85 - i * 0.1), pan, up ? 2.6 : 2.2, flat ? -22 : 0));
 }
 function tdSink(N, t) {                               // a colour is out: a low octave, left to ring
   const r = tdChord()[0]; tdKey(N, t, r, 0.08, 0, 4.2); tdKey(N, t + 0.02, r + 12, 0.05, 0, 3.6);
+  if (tdOn(2)) {                                       // the big brush circle: a quick sweep up two octaves that curls back down, pressed in the middle, thin at the end
+    const up = [0, 2, 4, 6, 8, 10, 12], dn = [11, 9, 7]; let k = 0;
+    for (const d of up) { tdKey(N, t + 0.15 + k * 0.055, tdMidi(d), 0.02 + 0.025 * Math.sin(Math.PI * (k + 1) / 9), 0, 1.6, 0, 0.8 + k * 0.06); k++; }
+    for (const d of dn) { tdKey(N, t + 0.15 + k * 0.07, tdMidi(d), 0.03 * (1 - (k - 7) * 0.25), 0, 1.6, 0, 0.6); k++; }
+  }
 }
 function tdRetreat(N, t, centre, pan) { tdKey(N, t, tdMidi(centre - 4), 0.04, pan, 1.4); tdKey(N, t + TD_STEP / 2, tdMidi(centre - 6), 0.03, pan, 1.4); }
 function tideHits(ev) {
@@ -7155,8 +7189,8 @@ function tdSlot(N, t, heat) {
   const share = (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
   const centre = 6 + Math.round(share * 6);           // the keys sit higher the more ground you hold
   if (TD.caps.length) { const c = TD.caps.shift(); if (c.lost) tdRoll(N, t, 0.045, c.pan, false, true); else tdRoll(N, t, c.mine ? 0.055 : 0.028, c.pan, true, false); }
-  if (fc && fc.kind === 'loss' && fc.g > 0.08 && TD.step % 2 === 0 && !TD.low) TD.low = { mine: true, pan: 0, lvl: 0.03 + 0.08 * fc.g };     // the last base under attack: a slow low pulse, louder as it gives way
-  if (fc && fc.kind === 'win' && fc.g > 0.08 && TD.step % 2 === 1 && !(TD.pool.length && heat > 0.3)) tdKey(N, t, tdMidi(centre + Math.floor(fc.g * 5)), 0.025 + 0.035 * fc.g, 0, 2.4);   // the last base nearly yours: keys climbing on the off beats
+  if (fc && fc.kind === 'loss' && fc.g > 0.08 && TD.step % 2 === 0 && !TD.low) TD.low = { mine: true, pan: 0, lvl: (0.03 + 0.08 * fc.g) * (tdOn(8) ? 1.6 : 1) };     // the last base under attack: a slow low pulse, louder as it gives way
+  if (fc && fc.kind === 'win' && fc.g > 0.08 && TD.step % 2 === 1 && !(TD.pool.length && heat > 0.3)) tdKey(N, t, tdMidi(centre + Math.floor(fc.g * 5)), (0.025 + 0.035 * fc.g) * (tdOn(8) ? 2.2 : 1), 0, 2.4, 0, tdOn(8) ? 1 + 0.4 * fc.g : 1);   // the last base nearly yours: keys climbing on the off beats
   if (TD.low && TD.step % 2 === 0) { tdLow(N, t, TD.low.lvl || (TD.low.mine ? 0.075 : 0.04), TD.low.pan, TD.step / 2); TD.low = null; }
   let retDone = false;
   if (TD.ret && TD.step % 2 === 0) { tdRetreat(N, t, centre, TD.ret.pan); TD.ret = null; retDone = true; }
@@ -7168,7 +7202,8 @@ function tdSlot(N, t, heat) {
     if (TD.deg > centre + 3 && st > 0) st = -1; if (TD.deg < centre - 3 && st < 0) st = 1;
     TD.deg = Math.max(1, Math.min(17, TD.deg + st));
     const d = mine || awatch() ? TD.deg : TD.deg - 6, pan = screenPan(e.x, e.y);       // other colours' fights sound an octave below
-    tdKey(N, t, tdMidi(d), mine ? 0.06 : awatch() ? 0.04 : 0.024, pan);
+    const pr = tdOn(4) ? 0.7 + 0.6 * heat : 1;          // pressure: the hotter the fight, the harder and brighter the key
+    tdKey(N, t, tdMidi(d), (mine ? 0.06 : awatch() ? 0.04 : 0.024) * pr, pan, undefined, 0, tdOn(4) ? 0.65 + 0.7 * heat : 1);
     if (n >= 8 && heat > 0.5 && AQ() < 1) tdKey(N, t + TD_STEP / 2, tdMidi(d + 2), mine ? 0.03 : 0.016, -pan, 1.8);   // a big fight answers itself, a third up
     TD.pool.length = 0;
   }
@@ -8559,6 +8594,7 @@ function syncQual() {
   for (const b of $('qualRow').children) b.setAttribute('aria-pressed', String(+b.dataset.q === qualFix));
   $('qualNow').textContent = qualFix < 0 ? 'Auto: the game picks the level.' : 'Held at ' + QNAMES[qualFix] + ' (' + Math.round(QUALITY[qualFix] * 100) + '% sharpness).';
   for (const b of $('audRow').children) b.setAttribute('aria-pressed', String(+b.dataset.a === audFix));
+  for (const b of $('tideRow').children) b.setAttribute('aria-pressed', String((tdOpt & +b.dataset.t) !== 0));
   $('hwNow').textContent = 'Phone check: ' + (HW.done ? HW.ms.toFixed(1) + ' ms (last readings ' + HW.list.map(x => x.toFixed(0)).join(', ') + ')' : 'not run yet') + (HW.mem ? ', ' + HW.mem + ' GB memory' : '') + (HW.cores ? ', ' + HW.cores + ' cores' : '') + '. Auto starts at ' + QNAMES[[0, 2, 3][hwTier()]] + '. Now: picture ' + QNAMES[quality] + ', sound ' + ['Full', 'Light', 'Lite'][AQ()] + '.';
   $('qualNote').hidden = qualFix < 0; $('qualNote').textContent = qualFix < 0 ? '' : 'Picture quality held at ' + QNAMES[qualFix];
 }
@@ -8567,6 +8603,9 @@ for (const b of $('qualRow').children) b.addEventListener('click', () => {
   quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); syncQual();
 });
 for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix }); syncQual(); });
+for (const b of $('tideRow').children) b.addEventListener('click', () => { tdOpt ^= +b.dataset.t; save('ice-tide', { o: tdOpt }); syncQual();      // 49.7.1: Tide's four switches; the echo changes at once, the rest on the next note
+  if (TD.nodes) { const t = AC.currentTime; TD.nodes.send.gain.setTargetAtTime(tdOn(1) ? 0 : 0.42, t, 0.2); TD.nodes.wet.gain.setTargetAtTime(tdOn(1) ? 0.95 : 0.8, t, 0.2); }
+  if (isTide() && settings.sound && AC && AC.state === 'running' && !TD.nodes) { try { tidePreview(); } catch (_) {} } });
 function runPhoneCheck() {                            // the speed test: on every start (a moment after launch), or again from the hidden screen; the last five readings are kept
   HW.list = [...HW.list, hwBench()].slice(-5); HW.ms = hwMedian(HW.list); HW.done = true; save('ice-hw', { v: 3, list: HW.list });
   if (qualFix < 0 && mode !== 'play') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
@@ -9286,7 +9325,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.7 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.7.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

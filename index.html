@@ -203,7 +203,7 @@ html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color
   #scrSettings .seg.five button:nth-child(-n+3) { border-top: 0; }
 }
 @media (orientation: landscape) and (max-height: 430px) { #scrSettings .seg.five button { min-height: 32px; height: 32px; } }
-.seg button[aria-pressed="true"] { color: #fff; font-weight: 700; background: rgba(53,119,255,.42); box-shadow: inset 0 0 0 1.5px var(--blue), inset 0 -3px 0 var(--blue); }
+.seg button[aria-pressed="true"], .seg button[aria-selected="true"] { color: #fff; font-weight: 700; background: rgba(53,119,255,.42); box-shadow: inset 0 0 0 1.5px var(--blue), inset 0 -3px 0 var(--blue); }
 #menu { --dim: #c0c0c8; --faint: rgba(255,255,255,.36); --hair: rgba(255,255,255,.22); }     /* 48.8.1: the clearer menu look is built in (it was the High contrast setting) */
 #menu .modrow[aria-pressed="true"] { background: rgba(53,119,255,.34); }
 .seg button .lk { display: none; width: 8px; height: 10px; margin-left: 4px; vertical-align: -1px; }
@@ -298,6 +298,12 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .endriv h3 { margin: 0 0 6px; font-size: 12px; font-weight: 500; color: var(--dim); letter-spacing: .04em; }
 .endriv .rr { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 13px; padding: 3px 0; }
 .endriv .rr em { font-style: normal; color: var(--dim); }
+.endpanels { display: grid; }
+.endpanel { grid-area: 1 / 1; visibility: hidden; display: flex; flex-direction: column; gap: 12px; align-content: start; min-width: 0; }
+.endpanel.on { visibility: visible; }
+#epResult { justify-content: center; }
+.endtabs button { min-height: 50px; }
+.endtabs button[hidden] { display: none; }
 .endline { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .endline b { color: var(--ink); font-weight: 600; letter-spacing: .06em; }
 .endcard .sw { display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: 2px; }
@@ -313,11 +319,9 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
   .mark h1 { font-size: 52px; }
   .endcard {
     width: min(100%, 780px); display: grid; grid-template-columns: 1fr 1.25fr; column-gap: 28px; row-gap: 10px; align-items: start;
-    grid-template-areas: "line chart" "title chart" "sub chart" "btns moments" "riv riv";
+    grid-template-areas: "line panels" "btns panels" "tabs panels"; grid-template-rows: auto auto 1fr;
   }
-  .endline { grid-area: line; } .endriv { grid-area: riv; }
-  .endcard h2 { grid-area: title; } .endcard p { grid-area: sub; } .endcard .btns { grid-area: btns; }
-  .endcard .tlbox { grid-area: chart; } .endcard .moments { grid-area: moments; }
+  .endline { grid-area: line; } .endpanels { grid-area: panels; } .endcard .btns { grid-area: btns; } .endtabs { grid-area: tabs; align-self: end; }
 }
 @media (max-width: 340px) { .opt { flex-direction: column; align-items: stretch; } .opt > span { flex: none; } }
 #vol { flex: 1; min-width: 0; height: 42px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; touch-action: none; --p: 75%; }
@@ -646,7 +650,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.7.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.8.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -812,10 +816,6 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p class="specintro">Sound weight: Full is the whole sound. Light and Lite use a shorter echo, fewer notes at once and fewer layers, for slower phones. Auto follows the picture level.</p>
     <div class="seg tight" id="audRow"><button data-a="-1">Auto</button><button data-a="0">Full</button><button data-a="1">Light</button><button data-a="2">Lite</button></div>
     <p class="specintro" id="hwNow" role="status" aria-live="polite"></p>
-    <p class="specintro">Tide (Ink's sound) switches, to try by ear, any mix: No echo (only the room, notes hang instead of bouncing). Strokes (captures swell and thin like a brush; a knockout sweeps up and back down). Pressure (keys harder and brighter the hotter the fight). Build-up (the last base's climbing keys brought forward). All off is Tide as in 49.6.</p>
-    <div class="seg tight" id="tideRow"><button data-t="1">No echo</button><button data-t="2">Strokes</button><button data-t="4">Pressure</button><button data-t="8">Build-up</button></div>
-    <p class="specintro">Bowl (Sand's sound) bed: 49.7 is the pad as it was (the same voice as Cosmos). Rubbed bowls: each pad note is two tones beating slowly, breathing, no shimmer. Same chords. Switching in a match fades the bed and brings it back.</p>
-    <div class="seg tight" id="bowlRow"><button data-b="0">49.7</button><button data-b="1">Rubbed bowls</button></div>
     <button id="hwRun" class="ghost small">Run the phone check again</button>
     <button id="bUnlockAll" class="ghost small">Unlock everything</button>
   </section>
@@ -860,15 +860,28 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 <div id="end" class="overlay" hidden>
   <section class="endcard">
     <div class="endline" id="endLine"></div>
-    <h2 id="endTitle"></h2>
-    <p id="endSub"></p>
-    <div class="tlbox">
-      <canvas id="tl" role="img" aria-label="Bases held by each color over the match"></canvas>
-      <div class="tlx"><span>0:00</span><span id="tlEnd"></span></div>
+    <div class="endpanels">
+      <div class="endpanel on" id="epResult" role="tabpanel" aria-labelledby="etResult">
+        <h2 id="endTitle"></h2>
+        <p id="endSub"></p>
+      </div>
+      <div class="endpanel" id="epMoments" role="tabpanel" aria-labelledby="etMoments">
+        <div class="tlbox">
+          <canvas id="tl" role="img" aria-label="Bases held by each color over the match"></canvas>
+          <div class="tlx"><span>0:00</span><span id="tlEnd"></span></div>
+        </div>
+        <ol id="moments" class="moments"></ol>
+      </div>
+      <div class="endpanel" id="epStats" role="tabpanel" aria-labelledby="etStats">
+        <div id="endRivals" class="endriv" hidden></div>
+      </div>
     </div>
-    <ol id="moments" class="moments"></ol>
     <div class="btns"><button id="bAgain" class="primary">Play again</button><button id="bNext" class="ghost" hidden>Next</button><button id="bMenu" class="ghost">Menu</button><button id="bLog" class="ghost">Save log</button></div>
-    <div id="endRivals" class="endriv" hidden></div>
+    <div class="seg endtabs" id="endTabs" role="tablist" aria-label="Match summary">
+      <button id="etResult" role="tab" aria-selected="true" data-p="epResult">Result</button>
+      <button id="etMoments" role="tab" aria-selected="false" tabindex="-1" data-p="epMoments">Moments</button>
+      <button id="etStats" role="tab" aria-selected="false" tabindex="-1" data-p="epStats">Stats</button>
+    </div>
   </section>
 </div>
 
@@ -5319,24 +5332,23 @@ function inkHits(ev) {                                 // a blow flicks a speck 
     else if (Math.random() < 0.3) emit(e.tx, e.ty, ikHex(colorOf(e.team)), 1, 30, 0.4, 0.9, 0, e.tx - e.x, e.ty - e.y, 1.1);
   }
 }
-function drawInkTroops(buckets) {                      // 49.7.1: blots of ink, most with a satellite drop, leaving a few specks behind them as they move (not a glow trail)
-  const sc = HC ? 1.2 : 1, r = 1.5 * sc;
+function drawInkTroops(buckets) {                      // 49.7.3: each troop is one calligraphy dot, a teardrop pointed the way it is going (round head forward, a thinning tail), with a single speck behind it while it moves
+  const sc = HC ? 1.2 : 1, r = 1.45 * sc;               // (49.7.1's blot with a satellite drop read as little mushrooms as they circled a base)
   for (let b = 0; b < 6; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
     const ink = b === 0 ? IK_NEUTRAL : ikHex(TEAM_COLORS[b - 1]);
-    if (!reduceMotion && b > 0) {                      // the specks left behind: two small drops, each a little off the line
-      ctx.fillStyle = hexA(ink, 0.45); ctx.beginPath();
-      for (const t of arr) { if (!t.path.length) continue; const j = ((t.id * 37) % 7 - 3) * 0.35, px = -t.ny, py = t.nx;
-        ctx.moveTo(t.x - t.nx * 4.6 + px * j, t.y - t.ny * 4.6 + py * j); ctx.arc(t.x - t.nx * 4.6 + px * j, t.y - t.ny * 4.6 + py * j, 0.6 * sc, 0, 6.283);
-        ctx.moveTo(t.x - t.nx * 8 - px * j, t.y - t.ny * 8 - py * j); ctx.arc(t.x - t.nx * 8 - px * j, t.y - t.ny * 8 - py * j, 0.4 * sc, 0, 6.283); }
+    if (!reduceMotion && b > 0) {
+      ctx.fillStyle = hexA(ink, 0.4); ctx.beginPath();
+      for (const t of arr) { if (!t.path.length) continue; const x = t.x - t.nx * 6.5, y = t.y - t.ny * 6.5; ctx.moveTo(x + 0.5 * sc, y); ctx.arc(x, y, 0.5 * sc, 0, 6.283); }
       ctx.fill();
     }
     ctx.fillStyle = b === 0 ? hexA(IK_NEUTRAL, 0.7) : ink; ctx.beginPath();
     if (SYM && b > 0) { for (const t of arr) troopShape(ctx, symOf(b - 1), t.x, t.y, t.nx, t.ny, 0.84 * sc); }
     else for (const t of arr) {
-      const rr = b === 0 ? r * 0.85 : r * (0.9 + ((t.id * 13) % 5) * 0.06);
-      ctx.moveTo(t.x + rr, t.y); ctx.arc(t.x, t.y, rr, 0, 6.283);
-      if (b > 0 && t.id % 3) { const a = t.id * 2.1, d = rr * 1.3, q = rr * (0.36 + (t.id % 4) * 0.06); ctx.moveTo(t.x + Math.cos(a) * d + q, t.y + Math.sin(a) * d); ctx.arc(t.x + Math.cos(a) * d, t.y + Math.sin(a) * d, q, 0, 6.283); }
+      const rr = b === 0 ? r * 0.85 : r * (0.92 + ((t.id * 13) % 5) * 0.04), a = Math.atan2(t.ny, t.nx), L = rr * (t.path.length ? 2.3 : 1.6);
+      ctx.moveTo(t.x - Math.cos(a) * L, t.y - Math.sin(a) * L);                 // the tail's point, behind
+      ctx.arc(t.x, t.y, rr, a + Math.PI * 0.62, a - Math.PI * 0.62, true);      // round the head, through the front
+      ctx.closePath();
     }
     ctx.fill();
   }
@@ -5529,11 +5541,25 @@ function sandHits(ev) {                                // a blow kicks up a litt
 }
 function drawSandTroops(buckets) {                     // 49.7.1: small pebbles with a lit side, each dragging a short two-tine furrow, like a tiny rake (not Cosmos's dots and wedges)
   const sc = HC ? 1.2 : 1;
-  if (!reduceMotion) {
-    ctx.strokeStyle = 'rgba(80,60,36,0.45)'; ctx.lineWidth = 0.6; ctx.lineCap = 'round'; ctx.beginPath();
-    for (let b = 0; b < 6; b++) for (const t of buckets[b]) { if (!t.path.length) continue; const px = -t.ny * 0.95, py = t.nx * 0.95;
-      for (const s2 of [1, -1]) { ctx.moveTo(t.x - t.nx * 2.4 + px * s2, t.y - t.ny * 2.4 + py * s2); ctx.lineTo(t.x - t.nx * 9 + px * s2, t.y - t.ny * 9 + py * s2); } }
-    ctx.stroke();
+  if (!reduceMotion) {                                 // 49.7.4: each furrow fades in as a troop sets off and lingers, fading, after it arrives (it used to switch on and off at once)
+    const now = performance.now() / 1000, T = SA.trail || (SA.trail = new Map()), lv = SA.tl || (SA.tl = [[], [], [], []]);
+    for (const L of lv) L.length = 0;
+    for (let b = 0; b < 6; b++) for (const t of buckets[b]) {
+      const mv = t.path.length > 0; let r = T.get(t.id);
+      if (!r) { r = { m: mv, t: now - 9, f: mv ? 1 : 0 }; T.set(t.id, r); }
+      if (r.m !== mv) { r.m = mv; r.t = now; r.f0 = r.f; }
+      r.seen = now; const age = now - r.t;
+      r.f = mv ? Math.min(1, (r.f0 || 0) + age / 0.35) : Math.max(0, (r.f0 == null ? 1 : r.f0) - age / 0.7);
+      if (r.f > 0.02) lv[Math.min(3, Math.floor(r.f * 4))].push(t);
+    }
+    if (!SA.tsw || now - SA.tsw > 2) { SA.tsw = now; for (const [id, r] of T) if (now - r.seen > 2) T.delete(id); }     // forget troops that are gone
+    ctx.lineWidth = 0.6; ctx.lineCap = 'round';
+    for (let k = 0; k < 4; k++) {
+      const arr = lv[k]; if (!arr.length) continue;
+      ctx.strokeStyle = 'rgba(80,60,36,' + (0.45 * (k + 1) / 4).toFixed(3) + ')'; ctx.beginPath();
+      for (const t of arr) { const px = -t.ny * 0.95, py = t.nx * 0.95; for (const s2 of [1, -1]) { ctx.moveTo(t.x - t.nx * 2.4 + px * s2, t.y - t.ny * 2.4 + py * s2); ctx.lineTo(t.x - t.nx * 9 + px * s2, t.y - t.ny * 9 + py * s2); } }
+      ctx.stroke();
+    }
   }
   for (let b = 0; b < 6; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
@@ -7104,7 +7130,7 @@ const isTide = () => settings.tone === 'tide';
 // (only the room: notes hang instead of bouncing), 2 strokes (a roll swells and thins like a brush pressing and lifting; a knockout is a quick
 // sweep up and back down, like the big brush circle), 4 pressure (keys struck harder and brighter the hotter the fight), 8 build-up (the
 // last base's climbing keys and heartbeat brought forward). All off is 49.6 as it was.
-let tdOpt = (() => { try { const v = JSON.parse(localStorage.getItem('ice-tide')); return v && Number.isInteger(v.o) && v.o >= 0 && v.o < 16 ? v.o : 0; } catch (e) { return 0; } })();
+let tdOpt = 14;                                          // 49.7.4: baked in (Henry's pick by ear): Strokes, Pressure and Build-up on, No echo off; the hidden switches are retired
 const tdOn = b => (tdOpt & b) !== 0;
 const tdChord = () => TD_CHORDS[Math.floor(TD.step / 16) % 4];
 function tdIR() {                                     // a quiet room: three seconds, warm, the top rolled off
@@ -7276,7 +7302,7 @@ const bwMidi = d => 62 + 12 * Math.floor(d / 5) + BW_SCALE[((d % 5) + 5) % 5];
 const BW_PAD = [[50, 57, 62, 69], [50, 55, 62, 67], [46, 53, 58, 62], [45, 52, 57, 62]];   // open voicings that never rub: D5, Gsus over D, Bb, A
 const BW = { nodes: null, pool: [], low: null, caps: [], deg: 6, next: 0, step: 0, ir: null, irT: -1, ret: null, ftCh: null };
 const isBowl = () => settings.tone === 'bowl';
-let bwBed = (() => { try { const v = JSON.parse(localStorage.getItem('ice-bowl')); return v && (v.b === 0 || v.b === 1) ? v.b : 0; } catch (e) { return 0; } })();   // 49.7.1: the pad's voice, a switch on the hidden screen: 0 as in 49.7 (Cosmos's sine and shimmering octave), 1 rubbed bowls
+const bwBed = 1;                                         // 49.7.4: the bed is rubbed bowls (pairs of tones beating slowly, no Cosmos shimmer); Henry chose it over 49.7's pad by ear
 const bwJit = () => Math.random() * 0.07;               // nothing lands exactly on the clock
 function bwIR() {                                      // still evening air in a walled garden: two and a half seconds, soft, a little bright
   if (BW.ir && BW.ir.sampleRate === AC.sampleRate && BW.irT === AQ()) return BW.ir;
@@ -8621,8 +8647,6 @@ function syncQual() {
   for (const b of $('qualRow').children) b.setAttribute('aria-pressed', String(+b.dataset.q === qualFix));
   $('qualNow').textContent = qualFix < 0 ? 'Auto: the game picks the level.' : 'Held at ' + QNAMES[qualFix] + ' (' + Math.round(QUALITY[qualFix] * 100) + '% sharpness).';
   for (const b of $('audRow').children) b.setAttribute('aria-pressed', String(+b.dataset.a === audFix));
-  for (const b of $('bowlRow').children) b.setAttribute('aria-pressed', String(+b.dataset.b === bwBed));
-  for (const b of $('tideRow').children) b.setAttribute('aria-pressed', String((tdOpt & +b.dataset.t) !== 0));
   $('hwNow').textContent = 'Phone check: ' + (HW.done ? HW.ms.toFixed(1) + ' ms (last readings ' + HW.list.map(x => x.toFixed(0)).join(', ') + ')' : 'not run yet') + (HW.mem ? ', ' + HW.mem + ' GB memory' : '') + (HW.cores ? ', ' + HW.cores + ' cores' : '') + '. Auto starts at ' + QNAMES[[0, 2, 3][hwTier()]] + '. Now: picture ' + QNAMES[quality] + ', sound ' + ['Full', 'Light', 'Lite'][AQ()] + '.';
   $('qualNote').hidden = qualFix < 0; $('qualNote').textContent = qualFix < 0 ? '' : 'Picture quality held at ' + QNAMES[qualFix];
 }
@@ -8631,10 +8655,6 @@ for (const b of $('qualRow').children) b.addEventListener('click', () => {
   quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); syncQual();
 });
 for (const b of $('audRow').children) b.addEventListener('click', () => { audFix = +b.dataset.a; save('ice-audio', { a: audFix }); syncQual(); });
-for (const b of $('bowlRow').children) b.addEventListener('click', () => { bwBed = +b.dataset.b; save('ice-bowl', { b: bwBed }); syncQual(); if (BW.nodes) BW.nodes.tier = -1; });     // 49.7.1: a running Bowl bed fades and comes back in the new voice
-for (const b of $('tideRow').children) b.addEventListener('click', () => { tdOpt ^= +b.dataset.t; save('ice-tide', { o: tdOpt }); syncQual();      // 49.7.1: Tide's four switches; the echo changes at once, the rest on the next note
-  if (TD.nodes) { const t = AC.currentTime; TD.nodes.send.gain.setTargetAtTime(tdOn(1) ? 0 : 0.42, t, 0.2); TD.nodes.wet.gain.setTargetAtTime(tdOn(1) ? 0.95 : 0.8, t, 0.2); }
-  if (isTide() && settings.sound && AC && AC.state === 'running' && !TD.nodes) { try { tidePreview(); } catch (_) {} } });
 function runPhoneCheck() {                            // the speed test: on every start (a moment after launch), or again from the hidden screen; the last five readings are kept
   HW.list = [...HW.list, hwBench()].slice(-5); HW.ms = hwMedian(HW.list); HW.done = true; save('ice-hw', { v: 3, list: HW.list });
   if (qualFix < 0 && mode !== 'play') { quality = startQ(); slowSince = 0; frameAvg = 16.7; calmSince = 0; ceilQ = 0; layout(); }
@@ -9262,12 +9282,24 @@ function showEnd() {
     parts.push($('buildNo').textContent);           // which build the match was played on
     $('endLine').innerHTML = '<b>Aiced</b> &middot; ' + parts.filter(Boolean).map(x => String(x).replace(/[<>&]/g, '')).join(' &middot; ');
   }
+  $('etStats').hidden = $('endRivals').hidden;       // 49.8.1: no Stats tab when there is nothing to show (spectate, lessons)
+  endTab('epResult');                              // every card opens on the Result tab
   if (!watching) buzz(G.result === 'win' ? 'win' : 'lose');
   const moments = pickMoments();
   $('moments').innerHTML = challengeMoments || moments.map(m => `<li><time>${fmt(m.t)}</time><i data-s="${slotOf(momentTeam(m))}" style="background:${momentColor(m)}"></i><span>${momentText(m)}</span></li>`).join('');
   show('end', true); endAt = performance.now(); $('bAgain').focus({ preventScroll: true });
   requestAnimationFrame(() => drawTimeline(moments));
 }
+// ---- the end card's tabs (49.8.1): Result / Moments / Stats, switched from the bottom of the card. The panels share one grid cell, so the card never changes height. ----
+function endTab(id) {
+  for (const b of $('endTabs').children) { const on = b.dataset.p === id; b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; $(b.dataset.p).classList.toggle('on', on); }
+}
+$('endTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.hidden) endTab(b.dataset.p); });
+$('endTabs').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const bs = [...$('endTabs').children].filter(b => !b.hidden), i = bs.findIndex(b => b.getAttribute('aria-selected') === 'true'), n = bs[(i + (e.key === 'ArrowRight' ? 1 : bs.length - 1)) % bs.length];
+  endTab(n.dataset.p); n.focus(); e.preventDefault();
+});
 function toMenu() {
   coachEnd();
   hideInfo(); watching = false; hudEl.classList.remove('watch');
@@ -9354,7 +9386,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.7.2 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.8.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

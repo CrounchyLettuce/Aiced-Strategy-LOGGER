@@ -191,7 +191,7 @@ html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color
 .opt.stack { flex-direction: column; align-items: stretch; gap: 6px; } .opt.stack > span { flex: none; }
 #scrSettings .opt.stack > span { font-weight: 700; font-size: 13.5px; color: var(--ink); }
 #scrSettings .opt.sep { border-top: 1px solid var(--hair); padding-top: 12px; margin-top: 2px; }
-.screen:not(.side) .hintline { background: rgba(0,0,0,.7); padding: 6px 9px; border-radius: var(--rc); }
+.screen .hintline { background: rgba(0,0,0,.7); padding: 6px 9px; border-radius: var(--rc); }
 .hintline, .blurb { box-sizing: border-box; }
 #unlockPop { z-index: 30; background: rgba(0,0,0,.78); }
 #unlockPop .screen { background: rgba(10,10,14,.94); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 12px; }
@@ -450,54 +450,11 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .mode:active { background: rgba(40,40,44,.8); }
 .blurb { margin: -5px 0 0 108px; font-size: 12px; line-height: 1.35; color: var(--dim); min-height: 1.35em; }
 .chcard .best { grid-column: 1; font-size: 11.5px; color: var(--dim); }
-.screen.side { background: rgba(0,0,0,.74); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid var(--hair); border-radius: var(--rk); padding: 12px 14px; }
-@media (orientation: portrait) { .screen.side { margin: auto 0 0 0; width: 100%; } }
 @media (orientation: landscape) {
-  .screen.side { margin: auto auto auto 6px; width: min(56%, 460px); }
-  .screen.side.cols { width: min(70%, 640px); }
-  .screen.side.cols .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
-  .screen.side.cols .opt { flex-direction: column; align-items: stretch; gap: 4px; }
-  .screen.side.cols .opt > .seg, .screen.side.cols .opt > .modbtn { flex: 0 0 auto; }
-  .screen.side.cols .opt > span { flex: 0 0 auto; font-size: 11.5px; }
-  .screen.side.cols .opt > span.hasnote { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .screen.side.cols .opt > span.hasnote em { margin-top: 0; text-align: right; font-size: 10px; }
-  .screen.side.cols .seg button, .screen.side.cols .modbtn, .screen.side.cols select { min-height: 40px; height: 40px; }
-  .screen.side.cols { padding: 8px 12px; gap: 8px; }
-  .screen.side.cols .opts { row-gap: 5px; }
-  .screen.side.cols header { min-height: 34px; }
-  .screen.side.cols .seg button, .screen.side.cols .modbtn, .screen.side.cols select { min-height: 36px; height: 36px; font-size: 13px; }
-  .screen.side.cols .primary.big { min-height: 46px; }
-  .screen.side.cols .blurb { margin: 0; grid-column: 1 / -1; }
   #scrPlay { width: min(100%, 800px); max-height: 100%; overflow-y: auto; }          /* 49.3: wide enough for the Resume card's summary; scrolls on a very short screen */
   .mode.resume { padding: 10px 14px; gap: 10px; }
   .mode.resume canvas { width: 80px; height: 48px; }
   .modes { grid-template-columns: 1fr 1fr; }
-}
-@media (orientation: landscape) and (max-height: 400px) {      /* short screens (a browser's toolbars eat height): same screens, tighter */
-  .screen.side { padding: 7px 12px; gap: 6px; }
-  .screen.side header { min-height: 32px; }
-  .screen.side .back { width: 34px; height: 34px; }
-  .screen.side h2 { font-size: 18px; }
-  .screen.side .opts { gap: 6px; }
-  .screen.side .seg button, .screen.side .modbtn, .screen.side select { min-height: 36px; height: 36px; font-size: 13px; }
-  .screen.side .catrow { min-height: 38px; padding: 4px 12px; }
-  .screen.side .blurb { font-size: 11px; line-height: 1.25; min-height: 1.25em; margin-top: -3px; }
-  .screen.side .primary.big { min-height: 42px; font-size: 16px; }
-  .screen.side .swatches button i { width: 15px; height: 15px; }
-  .screen.side.cols { padding: 5px 10px; gap: 5px; }
-  .screen.side.cols .seg button, .screen.side.cols .modbtn, .screen.side.cols select { min-height: 32px; height: 32px; font-size: 12.5px; }
-  .screen.side.cols .opt > span { font-size: 10.5px; line-height: 1.1; }
-  .screen.side.cols .opts { row-gap: 3px; }
-  .screen.side.cols header { min-height: 30px; }
-  .screen.side.cols .primary.big { min-height: 38px; }
-}
-@media (orientation: landscape) and (max-height: 430px) {      /* Spectate has the most options: it tightens up a little earlier than the rest */
-  .screen.side.cols { padding: 5px 10px; gap: 5px; }
-  .screen.side.cols .seg button, .screen.side.cols .modbtn, .screen.side.cols select { min-height: 34px; height: 34px; font-size: 12.5px; }
-  .screen.side.cols .opt > span { font-size: 10.5px; line-height: 1.1; }
-  .screen.side.cols .opts { row-gap: 3px; }
-  .screen.side.cols header { min-height: 30px; }
-  .screen.side.cols .primary.big { min-height: 40px; }
 }
 /* short landscape phones: Settings goes two across so everything stays on screen; the tuning panel just tightens up */
 @media (orientation: landscape) and (max-height: 430px) {
@@ -523,15 +480,6 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 #pvCard[hidden] { display: none; }
 #pvMap { display: block; }
 @media (orientation: landscape) and (max-height: 430px) { .hintline { font-size: 11px; line-height: 1.3; min-height: 2.6em; } .spec { padding: 6px 10px; } .spec span { font-size: 12px; } }
-@media (orientation: portrait) {
-  .screen.side .opt { flex-direction: column; align-items: stretch; gap: 5px; }
-  .screen.side .opt > span { flex: none; }
-  .screen.side .opt > span.hasnote { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .screen.side .opt > span.hasnote em { margin-top: 0; text-align: right; }
-  .screen.side .opt > .info { align-self: flex-end; margin: -2px 0 0; }
-  .screen.side .blurb { margin-left: 0; }
-}
-@media (orientation: landscape) and (max-height: 400px) { .screen.side.cols .hintline { min-height: 1.3em; } .screen.side.cols .seg button, .screen.side.cols .modbtn { min-height: 30px; height: 30px; } }
 #info { position: fixed; z-index: 4; width: 232px; padding: 10px 12px; pointer-events: none; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; line-height: 1.35; }
 #info[hidden] { display: none; }
 #info .ih { display: flex; align-items: center; gap: 8px; }
@@ -784,7 +732,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.9.9 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -943,12 +891,12 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <li><b>Goal.</b> Take every base.</li>
       <li><b>Look around.</b> Pinch and drag to move. The map button opens a minimap, and a double-tap on it shows everything. Press and hold any base to see what it is.</li>
       <li><b>Send troops.</b> Tap a base within your reach and troops from all your connected bases head there.</li>
-      <li><b>Send amount.</b> The 25%, 50% and 100% buttons in the bottom right set how many go. Set it to 50% and tap two targets far apart to fight on two fronts.</li>
-      <li><b>Send from one base.</b> Tap one of your bases to select it. A ring around it fills to show how much will leave. Then tap where it should go. At 25%, a base with 80 troops sends 20.</li>
-      <li><b>Regroup.</b> Tap the selected base again. Your chosen share of troops from all connected bases gathers there.</li>
-      <li><b>Lock on.</b> Double-tap a target and every new troop heads there until it's yours, whether or not it likes the idea.</li>
+      <li><b>Send amount.</b> The 25%, 50% and 100% buttons in the bottom right set how many go on every order. Set it to 50% and tap two targets far apart to fight on two fronts.</li>
+      <li><b>Send from one base.</b> Tap one of your bases to select it. A ring fills around it to show how many will leave. Then tap where they should go. At 25%, a base with 80 troops will send 20.</li>
+      <li><b>Regroup.</b> When a selection ring is up, tap the selected base again. Your chosen share of troops from all connected bases gathers there.</li>
+      <li><b>Lock on.</b> Double-tap a target and your chosen amount heads there, with new troops following as they spawn. They keep coming until the base is taken, even if the fight is going badly.</li>
       <li><b>Take a base.</b> Beat its defenders, then wear the base down. Land the final blow and it's yours.</li>
-      <li><b>Grow.</b> Every base you claim adds to your army.</li>
+      <li><b>Grow.</b> Every base you claim raises your army limit and spawns troops of its own, until your army is full. Troops that fall are replaced by new spawns. Lose a base and your limit drops.</li>
       <li><b>Get stronger.</b> Defeating troops fills an XP bar. A full bar gives you 1 skill point to spend on Health, Speed or Damage.</li>
       <li><b>Special bases.</b> Fortress: more health. Forge: more troops. Beacon: more XP. Relay: faster troops.</li>
     </ul>
@@ -8809,7 +8757,6 @@ function previewSound() {                       // a sample bleep and bloop so y
 
 // ---- screens ----
 const show = (id, on) => { $(id).hidden = !on; if (id === 'menu') { if (!on) pvOnly = false; placePreview(); } };   // the preview card belongs to the menu: it goes when the menu does
-const SIZE_BASES = { small: 'about 20 bases', medium: 'about 30 bases', large: 'about 45 bases', huge: 'about 70 bases' };
 // 49.8.10 (WC, Henry's decision): the hint under the size buttons is just the clause for the chosen size; the base count and the colour count are on the preview, and 'Tap again for a new map.' is a caption by the heading (head.html)
 const SIZE_CLAUSE = { small: 'Quick and close. Not much room to hide.', medium: 'Some room to grow, but rivals are always nearby.', large: 'Room for each team to gather strength, so plan ahead.', huge: 'Land enough for every team to dig in. Expect long, tough fights.' };
 const DIFF_INFO = { easy: 'Takes its time, and doesn\'t always know what to do with it.', normal: 'Builds steadily, and stays busy until you\'re within reach.', hard: 'Quick on its feet, and it guards what it holds.', brutal: 'A fast thinker and a risk taker. Leave a base open and it\'s gone.',
@@ -8834,7 +8781,7 @@ function renderSpecials() {
 }
 const SIZE_LABEL = { small: 'Small', medium: 'Medium', large: 'Large', huge: 'Huge' }, DIFF_LABEL = { easy: 'Easy', normal: 'Normal', hard: 'Hard', brutal: 'Brutal', deadly: 'Deadly', random: 'Random' };
 // Deadly shows in every strength bar. Until it is earned it wears a padlock, and tapping it says how to earn it.
-const LOCK_TEXT = { brutal: 'Locked. Win a Classic match on a Large map against Hard to unlock Brutal.', brutalOther: 'Locked. Beat Brutal in Classic, on any map size, to add it here.', classic: 'Locked. Beat Brutal on a Large map in Classic to unlock Deadly.', other: 'Locked. Beat Deadly in Classic, on any map size, to add it here.' };
+const LOCK_TEXT = { brutal: 'Locked. Beat Hard on a Large map in Classic to unlock Brutal.', brutalOther: 'Locked. Beat Brutal in Classic, on any map size, to add it here.', classic: 'Locked. Beat Brutal on a Large map in Classic to unlock Deadly.', other: 'Locked. Beat Deadly in Classic, on any map size, to add it here.' };
 const diffLock = (m, v) => v === 'brutal' ? (m === 'classic' ? (unlocks.brutal ? '' : LOCK_TEXT.brutal) : (unlocks.brutalCustom ? '' : LOCK_TEXT.brutalOther)) : v !== 'deadly' ? '' : m === 'classic' ? (unlocks.deadly ? '' : LOCK_TEXT.classic) : (unlocks.deadlyCustom ? '' : LOCK_TEXT.other);
 const HINT_ID = { custom: { opp: 'hintCOpp', diff: 'hintCDiff', persona: 'hintCPers', shape: 'hintCShape', size: 'hintCSize', special: 'hintCSpecial' }, spec: { opp: 'hintSOpp', diff: 'hintSDiff', persona: 'hintSPers', shape: 'hintSShape', size: 'hintSSize', special: 'hintSSpecial' } };
 const lockHint = (m, text) => { $(m === 'classic' ? 'classicDiff' : HINT_ID[m].diff).textContent = text; };
@@ -8891,7 +8838,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu.'] },
+  { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu. Its written rules are rewritten, finally explaining the percentage-selection-tool.', 'Setup is one screen now: a map you can pan and zoom, with a deck of options you pull up over it.', 'A new match summary with three tabs: Result, Moments and Stats, each showing a variety of details.', 'The Stats screen is rebuilt: your record, your last ten matches, your fastest win on each map size, and how you\'ve done against each AI strength.', 'Modifiers that can\'t work together are greyed out, and they explain why.'] },
   { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
   { v: '48', t: 'Build 48', b: ['Smarter rivals: Brutal rivals keep troops home when you march at them, answer small raids and strike any base you leave empty (Hard does a lighter version), and health makes bases tougher to break.', 'Easier to read: a bigger, clearer selection ring, a bright flash and a soft chime when you earn an upgrade point, and sharper frost in Rime.', 'Made for slower phones: the game checks your phone the first time it opens and starts on a lighter picture and sound. It also runs on iPhone and iPad, and Spectate shows how strong the AI is.', 'For testers: this What\'s new page and a Check for update button, and the sound now comes back by itself if your phone pauses it.'] }
 ];
@@ -9255,7 +9202,7 @@ const STATS_TEXT = {
   bests: 'Bests', most: 'Most bases held', fastest: 'Fastest win', maps: { small: 'Small map', medium: 'Medium map', large: 'Large map', huge: 'Huge map' },
   totals: 'All your matches', defeated: 'Troops defeated', lost: 'Troops lost', taken: 'Bases taken', lostBases: 'Bases lost', time: 'Time played',
   strength: 'By rival strength', locked: 'Locked', wonOf: (w, g) => `${w} of ${g} won`,
-  vs: n => `Spectate - ${n} ${n === 1 ? 'Match' : 'Matches'} Watched`
+  vs: n => `Spectate · ${n} ${n === 1 ? 'match' : 'matches'} watched`
 };
 function renderStats() {
   const p = stats.play, w = stats.watch, dash = '–', T = STATS_TEXT;
@@ -9450,20 +9397,6 @@ function pickMoments() {
   const weight = { out: 4, home: 3, crown: 2.5, overtime: 2.2, lead: 2, retreat: 1 };
   keep.forEach(e => { e.w = weight[e.k] + ((you(e.a) || you(e.b)) ? 1.5 : 0); });
   return keep.sort((a, b) => b.w - a.w).slice(0, 5).sort((a, b) => a.t - b.t);
-}
-function momentText(e) {
-  const you = i => i === PLAYER && !watching;
-  const who = i => i == null || i < 0 ? 'Someone' : you(i) ? 'You' : TEAM_NAMES[i];
-  const whose = i => you(i) ? 'your' : TEAM_NAMES[i] + "'s";
-  if (e.k === 'overtime') return 'Overtime: a crown rose';
-  if (e.k === 'crown') return `${who(e.a)} took the crown`;
-  if (e.k === 'home') return `${who(e.a)} took ${whose(e.b)} home base`;
-  if (e.k === 'out') {
-    if (you(e.b)) return e.a != null && e.a >= 0 ? `You were knocked out by ${TEAM_NAMES[e.a]}` : 'You were knocked out';
-    return e.a != null && e.a >= 0 ? `${who(e.a)} knocked out ${TEAM_NAMES[e.b]}` : `${TEAM_NAMES[e.b]} was knocked out`;
-  }
-  if (e.k === 'lead') return `${who(e.a)} took the lead`;
-  return `${who(e.a)} pulled back from a losing fight`;
 }
 function momentTeam(e) { if (e.k === 'overtime') return -1; const i = e.k === 'out' && (e.a == null || e.a < 0) ? e.b : e.a; return i == null ? -1 : i; }
 function momentColor(e) { return e.k === 'overtime' ? '#ffcd30' : colorOf(momentTeam(e)); }
@@ -9828,7 +9761,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.9.9 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

@@ -44,7 +44,7 @@ button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 /* ---------- in-game HUD: floats over a full-screen map ---------- */
 body { position: relative; }
 #hud { position: absolute; inset: 0; pointer-events: none; }
-#hud[hidden] { display: none; }
+#hud[hidden], #hintSettings[hidden] { display: none; }
 #field { position: absolute; inset: 0; }
 .rail { position: absolute; pointer-events: auto; }
 .panel {
@@ -291,13 +291,23 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .none { margin: 0; font-size: 14px; color: var(--dim); }
 
 .endcard { width: min(100%, 440px); gap: 12px; }
+.endcard { text-shadow: 0 1px 3px #000, 0 0 10px rgba(0,0,0,.9), 0 0 22px rgba(0,0,0,.7); }      /* 49.8.2: the same dark halo the Shop's note has, so the text stands off the map */
+.endcard button { text-shadow: none; }
 .endcard h2 { margin: 0; font-size: 30px; line-height: 1.05; font-weight: 700; letter-spacing: .02em; }
 .endcard p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--dim); max-width: 42ch; }
 .endcard p .coda { display: block; margin-top: 8px; color: var(--ink); }
-.endriv .rr + h3 { margin-top: 10px; }
-.endriv h3 { margin: 0 0 6px; font-size: 12px; font-weight: 500; color: var(--dim); letter-spacing: .04em; }
-.endriv .rr { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 13px; padding: 3px 0; }
-.endriv .rr em { font-style: normal; color: var(--dim); }
+.endriv .sb { display: grid; grid-template-columns: 16px minmax(0, 1fr) 54px 38px 54px 62px; gap: 6px; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--faint); }
+.endriv .sb.head { font-size: 11px; color: var(--dim); letter-spacing: .02em; padding-top: 0; align-items: end; }
+.endriv .sb.head span:not(:first-child):not(:nth-child(2)), .endriv .sb b { text-align: right; }
+.endriv .sb b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.endriv .sb b.lvl { font-weight: 500; color: var(--dim); white-space: nowrap; }
+.endriv .sb .pl { color: var(--dim); font-size: 12px; }
+.endriv .sb .nm { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.endriv .sb .nm > span { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.endriv .sb .nm small { font-size: 11px; color: var(--dim); }
+.endriv .sb .sw { flex: none; width: 12px; height: 12px; }
+.endriv .sb.me { background: rgba(255,255,255,.06); border-radius: var(--rc); }
+.endriv .sbnote { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--dim); }
 .endpanels { display: grid; }
 .endpanel { grid-area: 1 / 1; visibility: hidden; display: flex; flex-direction: column; gap: 12px; align-content: start; min-width: 0; }
 .endpanel.on { visibility: visible; }
@@ -307,7 +317,22 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .endline { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .endline b { color: var(--ink); font-weight: 600; letter-spacing: .06em; }
 .endcard .sw { display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: 2px; }
-.tlbox canvas { display: block; width: 100%; height: 118px; }
+.tlbox canvas { display: block; width: 100%; height: 136px; }
+.erows { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--dim); }
+.erows .srow { display: flex; justify-content: space-between; gap: 12px; }
+.erows .srow span:last-child { text-align: right; }
+.erows b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.endcard p.ecoda { color: var(--ink); }
+.endcard p.ecoda:empty { display: none; }
+.endbar { display: flex; align-items: center; gap: 10px; margin-top: 4px; max-width: 360px; }
+.endbar .eb { flex: 1; position: relative; height: 8px; border-radius: 4px; background: var(--faint); overflow: hidden; }
+.endbar .eb i { position: absolute; top: 0; bottom: 0; left: 0; display: block; }
+.endbar .eb .eo { background: var(--blue); }
+.endbar .eb .en { background: #9cc2ff; width: var(--w); animation: ebGrow .9s cubic-bezier(.2,.7,.2,1) .5s both; }
+@keyframes ebGrow { from { width: 0; } }
+.endbar .tkd { display: flex; gap: 3px; color: #9cc2ff; }
+.endbar .tkd svg { width: 12px; height: 12px; }
+@media (prefers-reduced-motion: reduce) { .endbar .eb .en { animation: none; } }
 .tlx { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--dim); }
 .moments { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
 .moments li { display: grid; grid-template-columns: 36px 10px 1fr; gap: 8px; align-items: center; }
@@ -319,9 +344,9 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
   .mark h1 { font-size: 52px; }
   .endcard {
     width: min(100%, 780px); display: grid; grid-template-columns: 1fr 1.25fr; column-gap: 28px; row-gap: 10px; align-items: start;
-    grid-template-areas: "line panels" "btns panels" "tabs panels"; grid-template-rows: auto auto 1fr;
+    grid-template-areas: "line panels" "btns panels" "tabs panels" "fill panels"; grid-template-rows: auto auto auto 1fr; align-content: center;
   }
-  .endline { grid-area: line; } .endpanels { grid-area: panels; } .endcard .btns { grid-area: btns; } .endtabs { grid-area: tabs; align-self: end; }
+  .endline { grid-area: line; } .endpanels { grid-area: panels; } .endcard .btns { grid-area: btns; } .endtabs { grid-area: tabs; align-self: start; }
 }
 @media (max-width: 340px) { .opt { flex-direction: column; align-items: stretch; } .opt > span { flex: none; } }
 #vol { flex: 1; min-width: 0; height: 42px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; touch-action: none; --p: 75%; }
@@ -337,6 +362,8 @@ body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility:
 .mods { display: flex; flex-direction: column; gap: 8px; }
 .modrow { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid var(--faint); border-radius: var(--rk); background: rgba(0,0,0,.35); }
 .modrow b { font-size: 15px; font-weight: 600; }
+.modrow.blocked { cursor: default; }
+.modrow.blocked b, .modrow.blocked .sw2 { opacity: .55; }      /* 49.8.3: a modifier that cannot work with the current setup: greyed, with the reason where the description was */
 .modrow span { grid-column: 1; font-size: 12.5px; color: var(--dim); line-height: 1.35; }
 .modrow .sw2 { grid-row: 1 / span 2; grid-column: 2; width: 44px; height: 24px; border-radius: 12px; border: 1px solid var(--faint); position: relative; }
 .modrow .sw2::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--dim); transition: transform .15s, background .15s; }
@@ -554,7 +581,10 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 .sdots { display: flex; gap: 7px; }
 .sdots i { display: block; width: 7px; height: 7px; border-radius: 4px; background: var(--faint); transition: width .2s, background .2s; }
 .sdots i.on { width: 18px; background: var(--blue); }
-.shopnote { margin: 8px 0 0; min-height: 17px; font-size: 12.5px; text-align: center; color: var(--ink); }
+.shopnote { display: none; }   /* 49.8.4: the three notes it carried are struck; the token pill flashes instead */
+@keyframes tokNo { 0%,100% { transform: translateX(0); } 18% { transform: translateX(-5px); } 36% { transform: translateX(5px); } 54% { transform: translateX(-4px); } 72% { transform: translateX(3px); } }
+.tokpill.no .tk { animation: tokNo .42s ease-in-out; color: #ff6b5e; }
+.tokpill.no .tk small { color: #ff6b5e; }
 #shopConfirm, #shopInfo { z-index: 30; background: rgba(0,0,0,.72); touch-action: none; }
 #shopInfo .screen { width: min(100%, 360px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 10px; }
 #shopInfo h2 { margin: 0; font-size: 18px; }
@@ -650,7 +680,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.8.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 49.8.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -663,11 +693,11 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Play</h2></header>
     <div class="modes">
       <button class="mode resume" id="mResume" hidden><canvas id="rsThumb" width="176" height="104" aria-hidden="true"></canvas><span class="rsText"><b id="rsT">Resume match</b><span id="rsL1"></span><span id="rsL2"></span><span id="rsL3"></span></span></button>
-      <button class="mode" id="mClassic" data-go="scrClassic"><b>Classic</b><span>The standard match. Choose your team, map size, and AI strength.</span></button>
-      <button class="mode" id="mCustom" data-go="scrCustom"><b>Custom</b><span>Set up your own match: Enemies, Map, Special Bases and Rule Modifiers.</span></button>
-      <button class="mode" id="mSpec" data-go="scrSpectate"><b>Spectate</b><span>Setup match and watch the AI play against itself.</span></button>
-      <button class="mode" id="mLadder"><b>Challenge Maps<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></b><span id="ladderBlurb">Fixed maps with special rules and goals. Earn stars to unlock more maps.</span></button>
-      <button class="mode" id="mHelp" data-go="scrHelp"><b>How to Play</b><span id="helpBlurb">The basics, plus short lessons you can play.</span></button>
+      <button class="mode" id="mClassic" data-go="scrClassic"><b>Classic</b><span>The standard match. Pick your side and claim the map.</span></button>
+      <button class="mode" id="mCustom" data-go="scrCustom"><b>Custom</b><span>Build your own match: the rivals, the map, the rules.</span></button>
+      <button class="mode" id="mSpec" data-go="scrSpectate"><b>Spectate</b><span>Sit back and watch the rivals sort it out.</span></button>
+      <button class="mode" id="mLadder"><b>Challenge Maps<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></b><span id="ladderBlurb">Maps with a twist, and goals to chase. Win maps to unlock more.</span></button>
+      <button class="mode" id="mHelp" data-go="scrHelp"><b>How to Play</b><span id="helpBlurb">A guided match, plus the rules written down.</span></button>
     </div>
   </section>
 
@@ -740,7 +770,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Settings</h2></header>
     <div class="opts">
       <div class="opt"><span>Volume</span><input type="range" id="vol" min="0" max="100" step="1" aria-label="Volume"></div>
-      <p class="hintline" id="hintSettings"></p>
+      <p class="hintline" id="hintSettings" hidden></p>
     </div>
     <button class="ghost big2" data-go="scrAccess">Accessibility</button>
     <button id="bSetStyles" class="ghost big2">Styles</button>
@@ -864,6 +894,9 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <div class="endpanel on" id="epResult" role="tabpanel" aria-labelledby="etResult">
         <h2 id="endTitle"></h2>
         <p id="endSub"></p>
+        <div id="endRows" class="erows"></div>
+        <p id="endCoda" class="ecoda"></p>
+        <div id="endBar" class="endbar" role="img" hidden></div>
       </div>
       <div class="endpanel" id="epMoments" role="tabpanel" aria-labelledby="etMoments">
         <div class="tlbox">
@@ -999,7 +1032,7 @@ function styleFor(persona, rng) {                      // 'mixed' draws from all
 // ---- special bases: a few neutral bases per map with a trait that goes to whoever holds them ----
 const SPECIALS = {
   fortress: { name: 'Fortress', hp: 2, garrison: 1.4, guard: 0.75, text: 'Double health and a big garrison. Defenders there take 25% less damage.' },
-  forge:    { name: 'Forge',    spawn: 1.7, cap: 0.6,    text: 'Spawns troops 70% faster and raises its holder\'s army limit by about half a base.' },
+  forge:    { name: 'Forge',    spawn: 1.7, cap: 0.6,    text: 'Spawns troops 70% faster and raises its holder\'s army limit by a bit more than half a base.' },
   beacon:   { name: 'Beacon',   xp: 0.3, cap: 2,        text: 'Every kill earns its holder 30% more XP (up to two Beacons).' },
   relay:    { name: 'Relay',    speed: 1.5,             text: 'Its holder\'s troops move 50% faster along any line touching it.' }
 };
@@ -1250,10 +1283,10 @@ function pickStarts(pts, edges, rng, k, grp) {
 // The Custom and Spectate Shape buttons, the "Random" pool, the help line and the Resume card all read this table. A shape with a decoration (like the river)
 // also needs a drawing branch per visual style, found by searching ui.js for `D.kind === 'river'`; a shape without one needs nothing more.
 const SHAPE_DEFS = {
-  continent: { area: 1, label: 'Continent', blurb: 'One connected landmass.' },
-  islands: { area: 1.3, label: 'Islands', blurb: 'Separate islands joined by a few bridges, which become chokepoints.' },
-  ring: { area: 1.2, label: 'Ring', blurb: 'Bases form a ring around an empty middle, so all the fighting happens on the rim.' },
-  river: { area: 1.12, label: 'River', blurb: 'A river splits the map in two, with a few crossings to fight over.' }
+  continent: { area: 1, label: 'Continent', blurb: 'One landmass, so everyone is a neighbor.' },
+  islands: { area: 1.3, label: 'Islands', blurb: 'Chunks of land joined by bridges. Hold a bridge and you hold a lot.' },
+  ring: { area: 1.2, label: 'Ring', blurb: 'A ring of bases with an empty center. Gotta go around, you just can\'t go through it.' },
+  river: { area: 1.12, label: 'River', blurb: 'A landmass sliced by a river, with a few bridges. Boldness highly suggested.' }
 };
 const SHAPES = Object.keys(SHAPE_DEFS);
 const SHAPE_AREA = Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].area]));
@@ -1435,7 +1468,7 @@ function newGame(opts) {
     diff: D, diffName: opts.diff || 'normal', sizeName: opts.size || (fixed && fixed.size) || 'medium', active,
     capPer: spec.capPer,
     teams: TEAM_COLORS.map((c, i) => ({ i, active: active.includes(i), alive: active.includes(i), xp: 0, points: (i === PLAYER && opts.startPoints) || (mods.head && !mods.noup ? HEAD_POINTS : 0), earned: 0,
-      lv: { hp: 0, spd: 0, dmg: 0 }, kills: 0, bases: 0, count: 0, beacons: 0, forges: 0, hill: 0, mem: null,
+      lv: { hp: 0, spd: 0, dmg: 0 }, kills: 0, lost: 0, bases: 0, count: 0, beacons: 0, forges: 0, hill: 0, mem: null,
       aiT: 1.2 + rng() * 2, target: null, sent: 0, avoid: -1, avoidUntil: 0,
       diff: D, diffName: opts.diff || 'normal', style: styleFor(opts.persona, rng) })),
     fx: [], sfx: [], lock: [null, null, null, null, null], over: false,
@@ -1752,7 +1785,7 @@ function update(dt) {
   let died = 0;
   for (const t of troops) {
     if (t.dmg >= S.hp[t.team + 1]) {
-      t.dead = true; died++;
+      t.dead = true; died++; if (t.team >= 0) G.teams[t.team].lost++;      // 49.8.2: troops lost, for the end card
       if (t.lastHit !== null && t.lastHit >= 0) awardKill(t.lastHit);
       if (!t.path.length) {
         const h = nodes[t.home];
@@ -1833,6 +1866,7 @@ function takeNode(n, team) {
     if (G.homes[prev] === n.id) G.log.push({ t: G.t, k: 'home', a: team, b: prev });
   }
   if (team === PLAYER) G.playerCaps++;
+  if (team === PLAYER && prev >= 0 && prev !== PLAYER && !G.firstTake) G.firstTake = { t: G.t, from: prev };      // 49.8.2: the first base you took from a rival
   if (prev === PLAYER) G.playerLosses++;
   n.owner = team; n.hp = n.maxHp * C.flipHP; n.lastHitT = G.t; n.spawnT = C.spawnEvery * 0.5; n.heat = 0;
   G.fx.push({ k: 'ring', x: n.x, y: n.y, c: team, from: prev, b: G.t });
@@ -2462,36 +2496,33 @@ const SHOP_TEXT = {
   visual: 'Visual', sound: 'Sound', inUse: 'In use', use: 'Use',
   buyBoth: 'Buy both', useBoth: 'Use both',
   owned: 'Owned', partly: 'Partly owned', locked: 'Locked',
-  short: (cost, have) => `That costs ${cost} tokens. You have ${have}.`,
   confirmOne: (name, left) => [`Buy ${name}?`, `It is put in use right away, and you can switch back any time. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
   confirmPair: (name, left) => [`Buy ${name}?`, `Both the visuals and the sound, put in use right away. You will have ${left} ${left === 1 ? 'token' : 'tokens'} left.`],
   cancel: 'Cancel', spend: n => `Spend ${n}`,
   infoTitle: 'Tokens',
   info: [
-    'Tokens buy styles here. A visual or a sound costs 3 tokens, and a pair bought together costs 5.',
-    'Play Classic to earn them. Every finished match fills the bar a little; a win fills it more on bigger maps and against stronger rivals. Quitting a match earns nothing.',
-    'Every challenge star gives 1 token, once.',
-    'Custom and Spectate matches do not earn tokens.' ],
+    'Tokens buy visual and sound styles.',
+    'How to earn them | In Classic, a win fills the bar toward your next token, and fills more on bigger maps and higher difficulties. A loss still fills a little. Quitting fills nothing.',
+    'In Challenge Maps, each star you earn gives 1 token, once.',
+    'Custom and Spectate don\'t earn any. That\'d be way too easy.' ],
   infoNext: (have, need) => `Next token: ${have} of ${need}.`, infoOk: 'Got it',
-  bought: 'Bought, and now in use.',
-  ownedOnly: 'Only the styles you own show here. Buy more in the Shop on the main menu.',
   endProgress: (gain, have, need) => `Shop: +${gain} toward your next token (${have} of ${need}).`,
   endToken: n => n === 1 ? 'You earned a token. Spend it in the Shop.' : `You earned ${n} tokens. Spend them in the Shop.`,
   starTokens: n => `New stars: +${n} ${n === 1 ? 'token' : 'tokens'} for the Shop.`,
   starsAtStart: n => `The Shop is open. Your challenge stars earned you ${n} ${n === 1 ? 'token' : 'tokens'}. Find it on the main menu.`,
-  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Clockwork', neon: 'Neon', ink: 'Ink', sand: 'Sand' },
-  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Music Box', rain: 'Rain', tide: 'Tide', bowl: 'Bowl' },
+  visualName: { classic: 'Classic', ember: 'Ember', atlas: 'Atlas', pixel: 'Pixel', nebula: 'Nebula', rime: 'Rime', clockwork: 'Brass', neon: 'Neon', ink: 'Ink', sand: 'Sand' },
+  soundName: { simple: 'Simple', hearth: 'Hearth', drift: 'Drift', chip: 'Chip', cosmos: 'Cosmos', floe: 'Floe', musicbox: 'Springs', rain: 'Synth', tide: 'Tide', bowl: 'Bowl' },
   blurb: {
-    classic: 'Clean squares and triangles, soft round tones. Always yours.',
-    ember: 'A fire seen from afar. A banked hum and crackles that follow the fighting.',
-    atlas: 'A surveyor\'s chart. Gentle plucked notes in a big quiet room.',
-    pixel: 'Chunky pixels and scanlines. A four-channel console played by the battle.',
-    nebula: 'Deep space. A drone, sonar pings and pads that swell with the fighting.',
-    rime: 'A winter night. Frost grows over what you hold; glass and cracking ice.',
-    clockwork: 'Brass and springs. Gears that turn while you hold them; a room of clocks that ticks with the fighting.',     // 49.4: placeholder words for Henry and WC
-    neon: 'A city at night in the rain. Signs in your colour on wet streets; rain that grows heavy with the fighting.',     // 49.5: placeholder words for Henry and WC
-    ink: 'Ink on paper. Brush circles and washes that bleed into the page; a soft piano in a quiet room.',     // 49.6: placeholder words for Henry and WC
-    sand: 'A raked sand garden at dusk. Stones ringed by the rake; wooden notes and singing bowls.' }     // 49.7: placeholder words for Henry and WC     // 49.5: placeholder words for Henry and WC
+    classic: 'Simple, gently glowing shapes and soft tones. Where everyone starts.',
+    ember: 'Embers in the evening. A warm hum and the crackle of logs.',
+    atlas: 'A surveyor\'s chart. Gently plucked notes in a big quiet room.',
+    pixel: 'An old console, chunky pixels and bleeps. Try counting pixels to fall asleep.',
+    nebula: 'Lost in space. Slow waves and pings, echoing from distant stars.',
+    rime: 'An icy lake on a winter night. Tinkling glass over a chilly fight.',
+    clockwork: 'Gears turning with time, winding up a hidden music box.',     // 49.4: placeholder words for Henry and WC
+    neon: 'Glowing signs under gentle rain. The hum of the future is in the air.',     // 49.5: placeholder words for Henry and WC
+    ink: 'Ink bleeding into warm paper. Muffled piano keys, and a slow tide beneath them.',     // 49.6: placeholder words for Henry and WC
+    sand: 'A pale sand garden, raked and empty. Singing bowls and wooden notes.' }     // 49.7: placeholder words for Henry and WC     // 49.5: placeholder words for Henry and WC
 };
 // Prices and earning. Only Classic earns: a win pays size x strength, a loss pays the size only; quits, Custom and Spectate pay nothing.
 // Each challenge star pays 1 token, once. curve: points needed for each token in turn; the last number repeats from then on.
@@ -2614,17 +2645,32 @@ const seedOf = c => c.seed || (c.seed = rnd32());                  // every setu
 const shapeFor = c => c.shape === 'random' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape;
 const teamsFor = m => { const c = settings[m]; return m === 'classic' ? SIZES[c.size].teams : c.opp === 'auto' ? SIZES[c.size].teams : m === 'custom' ? +c.opp + 1 : +c.opp; };
 const MODS = [
-  { k: 'blitz', n: 'Blitz', d: 'Bases spawn troops twice as fast, troops move 30% faster and sieges are quicker.' },
-  { k: 'glass', n: 'Glass', d: 'Troops and bases have half health, so fights end quickly.' },
+  { k: 'blitz', n: 'Blitz', d: 'Troops spawn twice as fast for everyone, and march faster too.' },
+  { k: 'glass', n: 'Glass', d: 'Troops and bases have half the health, so fights end quickly.' },
   { k: 'noup', n: 'No upgrades', d: 'No XP and no upgrade points.' },
-  { k: 'koth', n: 'King of the hill', d: 'A crown sits on a base near the middle. Hold it for 90 seconds in total to win.' },
-  { k: 'head', n: 'Head start', d: 'Every color begins with 10 upgrade points to spend. Does nothing with No upgrades.' },
-  { k: 'bounty', n: 'Bounty', d: 'Rivals leave each other alone and hunt whoever has the most bases. Needs two or more rivals.' },
-  { k: 'fog', n: 'Fog of war', d: 'You only see near your own bases and troops, and the AI does too. Not available in Spectate.' }
+  { k: 'koth', n: 'King of the hill', d: 'A crown sits on a base near the middle. Hold it for 90 seconds in total and the match is yours.' },
+  { k: 'head', n: 'Head start', d: 'Everyone starts with 10 upgrade points already in hand.' },
+  { k: 'bounty', n: 'Bounty', d: 'Rivals target whoever has the most bases, you included.' },
+  { k: 'fog', n: 'Fog of war', d: 'You only see near your own bases and troops.' }
 ];
-function otActive(mode) { const c = settings[mode]; return mode !== 'classic' && c.ot === true; }
+// 49.8.3: a modifier that cannot do anything with the current setup is greyed out on the Modifiers screen, with one of these lines where its description was.
+// What you switched on is kept, so it comes back when the cause is switched off; while blocked it is not counted, not shown in the rules and not used in the match.
+const MOD_BLOCK = {
+  head:     'Off while No upgrades is on.',
+  bounty:   'Off with only one rival.',
+  overtime: 'Off while King of the hill is on.'
+};
+function modBlock(mode, k) {                          // '' when it works, else the reason
+  const c = settings[mode]; if (!c || mode === 'classic') return '';
+  if (k === 'head') return c.mods.noup ? MOD_BLOCK.head : '';
+  if (k === 'bounty') return teamsFor(mode) < 3 ? MOD_BLOCK.bounty : '';          // rivals counted from any one colour's side: three colours is two rivals
+  if (k === 'overtime') return c.mods.koth ? MOD_BLOCK.overtime : '';
+  return '';
+}
+const modOn = (mode, k) => !!settings[mode].mods[k] && !modBlock(mode, k) && !(mode === 'spec' && k === 'fog');
+function otActive(mode) { const c = settings[mode]; return mode !== 'classic' && c.ot === true && !modBlock(mode, 'overtime'); }
 function modsLabel(mode) {
-  const on = MODS.filter(m => settings[mode].mods[m.k] && !(mode === 'spec' && m.k === 'fog')).map(m => m.n);
+  const on = MODS.filter(m => modOn(mode, m.k)).map(m => m.n);
   if (otActive(mode)) on.push('Overtime');
   return !on.length ? 'None' : on.length <= 2 ? on.join(', ') : on.length + ' on';
 }
@@ -8502,39 +8548,23 @@ function previewSound() {                       // a sample bleep and bloop so y
 // ---- screens ----
 const show = (id, on) => { $(id).hidden = !on; if (id === 'menu') { if (!on) pvOnly = false; placePreview(); } };   // the preview card belongs to the menu: it goes when the menu does
 const SIZE_BASES = { small: 'about 20 bases', medium: 'about 30 bases', large: 'about 45 bases', huge: 'about 70 bases' };
-const HUGE_NOTE = ' Huge matches run long, and modifiers can help.';
-const DIFF_INFO = { easy: 'Rivals act slowly and cautiously. A good place to learn.', normal: 'Rivals play at a steady pace. An even match.', hard: 'Rivals react quickly and favor attacking you. A real fight.', brutal: 'Rivals react almost instantly and go straight for you. No room to relax.',
-  deadly: 'Rivals fight smart. They strike early, spot your moves and cut their losses.',
+const SIZE_CLAUSE = { small: '', medium: '', large: ' Room for each team to gather strength, so plan ahead.', huge: ' Land enough for every team to dig in. Expect long, tough fights.' };
+const DIFF_INFO = { easy: 'Takes its time, and doesn\'t always know what to do with it.', normal: 'Builds steadily, and stays busy until you\'re within reach.', hard: 'Quick on its feet, and it guards what it holds.', brutal: 'A fast thinker and a risk taker. Leave a base open and it\'s gone.',
+  deadly: 'Plans ahead, reads the map and strikes first.',
   random: 'Each rival gets a random strength, revealed when the match ends.' };
 const PERSONA_INFO = { mixed: 'Each rival is randomly Balanced, Aggressive, Sturdy or Adaptive.',
-  aggressive: 'Fast and hard-hitting but fragile. Attacks early, defends late, and seeks Relays and Beacons.',
-  sturdy: 'Tough and steady. Builds Health, defends early, and seeks Fortresses and Forges.',
-  adaptive: 'Reads the board and goes after whichever color is winning.' };
+  aggressive: 'Fast and hard-hitting, but easy to hurt back. Strikes first and defends later.',
+  sturdy: 'Tough and patient. Digs in early and is hard to move.',
+  adaptive: 'Reads the board and goes after whoever is winning.' };
 const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
 // the Shape buttons in Custom and Spectate come from the same table (49.3.2)
 document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = ['random', ...SHAPES].map(k => `<button data-v="${k}">${k === 'random' ? 'Random' : SHAPE_DEFS[k].label}</button>`).join(''); });
-const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'No special bases. Every base is the same.' };
+const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'Every base is the same.' };
+// 49.8.4: the tone, visual, menuSound, screen and volume lines are struck (the Shop's pair blurbs describe the styles); only the Accessibility lines remain
 const SETTINGS_INFO = {
-  tone: { simple: 'Soft, round tones, low and warm. Pairs with Classic.', hearth: 'A banked fire: a low warm hum, crackles that follow the fighting, and a soft chord when you take a base. Pairs with Ember.', drift: 'Gentle plucked notes in a big quiet room. Pairs with Atlas.',
-    chip: 'A four-channel console played by the battle: combo runs, buzzy crunches and little fanfares. Pairs with Pixel.', cosmos: 'A deep drone, sonar pings and pads that swell with the fighting. Pairs with Nebula.',
-    floe: 'Soft glass, cracking ice and low groans in a long cold echo, played by the fighting. Pairs with Rime.',
-    musicbox: 'Ticking clocks, ratchets and the tines of a music box comb, dry and close, played by the fighting. Pairs with Clockwork.',
-    bowl: 'Soft wooden notes and singing bowls in still evening air, played by the fighting, never quite on a beat. Pairs with Sand.',     // 49.7: placeholder
-    tide: 'A soft piano in a quiet room, played by the fighting, with a faint pad that swells as it grows. Pairs with Ink.',     // 49.6: placeholder words for Henry and WC
-    rain: 'Rain on a city at night: a drizzle that becomes a downpour as the fighting grows, drops on awnings, and signs buzzing on and shorting out. Pairs with Neon.' },
-  visual: { classic: 'Clean squares and triangles, with soft glows, light trails and sparks.', ember: 'A fire seen from afar at night: bases burn in their color, crack with orange light when hurt, a capture is a new fire catching. Pairs with Hearth.', atlas: 'A surveyor\'s chart: influence washes and plotted courses.',
-    pixel: 'Chunky pixels and scanlines, like an old console. Pairs with Chip.', nebula: 'Deep space: suns, drifting stars and supernova captures. Pairs with Cosmos.',
-    rime: 'A winter night: frost grows over what you hold, bases are crystals, and a capture freezes over. Pairs with Floe.',
-    clockwork: 'Brass and springs: bases are gears that turn while you hold them, lines are chains, and a capture clicks a gear one notch. Pairs with Music Box.',
-    sand: 'A raked sand garden at dusk: bases are stones ringed by the rake, held ground has its rings dyed in your colour, and a capture rakes new rings outward. Pairs with Bowl.',     // 49.7: placeholder
-    ink: 'Ink on paper: bases are brush circles that shorten as they weaken, held ground is a wash soaked into the page, and a capture bleeds outward. Pairs with Tide.',     // 49.6: placeholder
-    neon: 'A city at night in the rain: bases are neon signs with their reflections on the wet street, they flicker as they weaken, and a capture strikes a sign on. Pairs with Rain.' },
-  menuSound: { on: 'Plays the background match quietly behind the menus.', off: 'Menus stay silent.' },
   colors: { standard: 'Blue, red, green, yellow and purple.', safe: 'Blue, orange, teal, yellow and magenta, chosen to stay distinct for color-blind players.', contrast: 'Brighter colors, bolder lines and stronger text.' },
   symbols: { off: 'Teams are shown by color only.', on: 'Each color also gets its own shape. Empty bases are hollow squares.' },
-  volume: { v: 'Sets the overall volume. Your own actions are a little louder than the AI\'s.' },
-  haptics: { off: 'No vibration.', light: 'Short buzzes for captures, lost bases, the end of a match and when you select a base.', normal: 'Everything in Light, plus a tick when you send troops or buy an upgrade.' },
-  screen: { auto: 'Follows your device\'s rotation setting.', landscape: 'Locks the game to landscape. Works in the installed app.', portrait: 'Locks the game to portrait. Works in the installed app.' } };
+  haptics: { off: 'No vibration.', light: 'Short buzzes for captures, lost bases, the end of a match and when you select a base.', normal: 'Everything in Light, plus a tick when you send troops or buy an upgrade.' } };
 const SPECIAL_SHORT = { fortress: 'More health', forge: 'More troops', beacon: 'More XP', relay: 'Faster troops' };
 function renderSpecials() {
   $('specList').innerHTML = Object.keys(SPECIALS).map(k => `<div class="spec"><svg viewBox="0 0 28 28" aria-hidden="true">${glyphSvg(k)}</svg><div><b>${SPECIALS[k].name} <em>${SPECIAL_SHORT[k]}</em></b><span>${SPECIALS[k].text}</span></div></div>`).join('');
@@ -8567,7 +8597,7 @@ function hintText(m, key) {
     case 'diff': return DIFF_INFO[c.diff];
     case 'persona': return PERSONA_INFO[c.persona];
     case 'shape': return SHAPE_INFO[c.shape];
-    case 'size': return `${SIZE_LABEL[c.size]}: ${SIZE_BASES[c.size]}, ${t} colors.${c.size === 'huge' ? HUGE_NOTE : ''} Tap a size again for a new map.`;
+    case 'size': return `${SIZE_LABEL[c.size]}: ${SIZE_BASES[c.size]}, ${t} colors.${SIZE_CLAUSE[c.size]} Tap a size again for a new map.`;
     case 'special': return SPECIAL_INFO[c.special];
   }
   return '';
@@ -8583,14 +8613,14 @@ function touchHint(m, key) {
   hintKey[el] = key; renderHints(m);
 }
 let settingsKey = 'tone';
-function renderSettingsHint() { const I = SETTINGS_INFO[settingsKey]; $('hintSettings').textContent = $('hintAccess').textContent = settingsKey === 'volume' ? I.v : I[settings[settingsKey]]; }
+function renderSettingsHint() { const I = SETTINGS_INFO[settingsKey]; if (!I) return; $('hintAccess').textContent = I ? I[settings[settingsKey]] : ''; }
 function syncText(m) {
   const c = settings[m], t = teamsFor(m);
   if (m === 'classic') {
-    $('classicSize').textContent = `You and ${t - 1} ${t === 2 ? 'rival' : 'rivals'} on a map of ${SIZE_BASES[c.size]}.${c.size === 'large' ? ' Large matches can run long.' : ''} Tap a size again for a new map.`;
+    $('classicSize').textContent = `You and ${t - 1} ${t === 2 ? 'rival' : 'rivals'} on a map of ${SIZE_BASES[c.size]}.${SIZE_CLAUSE[c.size]} Tap a size again for a new map.`;
     $('classicDiff').textContent = DIFF_INFO[c.diff];
   } else if (m === 'custom') {
-    const n = MODS.filter(x => c.mods[x.k]).length + (otActive('custom') ? 1 : 0); $('sumRules').textContent = n ? n + ' on' : '';     // the one setting that can hide behind a tap
+    const n = MODS.filter(x => modOn('custom', x.k)).length + (otActive('custom') ? 1 : 0); $('sumRules').textContent = n ? n + ' on' : '';     // the one setting that can hide behind a tap
     renderHints('custom');
   } else {
     $('bSpecRules').textContent = modsLabel('spec');
@@ -8605,7 +8635,7 @@ const HINT_START = { scrEnemies: ['hintEnemies', 'diff'], scrMap: ['hintMap', 's
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '49.1', t: 'Build 49.1', b: ['Head start: a new modifier. Every color begins with 10 upgrade points.', 'Bounty: a new modifier. Rivals stop fighting each other and hunt whoever has the most bases.', 'Deadly: its rivals build troops twice as fast for the first 45 seconds.', 'The rivals no longer hold back for the first 20 seconds (it made no measurable difference).'] },
+  { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu.'] },
   { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
   { v: '48', t: 'Build 48', b: ['Smarter rivals: Brutal rivals keep troops home when you march at them, answer small raids and strike any base you leave empty (Hard does a lighter version), and health makes bases tougher to break.', 'Easier to read: a bigger, clearer selection ring, a bright flash and a soft chime when you earn an upgrade point, and sharper frost in Rime.', 'Made for slower phones: the game checks your phone the first time it opens and starts on a lighter picture and sound. It also runs on iPhone and iPad, and Spectate shows how strong the AI is.', 'For testers: this What\'s new page and a Check for update button, and the sound now comes back by itself if your phone pauses it.'] }
 ];
@@ -8679,15 +8709,15 @@ function fitHints() {
   const rv = n => n === 1 ? 'rival' : 'rivals', V = o => Object.values(o), lock = V(LOCK_TEXT), diff = V(DIFF_INFO), pers = V(PERSONA_INFO);
   const sizeA = [], sizeB = [], opp = [];
   for (const k in SIZE_BASES) {
-    for (let n = 1; n <= 4; n++) sizeA.push(`You and ${n} ${rv(n)} on a map of ${SIZE_BASES[k]}.${k === 'large' ? ' Large matches can run long.' : ''} Tap a size again for a new map.`);
-    for (let t = 2; t <= 5; t++) sizeB.push(`${SIZE_LABEL[k]}: ${SIZE_BASES[k]}, ${t} colors.${k === 'huge' ? HUGE_NOTE : ''} Tap a size again for a new map.`);
+    for (let n = 1; n <= 4; n++) sizeA.push(`You and ${n} ${rv(n)} on a map of ${SIZE_BASES[k]}.${SIZE_CLAUSE[k]} Tap a size again for a new map.`);
+    for (let t = 2; t <= 5; t++) sizeB.push(`${SIZE_LABEL[k]}: ${SIZE_BASES[k]}, ${t} colors.${SIZE_CLAUSE[k]} Tap a size again for a new map.`);
   }
   for (let t = 2; t <= 5; t++) opp.push(`Auto: ${t - 1} ${rv(t - 1)}, based on map size.`, `${t - 1} ${rv(t - 1)} against you.`, `Auto: ${t} colors, based on map size.`, `${t} colors fight it out.`);
-  const acc = ['colors', 'symbols', 'haptics', 'screen'], flat = keys => keys.flatMap(k => V(SETTINGS_INFO[k]));
+  const acc = ['colors', 'symbols', 'haptics'], flat = keys => keys.flatMap(k => V(SETTINGS_INFO[k]));
   fitHint('classicSize', sizeA); fitHint('classicDiff', [...diff, ...lock]);
   fitHint('hintEnemies', [...diff, ...pers, ...opp, ...lock]); fitHint('hintMap', [...V(SHAPE_INFO), ...V(SPECIAL_INFO), ...sizeB]);
   fitHint('hintSpec', [...diff, ...pers, ...opp, ...V(SHAPE_INFO), ...V(SPECIAL_INFO), ...sizeB, ...lock]);
-  fitHint('hintSettings', flat(Object.keys(SETTINGS_INFO).filter(k => !acc.includes(k)))); fitHint('hintAccess', flat(acc));
+  fitHint('hintAccess', flat(acc));
 }
 let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHints, 150); });
 function showScreen(id) {
@@ -8729,10 +8759,13 @@ function applyStyle(key, v, quiet) {                // what picking a style used
 }
 function shopEarn(win) {                            // one finished Classic match; returns the line for the end card
   const gain = Math.round((SHOP.size[G.sizeName] || 1) * (win ? (SHOP.diff[G.diffName] || 1) : 1) * 100) / 100;
+  const p0 = shop.prog, need0 = shopNeed();
   shop.prog = Math.round((shop.prog + gain) * 100) / 100; let got = 0;
   while (shop.prog + 1e-9 >= shopNeed()) { shop.prog = Math.round((shop.prog - shopNeed()) * 100) / 100; shop.n++; shop.tok++; got++; }
   saveShop();
-  return got ? SHOP_TEXT.endToken(got) : SHOP_TEXT.endProgress(shopNum(gain), shopNum(shop.prog), shopNeed());
+  const line = got ? SHOP_TEXT.endToken(got) : SHOP_TEXT.endProgress(shopNum(gain), shopNum(shop.prog), shopNeed());
+  G.endBar = got ? { a: Math.min(100, p0 / need0 * 100), b: 100, got, line } : { a: p0 / need0 * 100, b: Math.min(100, shop.prog / need0 * 100), got: 0, line };   // 49.8.2: the card draws this as a bar (older part blue, what this match added lighter)
+  return line;
 }
 function shopStarSync() {                           // every challenge star pays one token, once; returns how many were paid now
   const tot = SCENARIOS.reduce((a, c) => a + starsOfId(c.id).filter(Boolean).length, 0);
@@ -8745,7 +8778,6 @@ function openShop(ownedOnly) {
   const at = shopList.findIndex(P => P.v === settings.visual), at2 = shopList.findIndex(P => P.s === settings.tone);
   shopIdx = at >= 0 ? at : at2 >= 0 ? at2 : 0;
   $('scrShop').classList.toggle('owned', ownedOnly); $('shopTitle').textContent = ownedOnly ? SHOP_TEXT.ownedTitle : SHOP_TEXT.title;
-  $('shopNote').textContent = ownedOnly && shopList.length < SHOP_PAIRS.length ? SHOP_TEXT.ownedOnly : '';
   renderShop();
 }
 function closeShop() {                              // leaving puts back whatever you actually have selected
@@ -8790,7 +8822,7 @@ function placeShop() {
 }
 function shopGo(i) {
   i = Math.max(0, Math.min(shopList.length - 1, i)); if (i === shopIdx) return;
-  shopIdx = i; if (!shopOwnedOnly || shopList.length === SHOP_PAIRS.length) $('shopNote').textContent = '';
+  shopIdx = i;
   renderShop(); shopPreview(); buzz('press');
 }
 function shopUse(keys) {                            // select owned items: they become what you have, and what is saved
@@ -8804,13 +8836,15 @@ function shopAsk(title, text, cost, fn) {
 function shopAskClose() { shopAskFn = null; $('shopConfirm').hidden = true; }
 function shopInfo() {
   const T = SHOP_TEXT; $('stT').textContent = T.infoTitle; $('stOk').textContent = T.infoOk;
-  $('stX').innerHTML = ''; for (const line of [...T.info, T.infoNext(shopNum(shop.prog), shopNeed())]) { const p = document.createElement('p'); p.textContent = line; $('stX').appendChild(p); }
+  $('stX').innerHTML = ''; for (const line of [...T.info, T.infoNext(shopNum(shop.prog), shopNeed())]) { const p = document.createElement('p'), cut = line.indexOf(' | '); if (cut > 0) { const h = document.createElement('b'); h.textContent = line.slice(0, cut); h.style.display = 'block'; h.style.color = 'var(--ink)'; p.appendChild(h); p.appendChild(document.createTextNode(line.slice(cut + 3))); } else p.textContent = line; $('stX').appendChild(p); }
   $('shopInfo').hidden = false; try { $('stOk').focus({ preventScroll: true }); } catch (_) {}
 }
+// 49.8.4: tapping something you cannot afford shakes the token count and turns it red (the shake, so it does not rely on colour alone)
+function tokNo() { const el = $('tokPill'); el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); buzz('press'); setTimeout(() => el.classList.remove('no'), 600); }
 function shopInfoClose() { $('shopInfo').hidden = true; }
 function shopBuy(items, cost) {
   shop.tok -= cost; for (const [k, v] of items) shop.own[(k === 'visual' ? 'v:' : 's:') + v] = true; saveShop();
-  shopUse(items); $('shopNote').textContent = SHOP_TEXT.bought; buzz('press');
+  shopUse(items); buzz('press');
 }
 function shopAct(act) {
   const P = shopList[shopIdx], T = SHOP_TEXT; if (!P) return;
@@ -8818,7 +8852,7 @@ function shopAct(act) {
   if (want.every(([k, v]) => shop.own[(k === 'visual' ? 'v:' : 's:') + v])) { shopUse(want); return; }
   if (shopOwnedOnly) return;
   const cost = want.length === 2 ? SHOP.pair : SHOP.one;
-  if (shop.tok < cost) { $('shopNote').textContent = T.short(cost, shop.tok); return; }
+  if (shop.tok < cost) { tokNo(); return; }
   const name = act === 'v' ? `${T.visualName[P.v]} visuals` : act === 's' ? `${T.soundName[P.s]} sound` : `${T.visualName[P.v]} + ${T.soundName[P.s]}`;
   const [ti, tx] = (want.length === 2 ? T.confirmPair : T.confirmOne)(name, shop.tok - cost);
   shopAsk(ti, tx, cost, () => shopBuy(want, cost));
@@ -8877,7 +8911,7 @@ function renderLadder() {
 function updateLadderBlurb() {
   const lk = !unlocks.challenge, b = $('mLadder');
   b.classList.toggle('lockd', lk); if (lk) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled');
-  $('ladderBlurb').textContent = lk ? 'Locked. Win a match in Classic to unlock Challenge Maps.' : `Fixed maps with special rules and goals. Earn stars to unlock more maps. ${totalStars()} of ${SCENARIOS.length * 3} stars.`;
+  $('ladderBlurb').textContent = lk ? 'Locked. Win a match in Classic to unlock Challenge Maps.' : `Maps with a twist, and goals to chase. Win maps to unlock more. ${totalStars()} of ${SCENARIOS.length * 3} stars.`;
 }
 function openBrief(id) {
   const c = SCENARIOS.find(x => x.id === id); briefId = id;
@@ -8920,10 +8954,22 @@ function renderRules() {
   const h = rulesHtml(); if (h !== rulesCache) { rulesCache = h; $('rulesBox').innerHTML = h; }
 }
 let modsMode = 'custom';
+const OT_DESC = 'A crown rises when a match drags on or someone is fully upgraded. It plays like King of the hill.';
 function renderMods() {
   $('modsList').innerHTML = MODS.filter(m => !(modsMode === 'spec' && m.k === 'fog')).map(m =>
-    `<button class="modrow" data-m="${m.k}" aria-pressed="${!!settings[modsMode].mods[m.k]}"><b>${m.n}</b><span>${m.d}</span><i class="sw2"></i></button>`).join('') +
-    `<button class="modrow" data-m="overtime" aria-pressed="${!!settings[modsMode].ot}"><b>Overtime</b><span>If a match stalls, a crown appears. The first color to hold it for 90 seconds wins.</span><i class="sw2"></i></button>`;
+    `<button class="modrow" data-m="${m.k}" aria-pressed="false"><b>${m.n}</b><span></span><i class="sw2"></i></button>`).join('') +
+    `<button class="modrow" data-m="overtime" aria-pressed="false"><b>Overtime</b><span></span><i class="sw2"></i></button>`;
+  syncModRows();
+}
+function syncModRows() {                              // pressed state, greyed state and the line under each name, from the settings
+  const c = settings[modsMode];
+  for (const b of $('modsList').children) {
+    const k = b.dataset.m, why = modBlock(modsMode, k), want = k === 'overtime' ? c.ot === true : !!c.mods[k];
+    b.classList.toggle('blocked', !!why);
+    if (why) b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled');
+    b.setAttribute('aria-pressed', String(want && !why));
+    b.querySelector('span').textContent = why || (k === 'overtime' ? OT_DESC : MODS.find(m => m.k === k).d);
+  }
 }
 function renderRecord() {
   const p = stats.play;
@@ -8988,7 +9034,7 @@ function optsFor(key) {
   return { size: c.size, diff: c.diff, seed: seedOf(c), shape, teams: teamsFor(key), watch, noBrutal: !unlocks.brutalCustom, noDeadly: !unlocks.deadlyCustom,
     specials: !classic && c.special === 'on', persona: classic ? 'mixed' : c.persona,
     overtime: otActive(key),
-    mods: classic ? {} : Object.assign({}, c.mods, { fog: c.mods.fog && !watch }) };
+    mods: classic ? {} : Object.fromEntries(Object.keys(c.mods).map(k => [k, modOn(key, k)])) };      // 49.8.3: only the modifiers that can work
 }
 function buildPreview(key) {                         // the map behind the menu is the map you'll get
   if (mode !== 'demo') return;
@@ -9141,11 +9187,11 @@ function drawTimeline(moments) {
   const c = $('tl'), r = c.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 3);
   if (!r.width) return;
   c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
-  const x = c.getContext('2d'), w = r.width, h = r.height, N = G.nodes.length, T = Math.max(1, G.t), hs = G.hist;
+  const x = c.getContext('2d'), w = r.width, h = r.height, ch = h - 18, N = G.nodes.length, T = Math.max(1, G.t), hs = G.hist;      // the bottom 18 px hold the knockout markers
   x.setTransform(d, 0, 0, d, 0, 0);
-  x.fillStyle = '#232327'; x.fillRect(0, 0, w, h);            // unclaimed ground
+  x.fillStyle = '#232327'; x.fillRect(0, 0, w, ch);            // unclaimed ground
   if (hs.length > 1) {
-    const X = t => t / T * w, Y = v => h - v / N * h;
+    const X = t => t / T * w, Y = v => ch - v / N * ch;
     let low = hs.map(() => 0);
     for (let k = 0; k < 5; k++) {                              // each color's share of the map, stacked, blue at the bottom
       x.beginPath();
@@ -9154,25 +9200,101 @@ function drawTimeline(moments) {
       x.closePath(); x.fillStyle = TEAM_COLORS[k]; x.fill();
       low = low.map((v, i) => v + hs[i][k + 1]);
     }
-    x.fillStyle = '#fff';
-    for (const m of moments) { const mx = Math.max(1, Math.min(w - 1, X(m.t))); x.globalAlpha = .85; x.fillRect(mx - 0.75, 0, 1.5, h); }
-    x.globalAlpha = 1;
+    for (const e of G.log) {                                     // a knockout: a thin white line down the graph, ending in a triangle in the colour that went out
+      if (e.k !== 'out') continue;
+      const mx = Math.max(5, Math.min(w - 5, X(e.t)));
+      x.fillStyle = '#fff'; x.globalAlpha = .85; x.fillRect(mx - 0.75, 0, 1.5, ch + 2); x.globalAlpha = 1;
+      x.beginPath(); x.moveTo(mx, ch + 1); x.lineTo(mx - 5, ch + 11); x.lineTo(mx + 5, ch + 11); x.closePath();
+      x.fillStyle = TEAM_COLORS[e.b]; x.fill(); x.lineWidth = 1; x.strokeStyle = 'rgba(0,0,0,.65)'; x.stroke();
+    }
   }
   $('tlEnd').textContent = fmt(G.t);
 }
-// One quiet line under the end-card stats. Picked from a short list by the map's seed, so a replay of the same map says the same thing.
-// Rules for these lines: say a true thing, never tell the player how to feel, no jokes at their expense, no exclamation marks.
-const CODA = {
-  win:      ['Quiet again.', 'That\'s all of it.', 'Nothing left to take.'],
-  winHard:  ['They didn\'t make it easy.', 'That was earned.'],
-  lossEarly: ['These go fast sometimes.', 'The opening is the hardest part to read.'],
-  lossBig:  ['You had most of it for a while.', 'You were closer than it feels.'],
-  loss:     ['It\'ll be here when you\'re ready.', 'Worth another look.']
+// ---- END_TEXT (49.8.2): every sentence the end card says, in one place, for rewriting. Pools (lists) are picked from by the map's seed, so a replay of the same map says the same thing. ----
+// Rules for the lines under the numbers: say a true thing, never tell the player how to feel, no jokes at their expense, no exclamation marks.
+const bs = n => n + (n === 1 ? ' base' : ' bases');
+const END_TEXT = {
+  tabs: { result: 'Result', moments: 'Moments', stats: 'Stats' },
+  head: {                                           // the big line (the colour square is added in front)
+    win:   [c => `A very ${c} map`, c => `That\'s the whole map`, c => `${c[0].toUpperCase() + c.slice(1)} owns the map`],                // c: your colour, lower case. A list: the map's seed picks one (more lines can be added)
+    taken: w => `${w} took the map`,                // someone else won (or, spectating, who won)
+    gone:  [c => `${c} has left the map`, c => `${c} had a good run`],          // you were knocked out and nobody had won yet (a list, like win)
+    crown: (you, w) => `${you ? 'You hold' : w + ' holds'} the crown`
+  },
+  sum: {                                            // the sentence under it
+    win:   (n, t) => `You took all ${n} bases in ${t}.`,
+    loss:  (t, peak) => `You lasted ${t} and held up to ${bs(peak)} at once.`,
+    watch: (w, style, n, t, kills) => `${w} (${style}) took all ${n} bases in ${t} and knocked out ${kills} troops along the way.`,
+    crown: (you, w, both, secs, t, held, n) => `${you ? 'You' : w} held ${both ? 'both crowns' : 'the crown'} for ${secs} seconds, ending the match at ${t} with ${held} of ${n} bases.`,
+    rivals: list => ` Rival strengths: ${list}.`
+  },
+  rows: { defeated: 'Troops defeated', lost: 'Troops lost', captured: 'Bases captured', lostBases: 'Bases lost' },      // two pairs, one per line
+  coda: {                                           // the line under the numbers, by the shape of the match (see SHAPE for what each means)
+    steady:     ['Quiet again.', 'That\'s all of it.', 'Nothing left to take.', 'That settles that.', 'Tidy work.', 'Every base, accounted for.', 'The map looks better in one color.', 'Somewhere, a rival is rethinking things.', 'Nothing out there but you.'],
+    steadyHard: ['They didn\'t make it easy.', 'That was earned.', 'Nobody gave you that one.', 'They fought for every base.', 'The rivals will want a recount.', 'Hard-won.'],
+    stomp:      ['You led nearly the whole way.', 'The rivals never found a foothold.', 'Not a close one.', 'The rivals barely got a look in.', 'They\'ll want a new plan.', 'A Queen sweep.'],
+    comeback:   ['You were close to out of it.', 'That turned around.', 'That was a long way back.', 'Down, then not.', 'At one point this was someone else\'s map.', 'It looked bad for a while.'],
+    close:      ['It could have gone either way.', 'The lead changed hands more than once.', 'A lead was only ever a loan.', 'The map kept changing its mind.', 'Nobody stayed ahead for long.', 'Any of you could have won it.'],
+    lossEarly:  ['These go fast sometimes.', 'The opening is the hardest part to read.', 'Fast ones happen.', 'That was over quickly.', 'There wasn\'t much time to settle in.'],
+    lossBig:    ['It was yours for a while.', 'You were closer than it feels.', 'You held a lot of it at one point.', 'Plenty of the map was yours once.'],
+    lossClose:  ['It was close for a while.', 'You were in it until late.', 'A few bases different, and it\'s yours.', 'It could have gone the other way.', 'The lead didn\'t settle until late.'],
+    loss:       ['It\'ll be here when you\'re ready.', 'Worth another look.', 'The map isn\'t going anywhere.', 'Some maps are like that.', 'Nothing to do but go again.']
+  },
+  board: { name: 'Color', defeated: 'Defeated', lost: 'Lost', peak: 'Peak', up: 'Upgrades', you: 'You', note: 'Defeated and Lost are troops. Peak is the most bases held at once. Upgrades are Health · Speed · Damage.' },
+  facts: {                                          // the Moments tab, under the graph; each is shown only when it is true
+    firstCapture: (team, t) => ({ t, text: `You first took a base from ${team}.` }),
+    lead:         t => `You spent ${t} in the lead.`,
+    leadNone:     'You were never in the lead.',
+    low:          (n, t) => ({ t, text: `Your lowest point: ${bs(n)}.` }),               // wins only, and only after a real dip
+    peak:         (n, t) => ({ t, text: `Your peak: ${bs(n)}.` }),                        // losses
+    changes:      (n, runner, you) => (n ? `The lead changed hands ${n} ${n === 1 ? 'time' : 'times'}.` : 'The lead never changed hands.') + (runner ? ` ${runner} ${you ? 'were' : 'was'} closest.` : '')
+  }
 };
-function endCoda() {
-  const win = G.result === 'win', hard = G.diffName === 'hard' || G.diffName === 'brutal' || G.diffName === 'deadly';
-  const pool = win ? (hard ? CODA.winHard : CODA.win) : G.t < 150 ? CODA.lossEarly : G.peak >= 0.4 * G.nodes.length ? CODA.lossBig : CODA.loss;
-  return pool[(G.seed >>> 0) % pool.length];
+// What counts as which shape of match. Tune here. lead = share of the match you were strictly out in front; changes = lead changes (a lead only counts after 5 s on your own).
+const SHAPE = { stomp: { lead: 0.75, changes: 2 }, comeback: { dip: 3, lead: 0.35 }, close: { changes: 4 }, lossEarly: 150, lossBig: 0.4, lossClose: { lead: 0.3, changes: 4 } };
+function endStats() {                               // everything the card derives from the once-a-second history; nothing here is stored
+  const hs = G.hist, P = PLAYER, T = Math.max(1, G.t), act = G.teams.filter(x => x.active).map(x => x.i), win = G.result === 'win';
+  const r = { lead: 0, changes: 0, runner: -1, low: null, peak: { n: 0, t: 0 }, share: 0, shape: 'steady' };
+  const area = G.teams.map(() => 0); let runPeak = 0, depth = 0;
+  for (let i = 0; i < hs.length; i++) {
+    const s = hs[i], dt = Math.max(0, (i + 1 < hs.length ? hs[i + 1][0] : G.t) - s[0]), mine = s[P + 1];
+    let top = mine > 0;
+    for (const k of act) { area[k] += s[k + 1] * dt; if (k !== P && s[k + 1] >= mine) top = false; }
+    if (top) r.lead += dt;
+    if (mine > r.peak.n) r.peak = { n: mine, t: s[0] };
+    if (mine > runPeak) runPeak = mine;
+    if (runPeak >= 3 && runPeak - mine > depth) { depth = runPeak - mine; r.low = { n: mine, t: s[0] }; }
+  }
+  r.share = r.lead / T; r.depth = depth;
+  r.changes = Math.max(0, G.log.filter(e => e.k === 'lead').length - 1);
+  if (G.winner != null) { const o = act.filter(k => k !== G.winner).sort((p, q) => area[q] - area[p]); if (o.length && area[o[0]] > 0) r.runner = o[0]; }
+  const N = G.nodes.length, hard = ['hard', 'brutal', 'deadly'].includes(G.diffName);
+  if (win) {
+    r.shape = depth >= SHAPE.comeback.dip || r.share <= SHAPE.comeback.lead ? 'comeback' : r.share >= SHAPE.stomp.lead && r.changes <= SHAPE.stomp.changes ? 'stomp' : r.changes >= SHAPE.close.changes ? 'close' : hard ? 'steadyHard' : 'steady';
+  } else r.shape = G.t < SHAPE.lossEarly ? 'lossEarly' : r.peak.n >= SHAPE.lossBig * N ? 'lossBig' : r.share >= SHAPE.lossClose.lead || r.changes >= SHAPE.lossClose.changes ? 'lossClose' : 'loss';
+  return r;
+}
+function scoreboard() {                              // 49.8.4: the finishing order and each color's numbers, all from what the match already counted
+  const act = G.teams.filter(x => x.active), out = {}, peak = {};
+  for (const e of G.log) if (e.k === 'out') out[e.b] = e.t;
+  for (const T of act) peak[T.i] = T.bases;
+  for (const h of G.hist) for (const T of act) peak[T.i] = Math.max(peak[T.i], h[T.i + 1]);     // sampled once a second, so a very short peak can be missed
+  const rank = T => T.i === G.winner ? 1e9 : out[T.i] == null ? 1e6 + T.bases : out[T.i];       // the winner, then anyone still standing (most bases first), then the last to fall
+  return act.slice().sort((a, b) => rank(b) - rank(a)).map((T, k) => ({ i: T.i, place: k + 1, style: T.style.name, kills: T.kills, lost: T.lost || 0, peak: peak[T.i], lv: `${T.lv.hp} · ${T.lv.spd} · ${T.lv.dmg}` }));
+}
+const headPick = list => list[(G.seed >>> 0) % list.length];
+function endCoda(ES) { const pool = END_TEXT.coda[ES.shape]; return pool[(G.seed >>> 0) % pool.length]; }
+function endFacts(ES) {                             // the Moments tab text, as list items: [time or '', team slot, colour, text]
+  const you = !watching, F = END_TEXT.facts, out = [], name = i => i === PLAYER && !watching ? 'You' : TEAM_NAMES[i];
+  const add = (t, i, text) => out.push(`<li><time>${t == null ? '' : fmt(t)}</time><i data-s="${slotOf(i)}" style="background:${colorOf(i)}"></i><span>${text}</span></li>`);
+  if (you) {
+    if (G.firstTake) { const f = F.firstCapture(TEAM_NAMES[G.firstTake.from], G.firstTake.t); add(f.t, G.firstTake.from, f.text); }
+    add(null, PLAYER, ES.lead > 0.5 ? F.lead(fmt(ES.lead)) : F.leadNone);
+    if (G.result === 'win') { if (ES.low && ES.depth >= 2) { const f = F.low(ES.low.n, ES.low.t); add(f.t, PLAYER, f.text); } }
+    else if (ES.peak.n) { const f = F.peak(ES.peak.n, ES.peak.t); add(f.t, PLAYER, f.text); }
+  }
+  add(null, ES.runner >= 0 ? ES.runner : PLAYER, F.changes(ES.changes, ES.runner >= 0 ? name(ES.runner) : '', ES.runner === PLAYER && !watching));
+  return out.join('');
 }
 const pendingUnlocks = (() => { let r = []; try { r = JSON.parse(localStorage.getItem('ice-pending')); } catch (_) {} return Array.isArray(r) ? r.filter(x => typeof x === 'string' && x.length < 200).slice(0, 8) : []; })();
 function showUnlockPop() {                            // the main menu is up: say what was earned since the last time, once
@@ -9188,10 +9310,11 @@ function showEnd() {
   if (resumedFromSlot) { resumedFromSlot = false; dropSave(); }                // the saved match has been played out
   const P = G.teams[PLAYER], N = G.nodes.length, t = $('endTitle'), sub = $('endSub');
   let unlockNote = '', shopLine = '';
+  G.endBar = null; $('endCoda').textContent = '';
   if (watching) {                                   // spectated matches go into the AI vs AI stats, not your record
     const w = G.winner, T = G.teams[w];
-    t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${TEAM_NAMES[w]} took the map`;
-    sub.textContent = `${TEAM_NAMES[w]} (${T.style.name}) took all ${N} bases in ${fmt(G.t)} and knocked out ${T.kills} troops along the way.`;
+    t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${END_TEXT.head.taken(TEAM_NAMES[w])}`;
+    sub.textContent = END_TEXT.sum.watch(TEAM_NAMES[w], T.style.name, N, fmt(G.t), T.kills);
     const sw = stats.watch;
     sw.matches++; sw.byColor[w]++; sw.byStyle[T.style.name] = (sw.byStyle[T.style.name] || 0) + 1;
     for (const A of G.teams) if (A.active) { sw.appColor[A.i]++; sw.appStyle[A.style.name] = (sw.appStyle[A.style.name] || 0) + 1; }
@@ -9205,40 +9328,48 @@ function showEnd() {
       if (curModeKey === 'classic') shopLine = shopEarn(win);                    // the Shop: only Classic pays
       if (win && curModeKey === 'classic') {                                    // the way in. Classic wins only (Brutal and Deadly are locked everywhere else until earned).
         const got = [], D = G.diffName, big = G.sizeName === 'large';
-        if (!unlocks.challenge) { unlocks.challenge = true; got.push('Challenge Maps unlocked. Find them in the Play menu.'); }
-        if (big && ['hard', 'brutal', 'deadly'].includes(D) && !unlocks.brutal) { unlocks.brutal = true; got.push('Brutal unlocked. Find it under AI strength.'); }
-        if (big && ['brutal', 'deadly'].includes(D) && !unlocks.deadly) { unlocks.deadly = true; got.push('Deadly unlocked. Find it under AI strength in Classic.'); }
-        if (['brutal', 'deadly'].includes(D) && !unlocks.brutalCustom) { unlocks.brutal = unlocks.brutalCustom = true; got.push('You beat Brutal. It is now in Custom and Spectate.'); }
-        if (D === 'deadly' && !unlocks.deadlyCustom) { unlocks.deadly = unlocks.deadlyCustom = true; got.push('You beat Deadly. It is now in Custom and Spectate.'); }
+        if (!unlocks.challenge) { unlocks.challenge = true; got.push('Challenge Maps are open. Find them in the Play menu.'); }
+        if (big && ['hard', 'brutal', 'deadly'].includes(D) && !unlocks.brutal) { unlocks.brutal = true; got.push('Brutal is open. Find it under AI strength.'); }
+        if (big && ['brutal', 'deadly'].includes(D) && !unlocks.deadly) { unlocks.deadly = true; got.push('Deadly is open. Find it under AI strength in Classic.'); }
+        if (['brutal', 'deadly'].includes(D) && !unlocks.brutalCustom) { unlocks.brutal = unlocks.brutalCustom = true; got.push('You beat Brutal. It\'s open in Custom and Spectate too.'); }
+        if (D === 'deadly' && !unlocks.deadlyCustom) { unlocks.deadly = unlocks.deadlyCustom = true; got.push('You beat Deadly. It\'s open in Custom and Spectate too.'); }
         if (got.length) { pendingUnlocks.push(...got); save('ice-pending', pendingUnlocks); save('ice-unlocks', unlocks); syncSeg(); updateLadderBlurb(); }     // announced on the next main menu, not on the card
       }
     }
     if (win) {
-      t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[PLAYER]}" style="background:${TEAM_COLORS[PLAYER]}"></span>The map is ${TEAM_NAMES[PLAYER].toLowerCase()}`;
-      sub.textContent = `You took all ${N} bases in ${fmt(G.t)} and knocked out ${P.kills} troops along the way.`;
+      t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[PLAYER]}" style="background:${TEAM_COLORS[PLAYER]}"></span>${headPick(END_TEXT.head.win)(TEAM_NAMES[PLAYER].toLowerCase())}`;
+      sub.textContent = END_TEXT.sum.win(N, fmt(G.t));
     } else {
       const w = G.winner;
       t.innerHTML = w != null
-        ? `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${TEAM_NAMES[w]} took the map`
-        : `<span class="sw" data-s="${TEAM_SLOT[PLAYER]}" style="background:${TEAM_COLORS[PLAYER]}"></span>${TEAM_NAMES[PLAYER]} is gone`;
-      sub.textContent = `You lasted ${fmt(G.t)}, held up to ${G.peak} ${G.peak === 1 ? 'base' : 'bases'} at once and knocked out ${P.kills} troops.`;
+        ? `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${END_TEXT.head.taken(TEAM_NAMES[w])}`
+        : `<span class="sw" data-s="${TEAM_SLOT[PLAYER]}" style="background:${TEAM_COLORS[PLAYER]}"></span>${headPick(END_TEXT.head.gone)(TEAM_NAMES[PLAYER])}`;
+      sub.textContent = END_TEXT.sum.loss(fmt(G.t), G.peak);
     }
   }
   save('ice-stats', stats);
   if (G.endReason === 'crown') {                    // a King of the hill finish
     const w = G.winner, you = !watching && w === PLAYER;
-    t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${you ? 'You hold' : TEAM_NAMES[w] + ' holds'} the crown`;
-    sub.textContent = `${you ? 'You' : TEAM_NAMES[w]} held ${G.crown2 >= 0 ? 'both crowns' : 'the crown'} for ${G.kothTarget} seconds, ending the match at ${fmt(G.t)} with ${G.teams[w].bases} of ${G.nodes.length} bases.`;
+    t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${END_TEXT.head.crown(you, TEAM_NAMES[w])}`;
+    sub.textContent = END_TEXT.sum.crown(you, TEAM_NAMES[w], G.crown2 >= 0, G.kothTarget, fmt(G.t), G.teams[w].bases, G.nodes.length);
   }
   if (G.diffName === 'random' && !G.scenarioId) {   // the secret rolls, revealed
     const list = G.teams.filter(T => T.active && (watching || T.i !== PLAYER)).map(T => `${TEAM_NAMES[T.i]} ${DIFF_LABEL[T.diffName]}`).join(', ');
-    sub.textContent += ` Rival strengths: ${list}.`;
+    sub.textContent += END_TEXT.sum.rivals(list);
   }
-  if (!watching && !G.practice && !G.scenarioId && G.endReason !== 'crown') {      // a normal match: one more line under the stats
-    const c = document.createElement('span'); c.className = 'coda'; c.textContent = endCoda(); sub.appendChild(c);
+  const ES = watching || G.practice ? null : endStats();
+  if (ES && !G.scenarioId && G.endReason !== 'crown') $('endCoda').textContent = endCoda(ES);      // a normal match: one line under the numbers, by the match's shape
+  {                                                 // the numbers: troops and bases, you against the match (not for lessons or spectating)
+    const R = END_TEXT.rows, row = (a, av, b, bv) => `<div class="srow"><span>${a} <b>${av}</b></span><span>${b} <b>${bv}</b></span></div>`;
+    $('endRows').innerHTML = ES ? row(R.defeated, P.kills, R.lost, P.lost || 0) + row(R.captured, G.playerCaps, R.lostBases, G.playerLosses || 0) : '';
   }
-  if (unlockNote) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = unlockNote; sub.appendChild(u); }
-  if (shopLine) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = shopLine; sub.appendChild(u); }
+  {                                                 // the Shop bar: what this match added, in a lighter blue (Classic only)
+    const eb = G.endBar, el = $('endBar'); el.hidden = !eb;
+    if (eb) {
+      el.setAttribute('aria-label', eb.line); el.title = eb.line;
+      el.innerHTML = `<span class="eb"><i class="eo" style="width:${eb.a}%"></i><i class="en" style="left:${eb.a}%;--w:${Math.max(0, eb.b - eb.a)}%"></i></span>` + (eb.got ? `<span class="tkd">${DIA.repeat(Math.min(3, eb.got))}</span>` : '');
+    }
+  }
   nextScen = null; let challengeMoments = null;
   if (G.practice) {                                 // a lesson: a tick instead of stars or highlights
     const L = PRACTICE.find(x => x.id === G.practice);
@@ -9258,17 +9389,18 @@ function showEnd() {
     const n = st.filter(Boolean).length, fresh = ladder[G.scenarioId].filter(Boolean).length - prev.filter(Boolean).length;
     t.innerHTML = `<span class="sw"${st[0] ? '' : ` data-s="${TEAM_SLOT[PLAYER]}"`} style="background:${st[0] ? '#ffcd30' : TEAM_COLORS[PLAYER]}"></span>${st[0] ? 'Challenge complete' : 'Challenge failed'}`;
     sub.textContent = st[0] ? `${sc.name}: ${n} of 3 stars in ${fmt(G.t)}${fresh > 0 ? `, ${fresh} new.` : '.'}` : `${sc.name}: you lasted ${fmt(G.t)}. Give it another go.`;
-    { const g = shopStarSync(); if (g) { const u = document.createElement('span'); u.className = 'coda'; u.textContent = SHOP_TEXT.starTokens(g); sub.appendChild(u); } }
+    { const g = shopStarSync(); if (g) $('endCoda').textContent = SHOP_TEXT.starTokens(g); }
     challengeMoments = sc.stars.map((g, i) => `<li><time class="st">${st[i] ? '&#9733;' : '&#9734;'}</time><i style="background:${st[i] ? '#ffcd30' : '#3a3a3e'}"></i><span>${g.t}</span></li>`).join('');
     const nx = SCENARIOS[SCENARIOS.findIndex(x => x.id === G.scenarioId) + 1];
     if (st[0] && nx && isOpen(nx)) nextScen = nx.id;
   }
   $('bNext').hidden = !nextScen;
-  {                                                 // what each rival built, for when someone beat you and you want to know how
-    const rs = !watching && !G.practice ? G.teams.filter(T => T.active && T.i !== PLAYER) : [], box = $('endRivals');
-    const me = !watching && !G.practice ? '<h3>How you finished</h3><div class="rr"><span><i class="sw" data-s="' + TEAM_SLOT[PLAYER] + '" style="background:' + TEAM_COLORS[PLAYER] + '"></i>' + TEAM_NAMES[PLAYER] + '</span><em>Health ' + P.lv.hp + ' &middot; Speed ' + P.lv.spd + ' &middot; Damage ' + P.lv.dmg + '</em></div><div class="rr"><span>' + fmt(G.t) + ' played</span><em>' + P.kills + ' troops knocked out &middot; up to ' + G.peak + (G.peak === 1 ? ' base' : ' bases') + '</em></div>' : '';
-    box.hidden = !(rs.length || me);
-    box.innerHTML = me + (rs.length ? '<h3>What the rivals built</h3>' + rs.map(T => `<div class="rr"><span><i class="sw" data-s="${TEAM_SLOT[T.i]}" style="background:${TEAM_COLORS[T.i]}"></i>${TEAM_NAMES[T.i]} (${T.style.name})</span><em>Health ${T.lv.hp} &middot; Speed ${T.lv.spd} &middot; Damage ${T.lv.dmg}</em></div>`).join('') : '');
+  {                                                 // 49.8.4: the Stats tab is a scoreboard, one row per color, best finish first (not for lessons)
+    const box = $('endRivals'), rows = G.practice ? [] : scoreboard();
+    box.hidden = !rows.length;
+    const sw = i => `<i class="sw" data-s="${TEAM_SLOT[i]}" style="background:${TEAM_COLORS[i]}"></i>`, SB = END_TEXT.board;
+    box.innerHTML = rows.length ? `<div class="sb head"><span></span><span>${SB.name}</span><span>${SB.defeated}</span><span>${SB.lost}</span><span>${SB.peak}</span><span>${SB.up}</span></div>` +
+      rows.map(r => `<div class="sb${r.i === PLAYER && !watching ? ' me' : ''}"><span class="pl">${r.place}</span><span class="nm">${sw(r.i)}<span>${r.i === PLAYER && !watching ? SB.you : TEAM_NAMES[r.i]}${r.i !== PLAYER || watching ? `<small>${r.style}</small>` : ''}</span></span><b>${r.kills}</b><b>${r.lost}</b><b>${r.peak}</b><b class="lvl">${r.lv}</b></div>`).join('') + `<p class="sbnote">${SB.note}</p>` : '';
   }
   {                                                 // a title line, so a screenshot says what it is a screenshot of
     const parts = [];
@@ -9282,15 +9414,16 @@ function showEnd() {
     parts.push($('buildNo').textContent);           // which build the match was played on
     $('endLine').innerHTML = '<b>Aiced</b> &middot; ' + parts.filter(Boolean).map(x => String(x).replace(/[<>&]/g, '')).join(' &middot; ');
   }
-  $('etStats').hidden = $('endRivals').hidden;       // 49.8.1: no Stats tab when there is nothing to show (spectate, lessons)
+  $('etStats').hidden = $('endRivals').hidden;       // 49.8.1: no Stats tab when there is nothing to show (lessons)
   endTab('epResult');                              // every card opens on the Result tab
   if (!watching) buzz(G.result === 'win' ? 'win' : 'lose');
   const moments = pickMoments();
-  $('moments').innerHTML = challengeMoments || moments.map(m => `<li><time>${fmt(m.t)}</time><i data-s="${slotOf(momentTeam(m))}" style="background:${momentColor(m)}"></i><span>${momentText(m)}</span></li>`).join('');
+  $('moments').innerHTML = challengeMoments || (ES ? endFacts(ES) : endFacts(endStats()));
   show('end', true); endAt = performance.now(); $('bAgain').focus({ preventScroll: true });
   requestAnimationFrame(() => drawTimeline(moments));
 }
 // ---- the end card's tabs (49.8.1): Result / Moments / Stats, switched from the bottom of the card. The panels share one grid cell, so the card never changes height. ----
+for (const [k, v] of Object.entries(END_TEXT.tabs)) $('et' + k[0].toUpperCase() + k.slice(1)).textContent = v;
 function endTab(id) {
   for (const b of $('endTabs').children) { const on = b.dataset.p === id; b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; $(b.dataset.p).classList.toggle('on', on); }
 }
@@ -9386,7 +9519,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 49.8.1 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 49.8.6 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9613,7 +9746,7 @@ function rollCustom() {
   for (const m of [...MODS].sort(() => Math.random() - 0.5)) if (on < 2 && Math.random() < 0.25) { c.mods[m.k] = true; on++; }
   c.ot = c.size === 'large' || c.size === 'huge' ? Math.random() < 0.85 : Math.random() < 0.12;
   save('ice-settings', settings); syncSeg(); syncText('custom'); buildPreview('custom');
-  const t = teamsFor('custom'), mn = MODS.filter(m => c.mods[m.k]).map(m => m.n.toLowerCase()); if (otActive('custom')) mn.push('overtime');
+  const t = teamsFor('custom'), mn = MODS.filter(m => modOn('custom', m.k)).map(m => m.n.toLowerCase()); if (otActive('custom')) mn.push('overtime');
   $('hintCustom').textContent = `Rolled: ${SIZE_LABEL[c.size]} ${c.shape === 'random' ? 'map' : c.shape}, ${t - 1} ${t === 2 ? 'rival' : 'rivals'}, ${c.diff}${c.special === 'on' ? ', special bases' : ''}${mn.length ? ', ' + mn.join(', ') : ''}.`;
 }
 $('bRoll').addEventListener('click', rollCustom);
@@ -9689,11 +9822,11 @@ document.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click
 $('catRules').addEventListener('click', () => { modsMode = 'custom'; renderMods(); go('scrMods'); });
 $('bSpecRules').addEventListener('click', () => { modsMode = 'spec'; renderMods(); go('scrMods'); });
 $('modsList').addEventListener('click', e => {
-  const b = e.target.closest('.modrow'); if (!b) return;
+  const b = e.target.closest('.modrow'); if (!b || b.classList.contains('blocked')) return;
   const c = settings[modsMode], k = b.dataset.m;
   if (k === 'overtime') c.ot = !c.ot; else c.mods[k] = !c.mods[k];
   save('ice-settings', settings);
-  b.setAttribute('aria-pressed', String(k === 'overtime' ? !!c.ot : c.mods[k])); syncText(modsMode); buildPreview(modsMode);
+  syncModRows(); syncText(modsMode); buildPreview(modsMode);
 });
 $('vol').addEventListener('input', () => {
   settings.volume = +$('vol').value;

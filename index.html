@@ -733,7 +733,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1080,11 +1080,16 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 // objective types: conquest (take every base), crown (King of the hill), hold (n bases, secs in a row),
 // forges (hold every Forge for secs), survive (secs). Star goals are checked once you've won.
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
+const CROWN_AI = { smart: 1, firstThink: 75 };         // T1_M2's rival: wakes at 1:15, then races for the crown like an easy rival that punishes an empty base
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Grow fast.',
     size: 'small', teams: 2, shape: 'continent', map: 'alone', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI,
-    objective: { type: 'hold', n: 14, secs: 45, text: 'Hold 14 bases for 45 seconds' },
-    stars: [{ k: 'win', t: 'Hold 14 bases for 45 seconds' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'ko', t: 'Capture the rival before you win' }] },
+    objective: { type: 'hold', n: 12, secs: 45, text: 'Hold 12 bases for 45 seconds' },
+    stars: [{ k: 'win', t: 'Hold 12 bases for 45 seconds' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'ko', t: 'Capture the rival before you win' }] },
+  { id: 'crown-duel', tier: 1, name: 'Crown Duel', desc: 'Two colors, one crown.',
+    size: 'small', teams: 2, shape: 'continent', map: 'crown-duel', diff: 'easy', seed: 9002, fair: true, mods: { koth: true }, kothTarget: 60, specials: false, aiTune: CROWN_AI,
+    objective: { type: 'crown', text: 'Hold the crown for 60 seconds' },
+    stars: [{ k: 'win', t: 'Hold the crown for 60 seconds' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'noloss', t: 'Win without losing a base' }] },
   { id: 'first-blood', tier: 1, name: 'First blood', desc: 'A head-to-head on a small map. Take every base.',
     size: 'small', teams: 2, shape: 'continent', diff: 'easy', seed: 4101, fair: true, mods: {}, specials: false,
     objective: { type: 'conquest', text: 'Take every base' },
@@ -1201,7 +1206,7 @@ const OPENING_DEFENDERS = 7; // every base next to a starting base gets the same
 // { id, w, h, size ('small'..'huge': army cap and nothing else), nodes: [[x, y]...], edges: [[a, b]...], starts: [base id per color in play, you first],
 //   optional: bridges [[a, b]...], shape, deco, specials { baseId: 'fortress'|'forge'|'beacon'|'relay' }, crown: baseId }
 // Draw them with tools/maps/mapmaker.html; validateStaticMap() lists whatever is wrong with one.
-const STATIC_MAPS = { alone: {"id": "alone", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [260, 220], [260, 480], [290, 350], [430, 130], [610, 95], [790, 130], [430, 570], [610, 605], [790, 570], [470, 350], [640, 290], [810, 350], [960, 190], [960, 350], [960, 510], [1100, 260], [1100, 440], [1210, 350], [640, 410]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 9], [3, 10], [10, 11], [11, 12], [6, 13], [9, 15], [12, 14], [13, 14], [14, 15], [13, 16], [14, 16], [14, 17], [15, 17], [16, 18], [17, 18], [10, 19], [19, 12]], "starts": [0, 18], "specials": {"5": "beacon", "8": "forge", "16": "fortress", "18": "fortress"}, "shape": "continent", "allowStartSpecials": true, "garrison": {"4": 12, "5": 14, "6": 18, "7": 12, "8": 14, "9": 18, "10": 12, "11": 14, "12": 22, "13": 24, "14": 24, "15": 24, "19": 14, "16": 20, "17": 12, "18": 24}, "owned": {"16": 1}}, surrounded: {"id": "surrounded", "w": 1308, "h": 734, "size": "medium", "nodes": [[654, 367], [95, 85], [250, 95], [420, 110], [105, 255], [300, 250], [505, 265], [1213, 85], [1058, 95], [888, 110], [1203, 255], [1008, 250], [803, 265], [95, 649], [250, 639], [420, 624], [105, 479], [300, 484], [505, 469], [1213, 649], [1058, 639], [888, 624], [1203, 479], [1008, 484], [803, 469], [654, 115], [654, 619]], "edges": [[1, 2], [2, 3], [1, 4], [2, 5], [4, 5], [5, 6], [3, 6], [6, 0], [3, 25], [6, 25], [7, 8], [8, 9], [7, 10], [8, 11], [10, 11], [11, 12], [9, 12], [12, 0], [9, 25], [12, 25], [13, 14], [14, 15], [13, 16], [14, 17], [16, 17], [17, 18], [15, 18], [18, 0], [15, 26], [18, 26], [19, 20], [20, 21], [19, 22], [20, 23], [22, 23], [23, 24], [21, 24], [24, 0], [21, 26], [24, 26], [4, 16], [10, 22]], "starts": [0, 1, 7, 19, 13]} };
+const STATIC_MAPS = { 'crown-duel': {"id": "crown-duel", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [240, 195], [240, 505], [350, 350], [480, 235], [480, 465], [420, 85], [420, 615], [1190, 350], [1060, 195], [1060, 505], [950, 350], [820, 235], [820, 465], [880, 85], [880, 615], [650, 350], [650, 70], [650, 630]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [2, 5], [3, 4], [3, 5], [1, 6], [2, 7], [6, 4], [7, 5], [4, 16], [5, 16], [6, 17], [7, 18], [8, 9], [8, 10], [8, 11], [9, 11], [10, 11], [9, 12], [10, 13], [11, 12], [11, 13], [9, 14], [10, 15], [14, 12], [15, 13], [12, 16], [13, 16], [14, 17], [15, 18]], "starts": [0, 8], "shape": "continent", "crown": 16, "garrison": {"1": 7, "2": 7, "3": 7, "4": 11, "5": 11, "6": 12, "7": 12, "9": 7, "10": 7, "11": 7, "12": 11, "13": 11, "14": 12, "15": 12, "16": 20, "17": 14, "18": 14}}, alone: {"id": "alone", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [260, 220], [260, 480], [290, 350], [430, 130], [610, 95], [790, 130], [430, 570], [610, 605], [790, 570], [470, 350], [640, 290], [810, 350], [960, 190], [960, 350], [960, 510], [1100, 260], [1100, 440], [1210, 350], [640, 410]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 9], [3, 10], [10, 11], [11, 12], [6, 13], [9, 15], [12, 14], [13, 14], [14, 15], [13, 16], [14, 16], [14, 17], [15, 17], [16, 18], [17, 18], [10, 19], [19, 12]], "starts": [0, 18], "specials": {"5": "beacon", "8": "forge", "16": "fortress", "18": "fortress"}, "shape": "continent", "allowStartSpecials": true, "garrison": {"4": 12, "5": 14, "6": 18, "7": 12, "8": 14, "9": 18, "10": 12, "11": 14, "12": 22, "13": 24, "14": 24, "15": 24, "19": 14, "16": 20, "17": 12, "18": 24}, "owned": {"16": 1}}, surrounded: {"id": "surrounded", "w": 1308, "h": 734, "size": "medium", "nodes": [[654, 367], [95, 85], [250, 95], [420, 110], [105, 255], [300, 250], [505, 265], [1213, 85], [1058, 95], [888, 110], [1203, 255], [1008, 250], [803, 265], [95, 649], [250, 639], [420, 624], [105, 479], [300, 484], [505, 469], [1213, 649], [1058, 639], [888, 624], [1203, 479], [1008, 484], [803, 469], [654, 115], [654, 619]], "edges": [[1, 2], [2, 3], [1, 4], [2, 5], [4, 5], [5, 6], [3, 6], [6, 0], [3, 25], [6, 25], [7, 8], [8, 9], [7, 10], [8, 11], [10, 11], [11, 12], [9, 12], [12, 0], [9, 25], [12, 25], [13, 14], [14, 15], [13, 16], [14, 17], [16, 17], [17, 18], [15, 18], [18, 0], [15, 26], [18, 26], [19, 20], [20, 21], [19, 22], [20, 23], [22, 23], [23, 24], [21, 24], [24, 0], [21, 26], [24, 26], [4, 16], [10, 22]], "starts": [0, 1, 7, 19, 13]} };
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -9781,7 +9786,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.0.4 LOGGER', resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.0.5 LOGGER', crown: G.crown, kothTarget: G.kothTarget, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -9804,7 +9809,7 @@ function xlSnap() {
   for (const t of G.troops) if (t.team === PLAYER && t.path.length) { const d = t.path[t.path.length - 1]; if (G.nodes[d].owner !== PLAYER) tg.add(d); }
   XL.log.snaps.push([G.step, +G.t.toFixed(1), G.teams.map(T => T.bases), G.teams.map(T => T.count), P.points, [P.lv.hp, P.lv.spd, P.lv.dmg],
     +cam.z.toFixed(2), Math.round(cam.cu), Math.round(cam.cv), $('mm').hidden ? 0 : 1, selBase == null ? -1 : selBase, G.lock[PLAYER] == null ? -1 : G.lock[PLAYER],
-    [...tg], speedMul, xlOwners()]);
+    [...tg], speedMul, xlOwners(), G.teams.map(T => +T.hill.toFixed(1))]);
 }
 function xlTick() {
   if (!G || mode !== 'play' || watching || G.over) return;
@@ -9815,7 +9820,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0 };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)) };
   xlSave();
 }
 function xlPre(n, from) {

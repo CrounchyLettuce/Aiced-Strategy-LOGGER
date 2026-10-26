@@ -733,7 +733,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1080,7 +1080,7 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 // objective types: conquest (take every base), crown (King of the hill), hold (n bases, secs in a row),
 // forges (hold every Forge for secs), survive (secs). Star goals are checked once you've won.
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
-const CROWN_AI = { smart: 1, firstThink: 75 };         // T1_M2's rival: wakes at 1:15, then races for the crown like an easy rival that punishes an empty base
+const CROWN_AI = { smart: 1, spawn: 0.6, margin: 2.6, interval: [6, 9] };         // T1_M2's rival (50.0.6): awake from the first seconds (50.0.5 slept for 75 s and a rush killed it unseen); slow, patient, punishes an empty base
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Grow fast.',
     size: 'small', teams: 2, shape: 'continent', map: 'alone', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI,
@@ -9786,7 +9786,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.0.5 LOGGER', crown: G.crown, kothTarget: G.kothTarget, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.0.6 LOGGER', crown: G.crown, kothTarget: G.kothTarget, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

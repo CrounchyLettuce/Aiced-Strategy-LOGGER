@@ -148,6 +148,9 @@ body:has(#end:not([hidden])) #hud { opacity: 0; transition: opacity .25s; }
 .back svg { width: 16px; height: 16px; }
 .big { min-height: 56px; border-radius: var(--rc); font-size: 18px; font-weight: 600; }
 .big2 { min-height: 50px; border-radius: var(--rc); font-size: 16px; font-weight: 600; }
+#bSetStyles small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 500; color: var(--dim); }
+#bSetStyles small[hidden] { display: none; }
+#bSetStyles:disabled { opacity: .5; cursor: default; }      /* 50.0.14: greyed out in a challenge that sets its own style pair */
 .small { min-height: 44px; border-radius: var(--rc); font-size: 14px; color: var(--dim); }
 .mark { display: flex; align-items: center; gap: 14px; }
 .mark svg { width: 44px; height: 44px; flex: none; }
@@ -733,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.0.14 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -811,7 +814,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="hintline" id="hintSettings" hidden></p>
     </div>
     <button class="ghost big2" data-go="scrAccess">Accessibility</button>
-    <button id="bSetStyles" class="ghost big2">Styles</button>
+    <button id="bSetStyles" class="ghost big2"><span>Styles</span><small id="setStylesOff" hidden>Unavailable on this map</small></button>
     <button id="bResetAll" class="ghost small">Reset all data</button>
   </section>
 
@@ -1080,24 +1083,22 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 // objective types: conquest (take every base), crown (King of the hill), hold (n bases, secs in a row),
 // forges (hold every Forge for secs), survive (secs). Star goals are checked once you've won.
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
-const CROWN_AI = { smart: 1, spawn: 0.6, margin: 2.6, interval: [6, 9] };         // T1_M2's rival (50.0.6): awake from the first seconds (50.0.5 slept for 75 s and a rush killed it unseen); slow, patient, punishes an empty base
+const CROWN_AI = { smart: 0, spawn: 0.3, margin: 2.6, interval: [6, 9], crownMargin: 1.0, crownFrac: 1 };         // T1_M2's rival (50.0.7, draft 3 "take the crown back"): starts next to the crown and goes for it at once (crownMargin, crownFrac), slow to build and patient about everything else so a newcomer can still catch up
+const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const SCENARIOS = [
-  { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Grow fast.',
-    size: 'small', teams: 2, shape: 'continent', map: 'alone', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI,
-    objective: { type: 'hold', n: 12, secs: 45, text: 'Hold 12 bases for 45 seconds' },
-    stars: [{ k: 'win', t: 'Hold 12 bases for 45 seconds' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'ko', t: 'Capture the rival before you win' }] },
-  { id: 'crown-duel', tier: 1, name: 'Crown Duel', desc: 'Two colors, one crown.',
-    size: 'small', teams: 2, shape: 'continent', map: 'crown-duel', diff: 'easy', seed: 9002, fair: true, mods: { koth: true }, kothTarget: 60, specials: false, aiTune: CROWN_AI,
-    objective: { type: 'crown', text: 'Hold the crown for 60 seconds' },
-    stars: [{ k: 'win', t: 'Hold the crown for 60 seconds' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'noloss', t: 'Win without losing a base' }] },
-  { id: 'first-blood', tier: 1, name: 'First blood', desc: 'A head-to-head on a small map. Take every base.',
-    size: 'small', teams: 2, shape: 'continent', diff: 'easy', seed: 4101, fair: true, mods: {}, specials: false,
+  { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
+    size: 'small', teams: 2, shape: 'continent', map: 'alone', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI, rule: "Take a base and it'll make troops for you. Take another, and you can see where this is going. Godspeed.",
+    objective: { type: 'hold', n: 12, secs: 45, text: 'Hold 12 bases for 45 seconds straight' },
+    stars: [{ k: 'win', t: 'Hold 12 bases for 45 seconds straight' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'ko', t: 'Capture all rival bases before you win' }] },   // star 3's line holds because this rival never sends troops, so taking its bases knocks it out
+  { id: 'crown-duel', tier: 1, name: 'Hot Seat', desc: 'Two colors, one crown.',
+    size: 'small', teams: 2, shape: 'continent', map: 'crown-duel', diff: 'easy', seed: 9002, fair: true, mods: { koth: true }, kothTarget: 60, kothRival: 150, specials: false, aiTune: CROWN_AI, rule: "The rival has the better seat. You'll have to build the better army.",      // 50.0.14: renamed from Crown Duel (that name is banked for a later level)
+    objective: { type: 'crown', text: 'Hold the crown for a total of 60 seconds' },
+    stars: [{ k: 'win', t: 'Hold the crown for a total of 60 seconds' }, { k: 'time', v: 180, t: 'Win in under 3:00' }, { k: 'hillcap', v: 10, t: 'Win before the rival banks 10 seconds on the crown' }] },
+  { id: 'bases-loaded', tier: 1, name: 'Border Dispute', desc: 'Neither side has any paperwork.',      // 50.0.14: renamed from Bases Loaded
+    size: 'small', teams: 2, shape: 'continent', map: 'bases-loaded', diff: 'easy', seed: 9003, fair: true, mods: {}, specials: false, aiTune: LOADED_AI, forcePair: 'atlas', rule: 'Two roads, and the rival is waiting at the end of both. If only you could be in two places at once...',
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 240, t: 'Win in under 4:00' }, { k: 'noloss', t: 'Win without losing a base' }] },
-  { id: 'crown-rush', tier: 1, name: 'Crown rush', desc: 'Two colors race for a crown in the middle of a ring.',
-    size: 'small', teams: 2, shape: 'ring', diff: 'normal', seed: 7134, fair: true, mods: { koth: true }, specials: false,
-    objective: { type: 'crown', text: 'Hold the crown for 90 seconds' },
-    stars: [{ k: 'win', t: 'Hold the crown for 90 seconds' }, { k: 'time', v: 180, t: 'Win in under 3:00' }, { k: 'bases', v: 8, t: 'Finish with 8 or more bases' }] },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 270, t: 'Win in under 4:30' }, { k: 'time', v: 55, t: 'Win in under 0:55' }] },   // 50.0.12: stars from Henry's runs (0:50 to 0:56 at his best; 3:19 and 3:57 handicapped); star 3 was 0:52 in 50.0.11
+  // 50.0.10: the old Tier 1 maps First blood and Crown rush are retired (Henry, Oct 27); their entries are kept in src5009\core.js
   { id: 'iron-wall', tier: 2, name: 'Iron wall', desc: 'Islands, bridges and two rivals. Build a territory and hold it.',
     size: 'medium', teams: 3, shape: 'islands', diff: 'hard', seed: 7065, fair: true, mods: {}, specials: true, aiTune: { margin: 1.4, spawn: 1.02, playerBias: 0.25 },
     objective: { type: 'hold', n: 12, secs: 120, text: 'Hold 12 bases for 2 minutes' },
@@ -1168,7 +1169,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1179,6 +1180,7 @@ function starMet(g) {
     case 'nostat': return P.lv[g.v] === 0;
     case 'bases': return P.bases >= g.v;
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive);
+    case 'hillcap': return G.teams.every(T => T.i === PLAYER || !T.active || T.hill < g.v);   // 50.0.7: no rival banked this much crown time
   }
   return false;
 }
@@ -1188,6 +1190,7 @@ function evalStars() {                                // [objective done, second
   return out;
 }
 const KOTH_TARGET = 90;                               // seconds a color must hold the crown, in total, to win
+function kothGoal(i) { return G.kothRival && i !== PLAYER ? G.kothRival : G.kothTarget; }   // 50.0.7: a challenge can give its rivals a longer crown clock than yours (kothRival); 0 everywhere else, so every other match is unchanged
 const FOG_BASE_R = 180, FOG_TROOP_R = 95;             // how far a base / a troop sees under fog of war
 const UPG = ['hp', 'spd', 'dmg'];
 // map sizes: base count, world size (bases keep the same spacing), and how much each base adds to your army limit
@@ -1206,7 +1209,7 @@ const OPENING_DEFENDERS = 7; // every base next to a starting base gets the same
 // { id, w, h, size ('small'..'huge': army cap and nothing else), nodes: [[x, y]...], edges: [[a, b]...], starts: [base id per color in play, you first],
 //   optional: bridges [[a, b]...], shape, deco, specials { baseId: 'fortress'|'forge'|'beacon'|'relay' }, crown: baseId }
 // Draw them with tools/maps/mapmaker.html; validateStaticMap() lists whatever is wrong with one.
-const STATIC_MAPS = { 'crown-duel': {"id": "crown-duel", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [240, 195], [240, 505], [350, 350], [480, 235], [480, 465], [420, 85], [420, 615], [1190, 350], [1060, 195], [1060, 505], [950, 350], [820, 235], [820, 465], [880, 85], [880, 615], [650, 350], [650, 70], [650, 630]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [2, 5], [3, 4], [3, 5], [1, 6], [2, 7], [6, 4], [7, 5], [4, 16], [5, 16], [6, 17], [7, 18], [8, 9], [8, 10], [8, 11], [9, 11], [10, 11], [9, 12], [10, 13], [11, 12], [11, 13], [9, 14], [10, 15], [14, 12], [15, 13], [12, 16], [13, 16], [14, 17], [15, 18]], "starts": [0, 8], "shape": "continent", "crown": 16, "garrison": {"1": 7, "2": 7, "3": 7, "4": 11, "5": 11, "6": 12, "7": 12, "9": 7, "10": 7, "11": 7, "12": 11, "13": 11, "14": 12, "15": 12, "16": 20, "17": 14, "18": 14}}, alone: {"id": "alone", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [260, 220], [260, 480], [290, 350], [430, 130], [610, 95], [790, 130], [430, 570], [610, 605], [790, 570], [470, 350], [640, 290], [810, 350], [960, 190], [960, 350], [960, 510], [1100, 260], [1100, 440], [1210, 350], [640, 410]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 9], [3, 10], [10, 11], [11, 12], [6, 13], [9, 15], [12, 14], [13, 14], [14, 15], [13, 16], [14, 16], [14, 17], [15, 17], [16, 18], [17, 18], [10, 19], [19, 12]], "starts": [0, 18], "specials": {"5": "beacon", "8": "forge", "16": "fortress", "18": "fortress"}, "shape": "continent", "allowStartSpecials": true, "garrison": {"4": 12, "5": 14, "6": 18, "7": 12, "8": 14, "9": 18, "10": 12, "11": 14, "12": 22, "13": 24, "14": 24, "15": 24, "19": 14, "16": 20, "17": 12, "18": 24}, "owned": {"16": 1}}, surrounded: {"id": "surrounded", "w": 1308, "h": 734, "size": "medium", "nodes": [[654, 367], [95, 85], [250, 95], [420, 110], [105, 255], [300, 250], [505, 265], [1213, 85], [1058, 95], [888, 110], [1203, 255], [1008, 250], [803, 265], [95, 649], [250, 639], [420, 624], [105, 479], [300, 484], [505, 469], [1213, 649], [1058, 639], [888, 624], [1203, 479], [1008, 484], [803, 469], [654, 115], [654, 619]], "edges": [[1, 2], [2, 3], [1, 4], [2, 5], [4, 5], [5, 6], [3, 6], [6, 0], [3, 25], [6, 25], [7, 8], [8, 9], [7, 10], [8, 11], [10, 11], [11, 12], [9, 12], [12, 0], [9, 25], [12, 25], [13, 14], [14, 15], [13, 16], [14, 17], [16, 17], [17, 18], [15, 18], [18, 0], [15, 26], [18, 26], [19, 20], [20, 21], [19, 22], [20, 23], [22, 23], [23, 24], [21, 24], [24, 0], [21, 26], [24, 26], [4, 16], [10, 22]], "starts": [0, 1, 7, 19, 13]} };
+const STATIC_MAPS = { 'bases-loaded': {"id": "bases-loaded", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [230, 210], [370, 130], [520, 100], [230, 490], [370, 570], [520, 600], [400, 350], [1190, 350], [1070, 210], [930, 130], [780, 100], [1070, 490], [930, 570], [780, 600], [900, 350]], "edges": [[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [5, 6], [0, 7], [7, 2], [7, 5], [8, 9], [9, 10], [10, 11], [8, 12], [12, 13], [13, 14], [8, 15], [15, 10], [15, 13], [3, 11], [6, 14]], "starts": [0, 8], "shape": "continent", "garrison": {"1": 6, "2": 6, "3": 12, "4": 6, "5": 6, "6": 12, "7": 6, "9": 6, "10": 6, "11": 12, "12": 6, "13": 6, "14": 12, "15": 6, "0": 10, "8": 10}, "owned": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "9": 1, "10": 1, "11": 1, "12": 1, "13": 1, "14": 1, "15": 1}}, 'crown-duel': {"id": "crown-duel", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [240, 195], [240, 505], [350, 350], [480, 235], [480, 465], [420, 85], [420, 615], [1190, 350], [1060, 195], [1060, 505], [950, 350], [820, 235], [820, 465], [880, 85], [880, 615], [650, 350], [650, 70], [650, 630]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [2, 5], [3, 4], [3, 5], [1, 6], [2, 7], [6, 4], [7, 5], [4, 16], [5, 16], [6, 17], [7, 18], [8, 9], [8, 10], [8, 11], [9, 11], [10, 11], [9, 12], [10, 13], [11, 12], [11, 13], [9, 14], [10, 15], [14, 12], [15, 13], [12, 16], [13, 16], [14, 17], [15, 18]], "starts": [0, 8], "shape": "continent", "crown": 16, "garrison": {"1": 7, "2": 7, "3": 7, "4": 11, "5": 11, "6": 12, "7": 12, "9": 7, "10": 7, "11": 7, "12": 6, "13": 6, "14": 12, "15": 12, "16": 14, "17": 14, "18": 14}, "owned": {"12": 1, "13": 1}}, alone: {"id": "alone", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [260, 220], [260, 480], [290, 350], [430, 130], [610, 95], [790, 130], [430, 570], [610, 605], [790, 570], [470, 350], [640, 290], [810, 350], [960, 190], [960, 350], [960, 510], [1100, 260], [1100, 440], [1210, 350], [640, 410]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 9], [3, 10], [10, 11], [11, 12], [6, 13], [9, 15], [12, 14], [13, 14], [14, 15], [13, 16], [14, 16], [14, 17], [15, 17], [16, 18], [17, 18], [10, 19], [19, 12]], "starts": [0, 18], "specials": {"5": "beacon", "8": "forge", "16": "fortress", "18": "fortress"}, "shape": "continent", "allowStartSpecials": true, "garrison": {"4": 12, "5": 14, "6": 18, "7": 12, "8": 14, "9": 18, "10": 12, "11": 14, "12": 22, "13": 24, "14": 24, "15": 24, "19": 14, "16": 20, "17": 12, "18": 24}, "owned": {"16": 1}}, surrounded: {"id": "surrounded", "w": 1308, "h": 734, "size": "medium", "nodes": [[654, 367], [95, 85], [250, 95], [420, 110], [105, 255], [300, 250], [505, 265], [1213, 85], [1058, 95], [888, 110], [1203, 255], [1008, 250], [803, 265], [95, 649], [250, 639], [420, 624], [105, 479], [300, 484], [505, 469], [1213, 649], [1058, 639], [888, 624], [1203, 479], [1008, 484], [803, 469], [654, 115], [654, 619]], "edges": [[1, 2], [2, 3], [1, 4], [2, 5], [4, 5], [5, 6], [3, 6], [6, 0], [3, 25], [6, 25], [7, 8], [8, 9], [7, 10], [8, 11], [10, 11], [11, 12], [9, 12], [12, 0], [9, 25], [12, 25], [13, 14], [14, 15], [13, 16], [14, 17], [16, 17], [17, 18], [15, 18], [18, 0], [15, 26], [18, 26], [19, 20], [20, 21], [19, 22], [20, 23], [22, 23], [23, 24], [21, 24], [24, 0], [21, 26], [24, 26], [4, 16], [10, 22]], "starts": [0, 1, 7, 19, 13]} };
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1248,7 +1251,7 @@ function validateStaticMap(mp) {
     if (mp.owned) for (const [id, j] of Object.entries(mp.owned)) {
       if (!(id in P)) bad.push('owned base ' + id + ' is not there');
       else if (S.includes(+id)) bad.push('owned base ' + id + ' is already a start');
-      if (!Number.isInteger(j) || j < 1 || j >= S.length) bad.push('owned base ' + id + ' names a team that is not in play');
+      if (!Number.isInteger(j) || j < 0 || j >= S.length) bad.push('owned base ' + id + ' names a team that is not in play');   // 50.0.9: 0 (you) is allowed; Bases Loaded starts you on eight bases
     }
     if (mp.crown != null && (!Number.isInteger(mp.crown) || mp.crown < 0 || mp.crown >= N || S.includes(mp.crown))) bad.push('crown must be a base that is not a start');
   }
@@ -1513,7 +1516,7 @@ function newGame(opts) {
   G = {
     t: 0, step: 0, nodes, edges: m.edges, troops: [], nextId: 1, rng, seed,
     shape: m.shape || 'continent', deco: m.deco || null,
-    mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
+    mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
@@ -2056,7 +2059,7 @@ function objStep(dt) {                                // progress toward a chall
 function checkEnd() {
   const N = G.nodes.length, P = G.teams[PLAYER], o = G.obj;
   const owner = G.teams.find(T => T.bases === N);
-  const king = G.mods.koth && G.crown >= 0 ? G.teams.find(T => T.hill >= G.kothTarget) : null;
+  const king = G.mods.koth && G.crown >= 0 ? G.teams.find(T => T.hill >= kothGoal(T.i)) : null;
   let w = owner || king, reason = owner ? 'conquest' : 'crown';
   if (!w && P.alive && ((o.type === 'hold' && G.os.hold >= o.secs) || (o.type === 'forges' && G.os.forges >= o.secs) || (o.type === 'survive' && G.os.surv >= o.secs))) { w = P; reason = 'objective'; }
   if (w) { G.over = true; G.winner = w.i; G.result = w.i === PLAYER ? 'win' : 'lose'; G.endReason = reason; }
@@ -2422,7 +2425,8 @@ function aiThink(team) {
       if (bAllow && o >= 0 && !bAllow[o]) continue;   // BOUNTY: only the allowed colours (and neutrals) are targets
       if (v === T.avoid && G.t < T.avoidUntil) continue;  // just got bounced off this one
       const def = enemyAt(v), rt = routeTable(team, v);
-      let need = Math.max(5, def * margin + 1.2) / frac, fr = frac;
+      const cB = nodes[v].crown && D.crownMargin, cf = cB ? (D.crownFrac || frac) : frac;   // 50.0.7: a challenge rival can be bolder about the crown alone (crownMargin, crownFrac); no other rival has them
+      let need = Math.max(5, def * (cB ? D.crownMargin : margin) + 1.2) / cf, fr = cf;
       const fl = (T.fail && T.fail.v === v && G.t - T.fail.t < 150) ? T.fail.n : 0;   // failed attacks on this very base: ask for x1.5 more each time
       if (fl) need *= Math.pow(1.5, fl);
       let R = gatherRadius(rt, need);
@@ -2436,7 +2440,7 @@ function aiThink(team) {
       let sc = (avail - def) / (def + 2) - R / (1500 / ((D.dly && D.dly.near) || 1));    // nearer targets win ties
       sc += (seen && !seen[v] ? 0 : (1 - nodes[v].hp / nodes[v].maxHp)) * 0.8;
       if (nodes[v].kind) sc += ((T.style.pref || {})[nodes[v].kind] || 0.6) * 0.8;   // each personality has its favorites
-      if (nodes[v].crown) sc += 1.0 + 2.2 * (o >= 0 && o !== team ? G.teams[o].hill / G.kothTarget : 0);   // and everyone chases whoever is close to winning
+      if (nodes[v].crown) sc += 1.0 + 2.2 * (o >= 0 && o !== team ? G.teams[o].hill / kothGoal(o) : 0);   // and everyone chases whoever is close to winning
       if (hopCrown && hopCrown[v] >= 0) sc += 1.6 * Math.max(0, 1 - hopCrown[v] / 7);                         // and heads for it: bases on the way count extra
       if (o === NEUTRAL) sc += 0.6;
       else {
@@ -2592,6 +2596,7 @@ const SHOP_PAIRS = [{ id: 'classic', v: 'classic', s: 'simple', free: true }, { 
   { id: 'pixel', v: 'pixel', s: 'chip' }, { id: 'nebula', v: 'nebula', s: 'cosmos' }, { id: 'rime', v: 'rime', s: 'floe' },
   { id: 'clockwork', v: 'clockwork', s: 'musicbox' }, { id: 'neon', v: 'neon', s: 'rain' }, { id: 'ink', v: 'ink', s: 'tide' }, { id: 'sand', v: 'sand', s: 'bowl' }];          // 49.4, 49.5, 49.6, 49.7
 let shopReal = null;      // while the Shop is open: the styles you actually have selected (the map may be showing a preview)
+let forcedReal = null;    // 50.0.13: while a challenge with `forcePair` is on screen: your own styles (the match shows the level's pair, owned or not)
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
 const field = $('field'), hudEl = $('hud');
@@ -2658,7 +2663,7 @@ function load(k, d) {
   try { const v = JSON.parse(localStorage.getItem(k)); return Object.assign({}, d, isObj(v) ? v : {}); }
   catch (e) { return Object.assign({}, d); }
 }
-function save(k, v) { if (k === 'ice-settings' && shopReal) v = Object.assign({}, v, shopReal); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }     // a Shop preview is never saved
+function save(k, v) { if (k === 'ice-settings' && (shopReal || forcedReal)) v = Object.assign({}, v, forcedReal, shopReal); try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }     // a Shop preview is never saved
 const COLOR_KEYS = ['blue', 'red', 'green', 'yellow', 'purple'];
 const settings = load('ice-settings', { send: 1, sound: true, rivals: false, volume: 75, tone: 'simple' });
 const rnd32 = () => (Math.random() * 4294967296) >>> 0;
@@ -3689,7 +3694,7 @@ function drawAtlasFront(now) {
   }
 }
 function drawCrown(n, now) {                         // a gold crown over the base, and the holder's progress as a ring
-  const holder = n.owner, frac = holder >= 0 ? Math.min(1, G.teams[holder].hill / G.kothTarget) : 0;
+  const holder = n.owner, frac = holder >= 0 ? Math.min(1, G.teams[holder].hill / kothGoal(holder)) : 0;
   ctx.save(); ctx.translate(n.x, n.y);
   if (frac > 0) {
     ctx.lineWidth = 2.4; ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.stroke();
@@ -6102,7 +6107,7 @@ function pxBases(now, tk) {
     } else if (own) pxStamp(pxSprite(SYM ? PXM[symOf(n.owner)] : PXM.core, col, true), cx, cy);
     else pxStamp(pxSprite(SYM ? PXM.hollow : PXM.neutral, col, !SYM), cx, cy);
     if (n.crown) {
-      const holder = n.owner, frac = holder >= 0 ? Math.min(1, G.teams[holder].hill / G.kothTarget) : 0;
+      const holder = n.owner, frac = holder >= 0 ? Math.min(1, G.teams[holder].hill / kothGoal(holder)) : 0;
       if (frac > 0) {
         x.fillStyle = 'rgba(255,255,255,0.18)'; x.beginPath(); pxRing(cx, cy, 10, 1, frac, 1); x.fill();
         x.fillStyle = colorOf(holder); x.beginPath(); pxRing(cx, cy, 10, 1, 0, frac); x.fill();
@@ -6539,12 +6544,12 @@ function hud() {
   }
   if (G.mods.koth && G.crown >= 0) {
     $('kothRow').hidden = false;                       // also when Overtime raises a crown mid-match                // the crown race: whoever has banked the most time
-    let lead = null; for (const T of G.teams) if (T.active && (!lead || T.hill > lead.hill)) lead = T;
+    let lead = null; for (const T of G.teams) if (T.active && (!lead || T.hill / kothGoal(T.i) > lead.hill / kothGoal(lead.i))) lead = T;   // 50.0.7: closest to its own target (a challenge rival can need longer)
     const col = lead.hill > 0 ? TEAM_COLORS[lead.i] : '#6a6a70', k = $('kothRow');
-    setText($('kothTxt'), `${Math.floor(lead.hill)} / ${G.kothTarget}`);
+    setText($('kothTxt'), `${Math.floor(lead.hill)} / ${kothGoal(lead.i)}`);
     setStyle(k.querySelector('.sw'), 'background', col); setStyle($('kothFill'), 'background', col);
     const ks = String(lead.hill > 0 ? TEAM_SLOT[lead.i] : -1), ksw = k.querySelector('.sw'); if (ksw.dataset.s !== ks) ksw.dataset.s = ks;
-    setStyle($('kothFill'), 'width', Math.min(100, lead.hill / G.kothTarget * 100).toFixed(1) + '%');
+    setStyle($('kothFill'), 'width', Math.min(100, lead.hill / kothGoal(lead.i) * 100).toFixed(1) + '%');
   }
   renderRules();
   refreshInfo();
@@ -8968,7 +8973,8 @@ function showScreen(id) {
   pvOnly = !!m;                                       // setup screens show the map as a preview behind the deck, not the live world
   if (isDeck) dkEnter(id);
   if (m) { syncSeg(); syncText(m); buildPreview(m); }
-  if (id === 'scrSettings') { settingsKey = 'volume'; syncGlobalSeg(); renderSettingsHint(); }
+  if (id === 'scrSettings') { $('bSetStyles').disabled = !!forcedReal; $('setStylesOff').hidden = !forcedReal;      // 50.0.14: in a challenge that sets its own pair, Styles shows greyed out with a reason (was hidden in 50.0.13)
+    settingsKey = 'volume'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrAccess') { settingsKey = 'colors'; syncGlobalSeg(); renderSettingsHint(); }
   if (id === 'scrPlay') { updateLadderBlurb(); refreshResume(); }
   if (id === 'scrStats') renderStats();
@@ -9009,6 +9015,19 @@ function shopStarSync() {                           // every challenge star pays
   const tot = SCENARIOS.reduce((a, c) => a + starsOfId(c.id).filter(Boolean).length, 0);
   if (tot <= shop.stars) return 0;
   const g = tot - shop.stars; shop.stars = tot; shop.tok += g; saveShop(); return g;
+}
+function forceStyles(pairId) {                     // 50.0.13: a challenge can name a style pair (`forcePair` in SCENARIOS) that every player sees, owned or not; null puts yours back
+  const P = pairId && SHOP_PAIRS.find(x => x.id === pairId);
+  if (!P) { releaseStyles(); return; }
+  if (!forcedReal) forcedReal = { visual: settings.visual, tone: settings.tone };
+  if (settings.visual !== P.v) applyStyle('visual', P.v);
+  if (settings.tone !== P.s) applyStyle('tone', P.s, true);
+}
+function releaseStyles() {                          // leaving a forced challenge: your own pair comes back (it was never saved over, see save())
+  const r = forcedReal; if (!r) return;
+  forcedReal = null;
+  if (settings.visual !== r.visual) applyStyle('visual', r.visual);
+  if (settings.tone !== r.tone) applyStyle('tone', r.tone, true);
 }
 function openShop(ownedOnly) {
   shopOwnedOnly = ownedOnly; shopReal = { visual: settings.visual, tone: settings.tone };
@@ -9169,6 +9188,7 @@ function goalState(g, P) {
     case 'nostat': return P.lv[g.v] > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
     case 'bases': return { s: P.bases >= g.v ? 'ok' : 'pending', n: `${P.bases}/${g.v}` };
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive) ? { s: 'ok', n: '' } : { s: 'pending', n: '' };
+    case 'hillcap': { let h = 0; for (const T of G.teams) if (T.i !== PLAYER && T.active) h = Math.max(h, T.hill); return h >= g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: `${Math.floor(h)}/${g.v} s` }; }
   }
   return { s: 'pending', n: '' };
 }
@@ -9380,6 +9400,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   else if (curPrac) newGame(practiceOpts(curPrac));          // a practice lesson: tiny map, a rival that never attacks
   else if (curScen) newGame({ scenario: curScen });          // fixed map and rules: the same every attempt
   else { newGame(PERF && window.__fixedOnce ? Object.assign(optsFor(curModeKey), { fixedMap: window.__fixedOnce, teams: 0 }) : optsFor(curModeKey)); cfg.seed = rnd32(); save('ice-settings', settings); }   // play the previewed map, then roll the next one
+  { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
   setMinimap(false); fling.vx = fling.vy = 0;
   G.autoplay = watching;
@@ -9617,7 +9638,7 @@ function showEnd() {
   if (G.endReason === 'crown') {                    // a King of the hill finish
     const w = G.winner, you = !watching && w === PLAYER;
     t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[w]}" style="background:${TEAM_COLORS[w]}"></span>${END_TEXT.head.crown(you, TEAM_NAMES[w])}`;
-    sub.textContent = END_TEXT.sum.crown(you, TEAM_NAMES[w], G.crown2 >= 0, G.kothTarget, fmt(G.t), G.teams[w].bases, G.nodes.length);
+    sub.textContent = END_TEXT.sum.crown(you, TEAM_NAMES[w], G.crown2 >= 0, kothGoal(w), fmt(G.t), G.teams[w].bases, G.nodes.length);
   }
   if (G.diffName === 'random' && !G.scenarioId) {   // the secret rolls, revealed
     const list = G.teams.filter(T => T.active && (watching || T.i !== PLAYER)).map(T => `${TEAM_NAMES[T.i]} ${DIFF_LABEL[T.diffName]}`).join(', ');
@@ -9701,7 +9722,7 @@ $('endTabs').addEventListener('keydown', e => {
   endTab(n.dataset.p); n.focus(); e.preventDefault();
 });
 function toMenu() {
-  coachEnd();
+  coachEnd(); releaseStyles();
   hideInfo(); watching = false; hudEl.classList.remove('watch');
   show('end', false); hudEl.hidden = true;
   startDemo(); resetCam(); layout(); renderRecord(); resetStack('scrHome'); show('menu', true); showUnlockPop();
@@ -9750,7 +9771,7 @@ function renderInfo() {
     (blind ? `<div class="il">Out of sight. Showing what you last saw.</div>` :
       `<div class="ib"><i style="width:${Math.round(100 * n.hp / n.maxHp)}%;background:${col}"></i></div>` +
       `<div class="il">Health ${Math.round(n.hp)} / ${n.maxHp} &middot; Defenders ${def}</div>`) +
-    (sp ? `<div>${sp.text}</div>` : '') + (n.crown ? `<div>${G.crown2 >= 0 ? 'Hold both crowns' : 'Hold the crown'} for ${G.kothTarget} seconds in total to win.</div>` : '');
+    (sp ? `<div>${sp.text}</div>` : '') + (n.crown ? `<div>${G.crown2 >= 0 ? 'Hold both crowns' : 'Hold the crown'} for ${kothGoal(PLAYER)} seconds in total to win.${G.kothRival ? ` Rivals need ${G.kothRival}.` : ''}</div>` : '');
 }
 function positionInfo() {
   const el = $('info'), p = toScreen(infoNode.x, infoNode.y), w = 232, h = el.offsetHeight || 90;
@@ -9786,7 +9807,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.0.6 LOGGER', crown: G.crown, kothTarget: G.kothTarget, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.0.14 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -10045,7 +10066,8 @@ function doResetAll() {
   unlocks.deadly = false; unlocks.deadlyCustom = false; unlocks.tiers = false; unlocks.brutal = false; unlocks.brutalCustom = false; unlocks.challenge = false; save('ice-unlocks', unlocks); updateLadderBlurb();
   for (const k of ['classic', 'custom', 'spec']) if (settings[k] && (settings[k].diff === 'deadly' || settings[k].diff === 'brutal')) settings[k].diff = 'hard';           // a Deadly that is locked again cannot stay picked
   shop.tok = 0; shop.prog = 0; shop.n = 0; shop.stars = 0; for (const P of SHOP_PAIRS) { shop.own['v:' + P.v] = shop.own['s:' + P.s] = !!P.free; } saveShop(); syncShopDot();     // 49.2: tokens and styles too
-  if (settings.visual !== 'classic') applyStyle('visual', 'classic'); if (settings.tone !== 'simple') applyStyle('tone', 'simple', true);
+  if (forcedReal) forcedReal = { visual: 'classic', tone: 'simple' };     // 50.0.13: reset inside a forced challenge: the match keeps its pair, you get the free pair back when you leave
+  else { if (settings.visual !== 'classic') applyStyle('visual', 'classic'); if (settings.tone !== 'simple') applyStyle('tone', 'simple', true); }
   save('ice-settings', settings); syncSeg(); syncAllText();
 }
 // Unlock everything (hidden Picture quality screen): two taps. Brutal, Deadly (Classic and Custom), Challenge Maps and every challenge tier. No stars are awarded.
@@ -10082,6 +10104,8 @@ $('bSpeed').addEventListener('click', () => { if (mode !== 'play') return; const
 $('statsBtn').addEventListener('click', () => {
   if (!watching && !hasRules) return;
   if (statsHold) { setMinimap(false); layout(); return; }                   // the panel was folded for the minimap: tapping it puts the minimap away and the panel back
+  const peeking = performance.now() < peekUntil; peekUntil = 0;             // 50.0.12: a tap ends a challenge's opening peek at its rules; if only the peek held the panel open, the tap just closes it
+  if (peeking && !(watching ? watchRivals : settings.rivals)) { syncRivals(); layout(); return; }
   if (watching) watchRivals = !watchRivals;
   else { settings.rivals = !settings.rivals; save('ice-settings', settings); }
   syncRivals(); layout();
@@ -10305,7 +10329,7 @@ function ftCrown() {                                      // King of the hill: t
   const o = G.nodes[G.crown].owner, o2 = G.crown2 >= 0 ? G.nodes[G.crown2].owner : o;
   if (o < 0 || o2 !== o) return null;                      // only whoever is banking the seconds right now; a lost hill lets the tension go
   const best = G.teams[o]; if (!best || !best.active) return null;
-  const left = G.kothTarget - best.hill, W = 15; if (left > W) return null;
+  const left = kothGoal(best.i) - best.hill, W = 15; if (left > W) return null;
   return { kind: best.i === PLAYER ? 'win' : 'loss', g: Math.max(0, Math.min(1, 1 - left / W)) };
 }
 function ftStep(dt) {                                      // the gauge, every frame of a match you are playing

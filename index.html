@@ -736,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1386,8 +1386,31 @@ function makeShape(shape, rng, N) {
   }
   return { inside: () => true, deco: null };
 }
-// keep: rectangles (world units) where no base may sit, so the floating HUD never covers one
-function randomMap(rng, spec, keep, k, shapeName, fair) {
+// MAP FOOTPRINT (50.1.3, map-box step B; MAP_BOX_DESIGN.md). The land's outline is made first and the world box (W x H) wraps it.
+// 'box': the land is the whole box, at a set width-to-height (1.78 unless given): every generated map before New-Gen, unchanged to the bit.
+// 'blob': a soft outline (a circle bent by four slow waves, stretched and turned), scaled so the LAND has the area asked for.
+// A blob rolls its own dice from the seed, so the match's dice are untouched. `land(x, y)`: on land; `inside(x, y)`: room for a base there.
+const FP_EDGE = [70, 66];                 // room between the land's outermost point and the world's edge (the inset bases always had)
+const FP_COAST = 28;                      // no base closer than this to a blob's coast
+function makeFootprint(kind, area, seed, aspect) {
+  if (kind !== 'blob') { const h = Math.sqrt(area / (aspect > 0 ? aspect : 1.78)); return { kind: 'box', W: area / h, H: h, outline: null, land: () => true, inside: () => true }; }
+  const r = mulberry32((seed ^ 0x2f6b7c1d) >>> 0), M = 120;
+  const waves = [[2, 0.24], [3, 0.16], [4, 0.09], [5, 0.05]].map(([k, a]) => ({ k, a: r() * a, ph: r() * 6.2832 }));
+  const st = Math.sqrt(1 + r() * 0.8), turn = r() * Math.PI, ct = Math.cos(turn), sn = Math.sin(turn), P = [];
+  for (let i = 0; i < M; i++) {
+    const t = i / M * 6.2832; let rr = 1; for (const w of waves) rr += w.a * Math.sin(w.k * t + w.ph);
+    const x = Math.cos(t) * rr * st, y = Math.sin(t) * rr / st; P.push([x * ct - y * sn, x * sn + y * ct]);
+  }
+  let A = 0; for (let i = 0; i < M; i++) { const p = P[i], q = P[(i + 1) % M]; A += p[0] * q[1] - q[0] * p[1]; }
+  const s = Math.sqrt(area / (Math.abs(A) / 2)); let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of P) { p[0] *= s; p[1] *= s; x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+  for (const p of P) { p[0] = Math.round(p[0] - x0 + FP_EDGE[0]); p[1] = Math.round(p[1] - y0 + FP_EDGE[1]); }
+  const land = (x, y) => { let c = false; for (let i = 0, j = M - 1; i < M; j = i++) { const a = P[i], b = P[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+  const inside = (x, y) => land(x, y) && P.every((p, i) => segDist([x, y], p, P[(i + 1) % M]) >= FP_COAST);
+  return { kind: 'blob', W: Math.round(x1 - x0) + 2 * FP_EDGE[0], H: Math.round(y1 - y0) + 2 * FP_EDGE[1], outline: P, land, inside };
+}
+// keep: rectangles (world units) where no base may sit, so the floating HUD never covers one. fp: a footprint other than the plain box (50.1.3), or null
+function randomMap(rng, spec, keep, k, shapeName, fair, fp) {
   keep = keep || [];
   const shape = SHAPES.includes(shapeName) ? shapeName : 'continent';
   const blocked = p => keep.some(r => p[0] > r.x0 && p[0] < r.x1 && p[1] > r.y0 && p[1] < r.y1);
@@ -1399,7 +1422,7 @@ function randomMap(rng, spec, keep, k, shapeName, fair) {
     while (pts.length < N && tries < 9000) {
       tries++;
       const p = [70 + rng() * (W - 140), 66 + rng() * (H - 132)];
-      if (blocked(p) || !S.inside(p[0], p[1])) continue;
+      if (blocked(p) || !S.inside(p[0], p[1]) || (fp && !fp.inside(p[0], p[1]))) continue;
       let ok = true;
       for (const q of pts) if ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < 100 * 100) { ok = false; break; }
       if (ok) pts.push(p);
@@ -1417,7 +1440,7 @@ function randomMap(rng, spec, keep, k, shapeName, fair) {
         if (Math.max(d(i, kk), d(j, kk)) < dij) rngEdge = false;
         if ((pts[kk][0] - mx) ** 2 + (pts[kk][1] - my) ** 2 < r2) gab = false;
       }
-      const wet = (grp && grp[i] !== grp[j]) || (S.cut && S.cut(pts[i], pts[j]));
+      const wet = (grp && grp[i] !== grp[j]) || (S.cut && S.cut(pts[i], pts[j])) || (fp && [0.25, 0.5, 0.75].some(t => !fp.land(pts[i][0] + (pts[j][0] - pts[i][0]) * t, pts[i][1] + (pts[j][1] - pts[i][1]) * t)));   // 50.1.3: a link across a bay is not a road
       if (wet) { if (gab || rngEdge) across.push([dij, i, j]); continue; }
       if (rngEdge) edges.push([i, j]);                                   // backbone
       else if (gab && dij < 250 && rng() < 0.34) edges.push([i, j]);     // a few extra loops for strategy
@@ -1461,7 +1484,7 @@ function randomMap(rng, spec, keep, k, shapeName, fair) {
     if (starts) return { ...out, starts };
     if (!fallback) fallback = out;
   }
-  if (!fallback) return keep.length ? randomMap(rng, spec, [], k, shape, fair) : (shape !== 'continent' ? randomMap(rng, spec, [], k, 'continent', fair) : null);
+  if (!fallback) return keep.length ? randomMap(rng, spec, [], k, shape, fair, fp) : (shape !== 'continent' ? randomMap(rng, spec, [], k, 'continent', fair, fp) : null);
   const all = fallback.nodes.map((_, i) => i);
   return { ...fallback, starts: all.slice(0, k) };
 }
@@ -1486,12 +1509,14 @@ function newGame(opts) {
   let m;
   // the world can be reshaped to match the screen; the base count per area stays the same
   const shape = SHAPES.includes(opts.shape) ? opts.shape : 'continent';
+  const asp = opts.aspect > 0 ? opts.aspect : 1.78;          // 50.1.2: width over height; 1.78 unless the options carry an aspect (New-Gen)
   if (fixed) { W = fixed.w; H = fixed.h; }
   else if (opts.world) { W = opts.world.w; H = opts.world.h; }
-  else { const area = spec.area * SHAPE_AREA[shape]; H = Math.sqrt(area / 1.78); W = area / H; }
-  m = fixed ? fixedToMap(fixed, nTeams) : randomMap(rng, spec, opts.keep, nTeams, shape, opts.fair);
+  let fp = null;                                       // 50.1.3: the land comes first; the world box wraps it
+  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp); W = fp.W; H = fp.H; }
+  m = fixed ? fixedToMap(fixed, nTeams) : randomMap(rng, spec, opts.keep, nTeams, shape, opts.fair, fp && fp.outline ? fp : null);
   if (!m) {                                            // belt and braces: a world too small for the map falls back to a plain one rather than failing to start
-    const area = spec.area; H = Math.sqrt(area / 1.78); W = area / H;
+    const area = spec.area; H = Math.sqrt(area / asp); W = area / H; fp = null;
     m = randomMap(rng, spec, [], nTeams, 'continent');
   }
   if (opts.surround && m.edges && !fixed) {                       // "Last stand": you start on a hub with the rivals on its doorstep
@@ -1515,7 +1540,8 @@ function newGame(opts) {
   const D = Object.assign({}, DIFF[opts.diff] || DIFF.normal, opts.aiTune || {});     // aiTune: a challenge can nudge its rivals' numbers
   G = {
     t: 0, step: 0, nodes, edges: m.edges, troops: [], nextId: 1, rng, seed,
-    shape: m.shape || 'continent', deco: m.deco || null,
+    shape: m.shape || 'continent', deco: m.deco || (fp && fp.outline ? { kind: 'islands', land: true, groups: m.nodes.map(() => 0) } : null), noTurn: opts.aspect > 0 || !!(fp && fp.outline),      // 50.1.2: a New-Gen map is never turned to fit the screen
+    land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : null,      // 50.1.3: the land's outline. 50.1.4: a blob's land is also drawn as one island (deco above: kind 'islands', land: true), its coast is this outline
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
@@ -2614,7 +2640,7 @@ let dpr = 1, V = { s: 1, ex: 0, ey: 0, rot: false };
 let F = { x: 0, y: 0, w: 1, h: 1 }, FI = { w: 1, h: 1 }, s0 = 1, rot = false, tall = false, cam = { z: 1, cu: W / 2, cv: H / 2 }, arrowHits = [];
 let drawDirty = true, lastDrawAt = 0;                   // F2: paused and the menu demo draw less often; drawDirty asks for a redraw at once
 let FIT_K = 1, statsHold = false;                      // FIT_K: how far the whole-battlefield view backs away to clear the HUD; statsHold: the stats panel is folded while the minimap is open
-const zmax = () => 3 * Math.max(1, W / 1000);
+const zmax = () => 3 * Math.max(1, Math.max(W, H) / 1000);      // 50.1.2: the long side, so a tall map zooms like a wide one
 let mode = 'demo', speedMul = 1, last = performance.now(), acc = 0;
 let watching = false, watchRivals = true;   // watching: an AI-only match you spectate
 let endAt = 0;                                          // when the end card appeared (its buttons wait a moment, so last taps on the map cannot press them)
@@ -2699,7 +2725,7 @@ function cleanProfile(kind, p, old) {
   if (kind !== 'spec') c.color = oneOf(p.color ?? old.color, COLOR_KEYS, 'blue');
   if (kind !== 'classic') {
     const mods = isObj(p.mods) ? p.mods : isObj(old.mods) ? old.mods : {};
-    c.shape = oneOf(p.shape ?? old.shape, SHAPE_CHOICES, 'random');
+    c.shape = oneOf(p.shape ?? old.shape, kind === 'custom' ? [...SHAPE_CHOICES, 'newgen'] : SHAPE_CHOICES, 'random');      // 50.1.2: New-Gen is Custom's only, while the map box is being reworked
     c.special = oneOf(p.special ?? old.special, ['on', 'off'], 'on');
     c.opp = oneOf(String(p.opp ?? (kind === 'custom' ? old.opp : null) ?? 'auto'), kind === 'custom' ? ['auto', '1', '2', '3', '4'] : ['auto', '2', '3', '4', '5'], 'auto');
     c.persona = oneOf(p.persona ?? old.persona, PERSONAS, 'mixed');
@@ -2714,7 +2740,8 @@ function cleanProfile(kind, p, old) {
   for (const k of ['size', 'diff', 'persona', 'opp', 'shape', 'special', 'mods', 'color', 'map']) delete settings[k];
 })();
 const seedOf = c => c.seed || (c.seed = rnd32());                  // every setup has a map seed: what the menu previews is what you play
-const shapeFor = c => c.shape === 'random' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape;
+const shapeFor = c => c.shape === 'random' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape === 'newgen' ? 'continent' : c.shape;
+const SHAPE_NAME = k => k === 'random' ? 'Random' : k === 'newgen' ? 'New-Gen' : SHAPE_DEFS[k].label;
 const teamsFor = m => { const c = settings[m]; return m === 'classic' ? SIZES[c.size].teams : c.opp === 'auto' ? SIZES[c.size].teams : m === 'custom' ? +c.opp + 1 : +c.opp; };
 const MODS = [
   { k: 'blitz', n: 'Blitz', d: 'Troops spawn twice as fast for everyone, and march faster too.' },
@@ -2894,7 +2921,7 @@ function layout() {
   tall = r.height > r.width * 1.1;                  // the screen's shape (portrait HUD layout)
   F = { x: b.left, y: b.top, w: Math.max(1, b.width), h: Math.max(1, b.height) };     // 49.9.1: the whole screen, in menus too (it was inset 16 px there, so every background and decoration stopped at a visible rectangle)
   FI = { w: Math.max(1, r.width), h: Math.max(1, r.height) };                         // the size the map is fitted into: still 16 px in from each edge in menus
-  if (mode === 'demo' && tall !== rot) { rot = tall; resetCam(); }     // 50.1.1: in a match the map keeps the way it faced at the start; turning the phone only reshapes the view
+  { const want = G && G.noTurn ? false : tall; if (mode === 'demo' && want !== rot) { rot = want; resetCam(); } }     // 50.1.1: in a match the map keeps the way it faced at the start; turning the phone only reshapes the view. 50.1.2: a map that never turns (New-Gen) stays as it is in the preview too
   hudEl.classList.toggle('rotv', tall);
   if (!hudEl.hidden) placeMapButton();
   refitHud();
@@ -3117,7 +3144,7 @@ function dkSync(m) {                                   // the row values and the
   if (sc.querySelector('.dv[data-val="color"]')) set('color', `<i class="dot" style="background:${sw ? sw.style.background : '#888'}"></i>${cap1(c.color)}`, true);
   set('size', SIZE_LABEL[c.size]); set('diff', DIFF_LABEL[c.diff]);
   if (m === 'classic') { sc.querySelector('.dksum').textContent = `${SIZE_LABEL[c.size]} · ${DIFF_LABEL[c.diff]}`; return; }
-  const who = m === 'spec' ? `${t} colors` : `${t - 1} ${t === 2 ? 'rival' : 'rivals'}`, shape = c.shape === 'random' ? 'Random' : SHAPE_DEFS[c.shape].label;
+  const who = m === 'spec' ? `${t} colors` : `${t - 1} ${t === 2 ? 'rival' : 'rivals'}`, shape = SHAPE_NAME(c.shape);
   const nm = MODS.filter(x => modOn(m, x.k)).length + (otActive(m) ? 1 : 0);
   set('enemies', `${who}${c.opp === 'auto' ? ' (auto)' : ''} · ${DIFF_LABEL[c.diff]}${c.persona !== 'mixed' ? ' · ' + cap1(c.persona) : ''}`);
   set('shape', shape); set('special', c.special === 'on' ? 'On' : 'Off'); set('mods', modsLabel(m));
@@ -3590,6 +3617,7 @@ function updateVis() {
 // shape decoration: barely-there hints of the terrain, in keeping with the black-background look
 function islandHulls() {                             // a soft outline around each island's bases, computed once per map
   if (G.deco._hulls) return G.deco._hulls;
+  if (G.deco.land && G.land) return (G.deco._hulls = [G.land.outline]);      // 50.1.4: a footprint's land: its own coast, not a hull round the bases
   const groups = {};
   G.nodes.forEach((n, i) => { const g = G.deco.groups[i]; (groups[g] || (groups[g] = [])).push([n.x, n.y]); });
   const hulls = [];
@@ -9374,9 +9402,9 @@ const PERSONA_INFO = { mixed: 'Each rival is randomly Balanced, Aggressive, Stur
   aggressive: 'Fast and hard-hitting, but easy to hurt back. Strikes first and defends later.',
   sturdy: 'Tough and patient. Digs in early and is hard to move.',
   adaptive: 'Reads the board and goes after whoever is winning.' };
-const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
+const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.', newgen: 'In testing: one landmass with a soft, random outline. It never turns to fit your screen.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
 // the Shape buttons in Custom and Spectate come from the same table (49.3.2)
-document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random'].map(k => `<button data-v="${k}">${k === 'random' ? 'Random' : SHAPE_DEFS[k].label}</button>`).join(''); });
+document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random', ...(seg.dataset.mode === 'custom' ? ['newgen'] : [])].map(k => `<button data-v="${k}">${SHAPE_NAME(k)}</button>`).join(''); });      // 50.1.2: Custom's New-Gen sits beside Random, each half width
 const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'Every base is the same.' };
 // 49.8.4: the tone, visual, menuSound, screen and volume lines are struck (the Shop's pair blurbs describe the styles); only the Accessibility lines remain
 const SETTINGS_INFO = {
@@ -9887,7 +9915,7 @@ function optsFor(key) {
   const c = settings[key], watch = key === 'spec', classic = key === 'classic', shape = classic ? 'continent' : shapeFor(c);
   return { size: c.size, diff: c.diff, seed: seedOf(c), shape, teams: teamsFor(key), watch, noBrutal: !unlocks.brutalCustom, noDeadly: !unlocks.deadlyCustom,
     specials: !classic && c.special === 'on', persona: classic ? 'mixed' : c.persona,
-    overtime: otActive(key),
+    overtime: otActive(key), ...(c.shape === 'newgen' ? { footprint: 'blob' } : {}),      // 50.1.3: New-Gen is a blob footprint (50.1.2: a stretched box)
     mods: classic ? {} : Object.fromEntries(Object.keys(c.mods).map(k => [k, modOn(key, k)])) };      // 49.8.3: only the modifiers that can work
 }
 function buildPreview(key) {                         // the map behind the menu is the map you'll get
@@ -9942,7 +9970,7 @@ function saveAndQuit() {
   const T = SAVE_TEXT, fog = !!G.mods.fog;
   const mods = MODS.filter(x => G.mods[x.k]).map(x => x.n); if (G.overtimeOn) mods.push('Overtime'); if (G.specials) mods.push('Special bases');
   const rivals = G.teams.filter(U => U.active).length - 1;
-  const line = [curModeKey === 'classic' ? 'Classic' : 'Custom', (SIZE_LABEL[G.sizeName] || G.sizeName) + (curModeKey === 'custom' && SHAPE_LABEL[G.shape] ? ' ' + SHAPE_LABEL[G.shape] : ''), rivals + ' ' + (rivals === 1 ? T.rival : T.rivals), DIFF_LABEL[G.diffName] || G.diffName].join(' · ');
+  const line = [curModeKey === 'classic' ? 'Classic' : 'Custom', (SIZE_LABEL[G.sizeName] || G.sizeName) + (curModeKey === 'custom' && G.noTurn ? ' new-gen' : curModeKey === 'custom' && SHAPE_LABEL[G.shape] ? ' ' + SHAPE_LABEL[G.shape] : ''), rivals + ' ' + (rivals === 1 ? T.rival : T.rivals), DIFF_LABEL[G.diffName] || G.diffName].join(' · ');
   const meta = { k: curModeKey, line, mods, t: G.t, bases: G.teams[PLAYER].bases, total: G.nodes.length, at: Date.now(), color: settings[curModeKey].color, W, H,
     nodes: G.nodes.map(n => [n.x, n.y, fog && n.owner > PLAYER ? NEUTRAL_COLOR : colorOf(n.owner)]), edges: G.edges,
     cam: { z: cam.z, cu: cam.cu, cv: cam.cv, land: innerWidth > innerHeight } };
@@ -9982,7 +10010,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   else if (curScen) newGame({ scenario: curScen });          // fixed map and rules: the same every attempt
   else { newGame(PERF && window.__fixedOnce ? Object.assign(optsFor(curModeKey), { fixedMap: window.__fixedOnce, teams: 0 }) : optsFor(curModeKey)); cfg.seed = rnd32(); save('ice-settings', settings); }   // play the previewed map, then roll the next one
   { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours
-  { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = sc && sc.face === 'wide' ? false : tall; }      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
+  { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = G.noTurn || (sc && sc.face === 'wide') ? false : tall; }      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
   setMinimap(false); fling.vx = fling.vy = 0;
   G.autoplay = watching;
@@ -10389,7 +10417,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.1.1 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.1.4 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -10608,7 +10636,7 @@ function rollCustom() {
   const c = settings.custom, vals = k => [...document.querySelectorAll(`.seg[data-mode=custom][data-key=${k}] button`)].map(b => b.dataset.v);
   const pickW = (items, w) => { let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < items.length; i++) if ((r -= w[i]) < 0) return items[i]; return items[items.length - 1]; };
   const uni = k => { const v = vals(k); return v[(Math.random() * v.length) | 0]; };
-  c.size = uni('size'); c.shape = uni('shape'); c.persona = uni('persona'); c.seed = rnd32();
+  c.size = uni('size'); c.shape = (v => v[(Math.random() * v.length) | 0])(vals('shape').filter(v => v !== 'newgen')); c.persona = uni('persona'); c.seed = rnd32();      // 50.1.2: Randomize never rolls New-Gen
   c.diff = unlocks.deadlyCustom ? pickW(DIFFS_ALL, [0.17, 0.3, 0.28, 0.15, 0.1]) : unlocks.brutalCustom ? pickW(DIFFS, [0.2, 0.35, 0.3, 0.15]) : pickW(DIFFS.slice(0, 3), [0.2, 0.35, 0.3]);       // Brutal and Deadly are only rolled once they are open here
   c.opp = c.size === 'small' ? pickW(['auto', '1', '2'], [0.3, 0.3, 0.4]) : pickW(['auto', '1', '2', '3', '4'], [0.25, 0.2, 0.25, 0.2, 0.1]);
   c.special = Math.random() < 0.7 ? 'on' : 'off';

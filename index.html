@@ -736,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.10 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.12 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -861,7 +861,6 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 
   <section class="screen wide" id="scrStats" hidden>
     <header><button class="back" aria-label="Back"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3 5 8l5 5"/></svg></button><h2>Stats</h2></header>
-    <p class="specintro" id="statsIntro">Your results from matches you play. Challenges, lessons and spectated matches are tracked separately.</p>
     <div id="statsBody"></div>
     <button id="bReset" class="ghost small">Reset stats</button>
   </section>
@@ -1343,7 +1342,7 @@ const SHAPE_DEFS = {
   continent: { area: 1, label: 'Continent', blurb: 'One landmass, so everyone is a neighbor.' },
   islands: { area: 1.3, label: 'Islands', blurb: 'Chunks of land joined by bridges. Hold a bridge and you hold a lot.' },
   ring: { area: 1.2, label: 'Ring', blurb: 'A ring of bases with an empty center. Gotta go around, you just can\'t go through it.' },
-  river: { area: 1.2, label: 'River', blurb: 'A landmass sliced by a river, with a few bridges. Boldness highly suggested.' }
+  river: { area: 1.2, label: 'River', blurb: 'A landmass sliced by a river, with bridges to cross the gap. Boldness highly suggested.' }
 };
 const SHAPES = Object.keys(SHAPE_DEFS);
 const SHAPE_AREA = Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].area]));
@@ -1466,13 +1465,18 @@ function fpStretch(waves, M, len, st0) {
 }
 const FP_EDGE = [70, 66];                 // room between the land's outermost point and the world's edge (the inset bases always had)
 const FP_COAST = 28;                      // no base closer than this to a blob's coast
-// len (50.1.6): a set land length (landLen) for a blob; its waves and turn stay the same, only the stretch is solved for it
-function makeFootprint(kind, area, seed, aspect, len) {
+// 50.1.12 (Henry): how long a blob's land may be, by map size, so the freakiest shapes come on Huge; it sets the stretch cap (MAP_BOX_DESIGN.md)
+const LAND_LEN_CAP = { small: 1.8, medium: 2.2, large: 2.6, huge: 3 };
+// len (50.1.6): a set land length (landLen) for a blob; its waves and turn stay the same, only the stretch is solved for it.
+// cap (50.1.12): with no set length, the blob rolls one between round and cap, most often in the middle
+function makeFootprint(kind, area, seed, aspect, len, cap) {
   if (kind !== 'blob') { const h = Math.sqrt(area / (aspect > 0 ? aspect : 1.78)); return { kind: 'box', W: area / h, H: h, outline: null, land: () => true, inside: () => true }; }
   const r = mulberry32((seed ^ 0x2f6b7c1d) >>> 0), M = 120;
   const waves = [[2, 0.24], [3, 0.16], [4, 0.09], [5, 0.05]].map(([k, a]) => ({ k, a: r() * a, ph: r() * 6.2832 }));
   const roll = Math.sqrt(1 + r() * 0.8);                // the stretch die is always rolled, so the turn (and every map without len) stays the same
-  const st = len > 0 ? fpStretch(waves, M, len, roll) : roll, turn = r() * Math.PI, ct = Math.cos(turn), sn = Math.sin(turn), P = [];
+  const turn = r() * Math.PI, ct = Math.cos(turn), sn = Math.sin(turn), P = [];
+  const want = len > 0 ? len : cap > 1 ? 1 + (cap - 1) * (2 * r() + r()) / 3 : 0;       // 50.1.12: the length by size, from two more of the blob's dice
+  const st = want > 0 ? fpStretch(waves, M, want, roll) : roll;
   for (let i = 0; i < M; i++) {
     const t = i / M * 6.2832; let rr = 1; for (const w of waves) rr += w.a * Math.sin(w.k * t + w.ph);
     const x = Math.cos(t) * rr * st, y = Math.sin(t) * rr / st; P.push([x * ct - y * sn, x * sn + y * ct]);
@@ -1565,6 +1569,26 @@ function randomMap(rng, spec, keep, k, shapeName, fair, fp) {
         pairsUsed.add(key); addBridge(c[1], c[2]);
       }
     }
+    // 50.1.12 (Henry and DC): fewer dead ends on a blob. A base with one road gets a second to the nearest base it can reach over land without crossing
+    // a road, passing within 42 of another base or running within about 32 degrees of a road already at either end; never a bridge, at most 280 long.
+    // The easiest links go first; about 1 in 20 bases may stay dead ends (a tucked-away base is a pocket worth holding). No dice: the starts roll the same.
+    if (fp) {
+      const deg = new Array(n).fill(0), key = (a, b) => a < b ? a + ',' + b : b + ',' + a, has = new Set(edges.map(([a, b]) => key(a, b)));
+      for (const [a, b] of edges) { deg[a]++; deg[b]++; }
+      const apart = (i, j) => edges.every(([a, b]) => { const o = a === i ? b : b === i ? a : -1; if (o < 0) return true;
+        const ux = pts[j][0] - pts[i][0], uy = pts[j][1] - pts[i][1], vx = pts[o][0] - pts[i][0], vy = pts[o][1] - pts[i][1];
+        return (ux * vx + uy * vy) / (Math.hypot(ux, uy) * Math.hypot(vx, vy)) < 0.85; });
+      const dry = (i, j) => !((grp && grp[i] !== grp[j]) || (S.cut && S.cut(pts[i], pts[j])) || [0.25, 0.5, 0.75].some(t => !fp.land(pts[i][0] + (pts[j][0] - pts[i][0]) * t, pts[i][1] + (pts[j][1] - pts[i][1]) * t)));
+      const link = i => { let bj = -1, bd = 280; for (let j = 0; j < n; j++) { if (j === i || has.has(key(i, j))) continue; const dij = d(i, j);
+        if (dij < bd && dry(i, j) && fits(i, j) && apart(i, j) && apart(j, i)) { bd = dij; bj = j; } } return [bd, bj]; };
+      for (let guard = 0; guard < n; guard++) {
+        const dead = []; for (let i = 0; i < n; i++) if (deg[i] === 1) dead.push(i);
+        if (dead.length <= Math.round(n / 20)) break;
+        let pick = null; for (const i of dead) { const [bd, bj] = link(i); if (bj >= 0 && (!pick || bd < pick[0])) pick = [bd, i, bj]; }
+        if (!pick) break;
+        edges.push([pick[1], pick[2]]); has.add(key(pick[1], pick[2])); deg[pick[1]]++; deg[pick[2]]++;
+      }
+    }
     const starts = pickStarts(pts, edges, rng, k, fair ? grp : null);
     const out = { nodes: pts, edges, bridges, deco: S.deco, shape };
     if (shape === 'islands') out.deco = { kind: 'islands', groups: grp };
@@ -1600,7 +1624,7 @@ function newGame(opts) {
   if (fixed) { W = fixed.w; H = fixed.h; }
   else if (opts.world) { W = opts.world.w; H = opts.world.h; }
   let fp = null;                                       // 50.1.3: the land comes first; the world box wraps it
-  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp, opts.landLen); W = fp.W; H = fp.H; }
+  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp, opts.landLen, LAND_LEN_CAP[opts.size] || LAND_LEN_CAP.medium); W = fp.W; H = fp.H; }
   m = fixed ? fixedToMap(fixed, nTeams) : randomMap(rng, spec, opts.keep, nTeams, shape, opts.fair, fp && fp.outline ? fp : null);
   if (!m) {                                            // belt and braces: a world too small for the map falls back to a plain one rather than failing to start
     const area = spec.area; H = Math.sqrt(area / asp); W = area / H; fp = null;
@@ -3128,7 +3152,8 @@ function pvGeom() {                                    // where the fitted map s
 // 50.1.10: what a drag may do along one axis (off: how far the map's centre is from home c; s: the map's size; i0..i1: the open area inset like the home view;
 // o0..o1: the same area edge to edge; t: how far below 1x, 0 at 1x, 1 at the floor). A map bigger than the inset area may move until its edge meets the area's edge
 // (a drag only reveals); as it grows the margins close, and once it is bigger than the whole area it covers it edge to edge, as before 50.1.10. One that fits
-// stays home (zoomed in: as near home as keeps it inside) and may roam the inset area the further you zoom out below 1x. Portrait also lifts to the deck (pvRange).
+// stays home at 1x and may roam the inset area the further you zoom out below 1x, or (50.1.11, Henry) zoom in above it: t opens the room either way.
+// Portrait also lifts to the deck (pvRange).
 function pvSpan(c, s, i0, i1, o0, o1, t) {
   const I = i1 - i0, D = Math.max(1, (o1 - o0) - I);
   if (s > I) { const u = Math.min(1, Math.pow((s - I) / D, 2)), a0 = i0 + (o0 - i0) * u, a1 = i1 + (o1 - i1) * u; return [a1 - c - s / 2, a0 - c + s / 2]; }
@@ -3137,7 +3162,9 @@ function pvSpan(c, s, i0, i1, o0, o1, t) {
   return [p + (lo - p) * t, p + (hi - p) * t];
 }
 function pvRange(g) {
-  const k = PVV.k, t = g.kmin < 1 ? Math.min(1, Math.max(0, (1 - k) / (1 - g.kmin))) : 0;
+  // t: the room a map that fits may roam. Below 1x it opens toward the floor (landscape); 50.1.11 (Henry): above 1x it opens too, all of it from 1.5x,
+  // so zoomed in a wide map in portrait (or a narrow one in landscape) can be moved to the middle; at 1x it stays home
+  const k = PVV.k, t = k > 1 ? Math.min(1, (k - 1) / .5) : g.kmin < 1 ? Math.min(1, Math.max(0, (1 - k) / (1 - g.kmin))) : 0;
   const x = pvSpan(g.cx, g.w * k, g.ax0, g.ax1, g.ox0, g.ox1, t), y = pvSpan(g.cy, g.h * k, g.ay0, g.ay1, g.oy0, g.oy1, t);
   if (!g.land) { const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'); if (dk) y[0] = Math.min(y[0], Math.min(g.Hh, dk.getBoundingClientRect().top) - g.cy - g.h * k / 2); }
   return { x, y };
@@ -10580,7 +10607,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.1.10 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.1.12 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

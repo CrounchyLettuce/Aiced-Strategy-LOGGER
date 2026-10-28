@@ -736,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.10 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -778,6 +778,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Your team</span><span class="dv" data-val="color"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg swatches" data-mode="custom" data-key="color"><button data-v="blue" aria-label="Blue"><i style="background:#3577ff"></i></button><button data-v="red" aria-label="Red"><i style="background:#f2433c"></i></button><button data-v="green" aria-label="Green"><i style="background:#2db857"></i></button><button data-v="yellow" aria-label="Yellow"><i style="background:#ffcd30"></i></button><button data-v="purple" aria-label="Purple"><i style="background:#a656ff"></i></button></div></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Enemies</span><span class="dv" data-val="enemies"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dsub">Rivals</div><div class="seg tight" data-mode="custom" data-key="opp"><button data-v="auto">Auto</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button></div><p class="blurb" id="hintCOpp"></p><div class="dsub">AI strength</div><div class="seg tight g3" data-mode="custom" data-key="diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button><button data-v="brutal">Brutal<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="deadly">Deadly<svg class="lk" viewBox="0 0 8 10" aria-hidden="true"><path d="M2 4V3a2 2 0 014 0v1" fill="none" stroke="currentColor"/><rect x=".5" y="4" width="7" height="5.5" rx="1" fill="currentColor"/></svg></button><button data-v="random">Random</button></div><p class="blurb" id="hintCDiff"></p><div class="dsub">Personality</div><div class="seg tight" data-mode="custom" data-key="persona"><button data-v="mixed">Mixed</button><button data-v="aggressive">Aggressive</button><button data-v="sturdy">Sturdy</button><button data-v="adaptive">Adaptive</button></div><p class="blurb" id="hintCPers"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Shape</span><span class="dv" data-val="shape"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g2" data-mode="custom" data-key="shape"></div><p class="blurb" id="hintCShape"></p></div></div>
+        <div class="drow" id="xlLenRow"><!-- LOGGER BUILD --><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Land length (test)</span><span class="dv" data-val="xlLen"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight g3" data-mode="custom" data-key="xlLen"><button data-v="auto">Auto</button><button data-v="1">Round</button><button data-v="1.6">1.6</button><button data-v="2">2</button><button data-v="2.5">2.5</button><button data-v="3">3</button></div><p class="blurb" id="hintCLen"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Size</span><span class="dv" data-val="size"></span></span><span class="dcap">Tap again for a new map.</span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="seg tight" data-mode="custom" data-key="size"><button data-v="small">Small</button><button data-v="medium">Medium</button><button data-v="large">Large</button><button data-v="huge">Huge</button></div><p class="blurb" id="hintCSize"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Special bases</span><span class="dv" data-val="special"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="dline"><div class="seg" data-mode="custom" data-key="special"><button data-v="on">On</button><button data-v="off">Off</button></div><button class="info" data-go="scrSpecials" aria-label="What are special bases?">i</button></div><p class="blurb" id="hintCSpecial"></p></div></div>
         <div class="drow"><button class="dh" aria-expanded="false"><span class="dt"><span class="dk">Modifiers</span><span class="dv" data-val="mods"></span></span><svg class="dchev" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5l6 6-6 6"/></svg></button><div class="dp"><div class="mods" id="modsCustom" data-mm="custom"></div></div></div>
@@ -1342,7 +1343,7 @@ const SHAPE_DEFS = {
   continent: { area: 1, label: 'Continent', blurb: 'One landmass, so everyone is a neighbor.' },
   islands: { area: 1.3, label: 'Islands', blurb: 'Chunks of land joined by bridges. Hold a bridge and you hold a lot.' },
   ring: { area: 1.2, label: 'Ring', blurb: 'A ring of bases with an empty center. Gotta go around, you just can\'t go through it.' },
-  river: { area: 1.12, label: 'River', blurb: 'A landmass sliced by a river, with a few bridges. Boldness highly suggested.' }
+  river: { area: 1.2, label: 'River', blurb: 'A landmass sliced by a river, with a few bridges. Boldness highly suggested.' }
 };
 const SHAPES = Object.keys(SHAPE_DEFS);
 const SHAPE_AREA = Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].area]));
@@ -1356,7 +1357,57 @@ function segDist(p, a, b) {                          // distance from point p to
   const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / l2));
   return Math.hypot(p[0] - a[0] - t * vx, p[1] - a[1] - t * vy);
 }
-function makeShape(shape, rng, N) {
+// RIVERS (50.1.7, Henry: a bridge should be noticeably longer than a road). RIVER_HW: half the river's width, measured across the water
+// (was 58, measured straight across the map). Bridges by base count: Small 1, Medium 2, Large 2, Huge 3 (was 2, 3, 4, 4).
+const RIVER_HW = 105;
+const riverBridges = N => N < 24 ? 1 : N < 60 ? 2 : 3;
+// 50.1.5 (map-box step C): the river, the ring and the islands made inside a footprint's land instead of the box.
+const RING_BAND = 150;                    // land left all round a blob's ring hole, at the least
+function makeShapeOnLand(shape, rng, N, fp) {
+  const P = fp.outline; let A = 0, cx = 0, cy = 0, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length], c = p[0] * q[1] - q[0] * p[1]; A += c; cx += (p[0] + q[0]) * c; cy += (p[1] + q[1]) * c; }
+  cx /= 3 * A; cy /= 3 * A; A = Math.abs(A) / 2;
+  for (const p of P) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+  const coastD = (x, y) => { let m = 1e9; for (let i = 0; i < P.length; i++) m = Math.min(m, segDist([x, y], P[i], P[(i + 1) % P.length])); return m; };
+  if (shape === 'islands') {
+    const n = N < 24 ? 3 : N < 40 ? 4 : 5, isl = [];
+    const r0 = Math.sqrt(A * 0.6 / (n * Math.PI)), minD = r0 * 1.85;
+    for (let tries = 0; isl.length < n && tries < 4000; tries++) {
+      const c = [x0 + rng() * (x1 - x0), y0 + rng() * (y1 - y0)];
+      if (fp.land(c[0], c[1]) && isl.every(o => Math.hypot(o.x - c[0], o.y - c[1]) > minD * (tries > 2000 ? 0.8 : 1)))
+        isl.push({ x: c[0], y: c[1], r: r0 * (0.9 + rng() * 0.25), ph: rng() * 6.28, sx: 1 + (rng() - .5) * .35 });
+    }
+    const q = (o, x, y) => { const dx = (x - o.x) / o.sx, dy = (y - o.y) * o.sx, a = Math.atan2(dy, dx); return Math.hypot(dx, dy) / (o.r * (1 + 0.14 * Math.sin(3 * a + o.ph))); };
+    const group = (x, y) => { let b = 0, bq = Infinity; isl.forEach((o, i) => { const v = q(o, x, y); if (v < bq) { bq = v; b = i; } }); return b; };
+    return { inside: (x, y) => isl.some(o => q(o, x, y) < 1), group, groups: isl.length, deco: { kind: 'islands' } };
+  }
+  if (shape === 'ring') {
+    let rx = (x1 - x0) / 2 * 0.42, ry = (y1 - y0) / 2 * 0.42;
+    for (let k = 0; k < 30; k++) {                    // shrink the hole until there is a band of land all round it
+      let ok = true;
+      for (let i = 0; i < 32 && ok; i++) { const a = i / 32 * 6.2832, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry; if (!fp.land(x, y) || coastD(x, y) < RING_BAND) ok = false; }
+      if (ok) break; rx *= 0.93; ry *= 0.93;
+    }
+    const q = (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+    const voidHit = (a, b) => { for (let t = 0.2; t <= 0.8; t += 0.15) if (q(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) < 0.92) return true; return false; };
+    return { inside: (x, y) => q(x, y) > 1, cut: voidHit, deco: { kind: 'ring', cx, cy, rx, ry } };
+  }
+  if (shape === 'river') {                          // across the land's short way
+    const vert = x1 - x0 >= y1 - y0, lo = vert ? y0 : x0, len = vert ? y1 - y0 : x1 - x0, mid = vert ? cx : cy;
+    const amp = (vert ? x1 - x0 : y1 - y0) * (0.05 + rng() * 0.04), f = 1 + rng() * 0.8, ph = rng() * 6.28, hw = RIVER_HW;
+    const at = s => mid + amp * Math.sin((s - lo) / len * Math.PI * 2 * f + ph);
+    const acr = (x, y) => vert ? x : y, alo = (x, y) => vert ? y : x;
+    const side = (x, y) => acr(x, y) < at(alo(x, y)) ? 0 : 1;
+    const full = []; for (let s = lo - 40; s <= lo + len + 40; s += 16) full.push(vert ? [at(s), s] : [s, at(s)]);
+    let i0 = full.findIndex(p => fp.land(p[0], p[1])), i1 = full.length - 1; while (i1 > 0 && !fp.land(full[i1][0], full[i1][1])) i1--;
+    const line = full.slice(Math.max(0, i0 - 1), Math.min(full.length, i1 + 2));        // the river runs coast to coast, not into the void
+    return { inside: (x, y) => full.every((p, i) => !i || segDist([x, y], full[i - 1], p) > hw), group: side, groups: 2, crossings: riverBridges(N),      // 50.1.7: the gap is measured across the water
+      bandAt: (x, y) => (alo(x, y) - lo) / len, deco: { kind: 'river', line, hw } };
+  }
+  return { inside: () => true, deco: null };
+}
+function makeShape(shape, rng, N, fp) {
+  if (fp && fp.outline) return makeShapeOnLand(shape, rng, N, fp);      // 50.1.5: a blob's own river, ring or islands
   const cx = W / 2, cy = H / 2;
   if (shape === 'islands') {
     const n = N < 24 ? 3 : N < 40 ? 4 : 5, isl = [];
@@ -1378,11 +1429,11 @@ function makeShape(shape, rng, N) {
     return { inside: (x, y) => { const v = q(x, y); return v < 1 && v > rin * rin; }, cut: voidHit, deco: { kind: 'ring', cx, cy, rx: rx * rin, ry: ry * rin } };
   }
   if (shape === 'river') {
-    const A = W * (0.05 + rng() * 0.04), f = 1 + rng() * 0.8, ph = rng() * 6.28, hw = 58;
+    const A = W * (0.05 + rng() * 0.04), f = 1 + rng() * 0.8, ph = rng() * 6.28, hw = RIVER_HW;
     const rxAt = y => cx + A * Math.sin(y / H * Math.PI * 2 * f + ph);
     const side = (x, y) => x < rxAt(y) ? 0 : 1;
     const line = []; for (let y = -20; y <= H + 20; y += 16) line.push([rxAt(y), y]);
-    return { inside: (x, y) => Math.abs(x - rxAt(y)) > hw, group: side, groups: 2, crossings: N < 24 ? 2 : N < 40 ? 3 : 4, deco: { kind: 'river', line, hw } };
+    return { inside: (x, y) => line.every((p, i) => !i || segDist([x, y], line[i - 1], p) > hw), group: side, groups: 2, crossings: riverBridges(N), deco: { kind: 'river', line, hw } };      // 50.1.7: the gap is measured across the water
   }
   return { inside: () => true, deco: null };
 }
@@ -1390,13 +1441,38 @@ function makeShape(shape, rng, N) {
 // 'box': the land is the whole box, at a set width-to-height (1.78 unless given): every generated map before New-Gen, unchanged to the bit.
 // 'blob': a soft outline (a circle bent by four slow waves, stretched and turned), scaled so the LAND has the area asked for.
 // A blob rolls its own dice from the seed, so the match's dice are untouched. `land(x, y)`: on land; `inside(x, y)`: room for a base there.
+// LAND LENGTH (50.1.6). How long a land is: its widest caliper width over its narrowest (1 = round, 2 = twice as long as wide).
+// The blob stretch cap is set from play with it (MAP_BOX_DESIGN.md: 1.8 is a placeholder, never a screen number).
+function landLen(P) {
+  let mx = 0, mn = Infinity;
+  for (let i = 0; i < 90; i++) {
+    const a = i / 90 * Math.PI, c = Math.cos(a), s = Math.sin(a); let lo = Infinity, hi = -Infinity;
+    for (const p of P) { const v = p[0] * c + p[1] * s; if (v < lo) lo = v; if (v > hi) hi = v; }
+    if (hi - lo > mx) mx = hi - lo; if (hi - lo < mn) mn = hi - lo;
+  }
+  return mx / mn;
+}
+// the stretch that gives a blob (its waves) the land length asked for. A length can often be had two ways (stretched along its own
+// axis or across it); of the near-best ones, the stretch closest to the rolled one wins, so the land grows the way it already leans.
+// The rolled stretch is a candidate too, so asking never does worse than the roll. A scan from 0.4 to 4, then a finer one round the pick.
+function fpStretch(waves, M, len, st0) {
+  const B = []; for (let i = 0; i < M; i++) { const t = i / M * 6.2832; let rr = 1; for (const w of waves) rr += w.a * Math.sin(w.k * t + w.ph); B.push([Math.cos(t) * rr, Math.sin(t) * rr]); }
+  const off = st => Math.abs(landLen(B.map(p => [p[0] * st, p[1] / st])) - len);
+  const S = [st0]; for (let i = 0; i <= 160; i++) S.push(0.4 * Math.pow(10, i / 160));
+  const D = S.map(off), bd = Math.min(...D); let best = st0, bl = Infinity;
+  S.forEach((st, i) => { const l = Math.abs(Math.log(st / st0)); if (D[i] <= bd + 0.02 * len && l < bl) { bl = l; best = st; } });
+  let fd = off(best); const b0 = best; for (let i = -12; i <= 12; i++) { const st = b0 * Math.pow(1.0145, i / 12), d = off(st); if (d < fd) { fd = d; best = st; } }
+  return best;
+}
 const FP_EDGE = [70, 66];                 // room between the land's outermost point and the world's edge (the inset bases always had)
 const FP_COAST = 28;                      // no base closer than this to a blob's coast
-function makeFootprint(kind, area, seed, aspect) {
+// len (50.1.6): a set land length (landLen) for a blob; its waves and turn stay the same, only the stretch is solved for it
+function makeFootprint(kind, area, seed, aspect, len) {
   if (kind !== 'blob') { const h = Math.sqrt(area / (aspect > 0 ? aspect : 1.78)); return { kind: 'box', W: area / h, H: h, outline: null, land: () => true, inside: () => true }; }
   const r = mulberry32((seed ^ 0x2f6b7c1d) >>> 0), M = 120;
   const waves = [[2, 0.24], [3, 0.16], [4, 0.09], [5, 0.05]].map(([k, a]) => ({ k, a: r() * a, ph: r() * 6.2832 }));
-  const st = Math.sqrt(1 + r() * 0.8), turn = r() * Math.PI, ct = Math.cos(turn), sn = Math.sin(turn), P = [];
+  const roll = Math.sqrt(1 + r() * 0.8);                // the stretch die is always rolled, so the turn (and every map without len) stays the same
+  const st = len > 0 ? fpStretch(waves, M, len, roll) : roll, turn = r() * Math.PI, ct = Math.cos(turn), sn = Math.sin(turn), P = [];
   for (let i = 0; i < M; i++) {
     const t = i / M * 6.2832; let rr = 1; for (const w of waves) rr += w.a * Math.sin(w.k * t + w.ph);
     const x = Math.cos(t) * rr * st, y = Math.sin(t) * rr / st; P.push([x * ct - y * sn, x * sn + y * ct]);
@@ -1417,7 +1493,7 @@ function randomMap(rng, spec, keep, k, shapeName, fair, fp) {
   let fallback = null;
   for (let attempt = 0; attempt < 80; attempt++) {
     const N = spec.n[0] + Math.floor(rng() * (spec.n[1] - spec.n[0] + 1));
-    const S = makeShape(shape, rng, N);
+    const S = makeShape(shape, rng, N, fp);
     const pts = []; let tries = 0;
     while (pts.length < N && tries < 9000) {
       tries++;
@@ -1451,8 +1527,19 @@ function randomMap(rng, spec, keep, k, shapeName, fair, fp) {
     const addBridge = (i, j) => { edges.push([i, j]); bridges.push([i, j]); };
     if (shape === 'river') {                         // a few crossings spread along the river, shortest in each stretch
       const want = S.crossings, bands = Array.from({ length: want }, () => []);
-      for (const c of across) { const my = (pts[c[1]][1] + pts[c[2]][1]) / 2; bands[Math.min(want - 1, Math.max(0, Math.floor(my / H * want)))].push(c); }
-      for (const band of bands) { band.sort((a, b) => a[0] - b[0]); const c = band.find(c => c[0] < 390 && fits(c[1], c[2])); if (c) addBridge(c[1], c[2]); }
+      for (const c of across) { const mx = (pts[c[1]][0] + pts[c[2]][0]) / 2, my = (pts[c[1]][1] + pts[c[2]][1]) / 2, t = S.bandAt ? S.bandAt(mx, my) : my / H; bands[Math.min(want - 1, Math.max(0, Math.floor(t * want)))].push([c[0], c[1], c[2], t]); }   // 50.1.5: along the river, whichever way it runs
+      // 50.1.7: a bridge may be as long as the river's width plus 280 (was a flat 390). One bridge takes the crossing nearest the river's middle;
+      // more than one take the shortest crossing in each stretch, as before. A stretch whose crossings are all longer than that still gets
+      // its bridge, the shortest one up to 150 longer, so the counts hold (Henry: Small 1, Medium 2, Large 2, Huge 3)
+      const cap = 2 * S.deco.hw + 280, order = want === 1 ? (a, b) => Math.abs(a[3] - 0.5) - Math.abs(b[3] - 0.5) || a[0] - b[0] : (a, b) => a[0] - b[0];
+      // and a stretch where no two neighbours face each other across the water looks at every pair across it
+      const tOf = (i, j) => { const mx = (pts[i][0] + pts[j][0]) / 2, my = (pts[i][1] + pts[j][1]) / 2; return S.bandAt ? S.bandAt(mx, my) : my / H; }, bandOf = t => Math.min(want - 1, Math.max(0, Math.floor(t * want)));
+      bands.forEach((band, b) => {
+        band.sort(order);
+        let c = band.find(c => c[0] < cap && fits(c[1], c[2])) || band.slice().sort((x, y) => x[0] - y[0]).find(c => c[0] < cap + 150 && fits(c[1], c[2]));
+        if (!c) { const all = []; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (grp[i] !== grp[j] && bandOf(tOf(i, j)) === b) all.push([d(i, j), i, j]); all.sort((x, y) => x[0] - y[0]); c = all.find(c => c[0] < cap + 150 && fits(c[1], c[2])); }
+        if (c) addBridge(c[1], c[2]);
+      });
     }
     // join any separate pieces (islands, ring gaps, river banks) with the shortest bridge that fits
     const comp = () => { const id = new Array(n).fill(-1); let c = 0; const adj = pts.map(() => []); for (const [a, b] of edges) { adj[a].push(b); adj[b].push(a); }
@@ -1513,7 +1600,7 @@ function newGame(opts) {
   if (fixed) { W = fixed.w; H = fixed.h; }
   else if (opts.world) { W = opts.world.w; H = opts.world.h; }
   let fp = null;                                       // 50.1.3: the land comes first; the world box wraps it
-  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp); W = fp.W; H = fp.H; }
+  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp, opts.landLen); W = fp.W; H = fp.H; }
   m = fixed ? fixedToMap(fixed, nTeams) : randomMap(rng, spec, opts.keep, nTeams, shape, opts.fair, fp && fp.outline ? fp : null);
   if (!m) {                                            // belt and braces: a world too small for the map falls back to a plain one rather than failing to start
     const area = spec.area; H = Math.sqrt(area / asp); W = area / H; fp = null;
@@ -1540,8 +1627,8 @@ function newGame(opts) {
   const D = Object.assign({}, DIFF[opts.diff] || DIFF.normal, opts.aiTune || {});     // aiTune: a challenge can nudge its rivals' numbers
   G = {
     t: 0, step: 0, nodes, edges: m.edges, troops: [], nextId: 1, rng, seed,
-    shape: m.shape || 'continent', deco: m.deco || (fp && fp.outline ? { kind: 'islands', land: true, groups: m.nodes.map(() => 0) } : null), noTurn: opts.aspect > 0 || !!(fp && fp.outline),      // 50.1.2: a New-Gen map is never turned to fit the screen
-    land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : null,      // 50.1.3: the land's outline. 50.1.4: a blob's land is also drawn as one island (deco above: kind 'islands', land: true), its coast is this outline
+    shape: m.shape || 'continent', deco: m.deco || null, noTurn: opts.aspect > 0 || !!(fp && fp.outline),      // 50.1.2: a New-Gen map is never turned to fit the screen
+    land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : null,      // 50.1.3: the land's outline. 50.1.5: ui.js draws it as its own scenery layer (coastDeco), under the shape's own
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
@@ -2726,6 +2813,7 @@ function cleanProfile(kind, p, old) {
   if (kind !== 'classic') {
     const mods = isObj(p.mods) ? p.mods : isObj(old.mods) ? old.mods : {};
     c.shape = oneOf(p.shape ?? old.shape, kind === 'custom' ? [...SHAPE_CHOICES, 'newgen'] : SHAPE_CHOICES, 'random');      // 50.1.2: New-Gen is Custom's only, while the map box is being reworked
+    if (kind === 'custom') c.xlLen = oneOf(String(p.xlLen ?? old.xlLen ?? 'auto'), ['auto', '1', '1.6', '2', '2.5', '3'], 'auto');   // LOGGER BUILD: the land-length test switch (50.1.6)
     c.special = oneOf(p.special ?? old.special, ['on', 'off'], 'on');
     c.opp = oneOf(String(p.opp ?? (kind === 'custom' ? old.opp : null) ?? 'auto'), kind === 'custom' ? ['auto', '1', '2', '3', '4'] : ['auto', '2', '3', '4', '5'], 'auto');
     c.persona = oneOf(p.persona ?? old.persona, PERSONAS, 'mixed');
@@ -2740,7 +2828,7 @@ function cleanProfile(kind, p, old) {
   for (const k of ['size', 'diff', 'persona', 'opp', 'shape', 'special', 'mods', 'color', 'map']) delete settings[k];
 })();
 const seedOf = c => c.seed || (c.seed = rnd32());                  // every setup has a map seed: what the menu previews is what you play
-const shapeFor = c => c.shape === 'random' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape === 'newgen' ? 'continent' : c.shape;
+const shapeFor = c => c.shape === 'random' || c.shape === 'newgen' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape;      // 50.1.5: New-Gen picks its shape the way Random does, then lays it on a blob
 const SHAPE_NAME = k => k === 'random' ? 'Random' : k === 'newgen' ? 'New-Gen' : SHAPE_DEFS[k].label;
 const teamsFor = m => { const c = settings[m]; return m === 'classic' ? SIZES[c.size].teams : c.opp === 'auto' ? SIZES[c.size].teams : m === 'custom' ? +c.opp + 1 : +c.opp; };
 const MODS = [
@@ -2948,8 +3036,9 @@ function paintMap(x, w, h, live, u) {                // the map as a diagram: te
   const mv = mapView(), k = Math.min(w / mv.w, h / mv.h);
   const P = (px, py) => rot ? [(H - py - mv.u0) * k, (px - mv.v0) * k] : [(px - mv.u0) * k, (py - mv.v0) * k];
   const fogM = fogOn(), D = G.deco;
+  { const C = coastDeco(); if (C) { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(C)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } } }      // 50.1.5: a footprint's land
   if (D && D.kind === 'river') { x.strokeStyle = 'rgba(90,140,220,0.35)'; x.lineWidth = Math.max(2, D.hw * k); x.beginPath(); D.line.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.stroke(); }
-  if (D && D.kind === 'islands') { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls()) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } }
+  if (D && D.kind === 'islands') { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(D)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } }
   x.strokeStyle = live ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.26)'; x.lineWidth = u; x.beginPath();
   for (const [a, b] of G.edges) { const p = P(G.nodes[a].x, G.nodes[a].y), q = P(G.nodes[b].x, G.nodes[b].y); x.moveTo(p[0], p[1]); x.lineTo(q[0], q[1]); }
   x.stroke();
@@ -3011,26 +3100,71 @@ function placePreview() {
 }
 // 49.9.2: on a deck screen the preview is the whole screen behind the deck (nothing resizes when the deck moves). Landscape fits the map into the space left of the rail.
 // 49.9.4: the map can be panned (one finger) and pinch-zoomed (1x to 3x, never below the fit); PVV is that view, in screen pixels from the fitted position.
-const PVV = { k: 1, x: 0, y: 0, sig: '', land: null, raf: 0, ptrs: new Map(), tap: null };
-function pvGeom() {                                    // where the fitted map sits (its centre cx, cy and size w, h at 1x) and how big the screen is
-  const B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height);
-  const rail = W > Hh ? 346 : 0, top = 64, mg = 14, aw = W - rail - 2 * mg - 16, ah = Hh - top - mg;
+// held/rx/ry/rk (50.1.10): a finger is on the map and this is the view it asks for, before the give at the limits; fx/fy: the last pinch's middle; spr/sraf: springing back
+const PVV = { k: 1, x: 0, y: 0, sig: '', land: null, raf: 0, ptrs: new Map(), tap: null, held: false, rx: 0, ry: 0, rk: 1, fx: null, fy: null, spr: null, sraf: 0 };
+// 50.1.10: the deck's CLOSED footprint. The map's home and its pan limits use it, never the deck as it stands, so opening, closing or dragging the deck moves nothing
+// (portrait's lift, in pvRange, is the one link, as since 49.9.4). Portrait: the closed deck's top (its handle and Start bar, which never change height).
+// Landscape: the closed rail's handle (the rail keeps 44 px on screen and its handle sits 37 px left of it); open: the open rail's handle, for the zoom floor.
+function pvDeckEdges(W, Hh) {
+  const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'), body = sc && sc.querySelector('.dkbody'), land = W > Hh;
+  if (!dk || !body) return { closed: land ? W : Hh, open: land ? W : Hh };
+  return land ? { closed: W - 44 - 37, open: W - dk.offsetWidth - 37 } : { closed: Hh - (dk.offsetHeight - body.offsetHeight), open: null };
+}
+function pvGeom() {                                    // where the fitted map sits (its centre cx, cy and size w, h at 1x), the open area its limits use (ax0..ax1, ay0..ay1) and the zoom floor (kmin)
+  const B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height), land = W > Hh, E = pvDeckEdges(W, Hh);
+  // 50.1.10 (Henry): with the deck closed you see the whole map. Landscape fits it left of the closed rail's handle (was left of the open rail), portrait above the closed
+  // deck's handle and Start bar (was the whole screen below the header). The open area is that same space: 22 px in at the sides, the header above, 14 px clear of the closed deck.
+  const top = 64, mg = 14, R = land ? E.closed + 21 : W, aw = R - 2 * mg - 16, ah = (land ? Hh : E.closed) - top - mg;
   if (aw < 90 || ah < 60) return null;
-  const mv = mapView(), k = Math.min(aw / mv.w, ah / mv.h);
-  return { W, Hh, w: Math.max(40, Math.round(mv.w * k)), h: Math.max(30, Math.round(mv.h * k)), cx: (W - rail) / 2, cy: top + ah / 2 };
+  const mv = mapView(), k = Math.min(aw / mv.w, ah / mv.h), w = Math.max(40, Math.round(mv.w * k)), h = Math.max(30, Math.round(mv.h * k));
+  // 50.1.10: landscape may zoom out until the whole map fits beside the OPEN rail, never below half (a map that already fits there doesn't zoom out); portrait stays at 1x,
+  // where the lift shows what is under the deck. 50.1.9 (Henry): in portrait the map starts right under the header; landscape is centred in the height.
+  const kmin = land ? Math.max(.5, Math.min(1, (E.open - 1 - 22) / w)) : 1;
+  // landscape: a map that fits beside the open rail is centred there, as in 50.1.9; a wider one starts at the left, away from the rail (as portrait starts at the top,
+  // away from the deck), and its far end runs under the open rail
+  // ax/ay: the open area inset like the home view; ox/oy: the same area edge to edge (under the header, up to the closed deck), which a map zoomed in covers
+  return { W, Hh, w, h, cx: land ? 22 + Math.max(w, E.open - 23) / 2 : R / 2, cy: land ? top + ah / 2 : top + h / 2, land, kmin, ax0: 22, ax1: R - 22, ay0: top, ay1: top + ah, ox0: 0, ox1: land ? E.closed : W, oy0: 0, oy1: land ? Hh : E.closed };
 }
-// One axis of the limit: a map smaller than the screen stays inside it, a bigger one always covers it. Along the deck's axis the map may also be lifted until its far edge reaches the deck,
-// so the part under the deck can always be brought into view. (off: how far the map's centre is from where it was fitted; cen: where the fitted centre is; S: screen size on this axis.)
-function pvAxis(off, cen, size, S, vfar) {
-  const plain = size >= S ? [S - cen - size / 2, -cen + size / 2] : [-cen + size / 2, S - cen - size / 2];
-  let lo = Math.min(plain[0], plain[1]); const hi = Math.max(plain[0], plain[1]);
-  if (vfar != null) lo = Math.min(lo, vfar - cen - size / 2);
-  return Math.min(hi, Math.max(lo, off));
+// 50.1.10: what a drag may do along one axis (off: how far the map's centre is from home c; s: the map's size; i0..i1: the open area inset like the home view;
+// o0..o1: the same area edge to edge; t: how far below 1x, 0 at 1x, 1 at the floor). A map bigger than the inset area may move until its edge meets the area's edge
+// (a drag only reveals); as it grows the margins close, and once it is bigger than the whole area it covers it edge to edge, as before 50.1.10. One that fits
+// stays home (zoomed in: as near home as keeps it inside) and may roam the inset area the further you zoom out below 1x. Portrait also lifts to the deck (pvRange).
+function pvSpan(c, s, i0, i1, o0, o1, t) {
+  const I = i1 - i0, D = Math.max(1, (o1 - o0) - I);
+  if (s > I) { const u = Math.min(1, Math.pow((s - I) / D, 2)), a0 = i0 + (o0 - i0) * u, a1 = i1 + (o1 - i1) * u; return [a1 - c - s / 2, a0 - c + s / 2]; }
+  const a0 = i0, a1 = i1;
+  const lo = a0 - c + s / 2, hi = a1 - c - s / 2, p = Math.min(hi, Math.max(lo, 0));
+  return [p + (lo - p) * t, p + (hi - p) * t];
 }
+function pvRange(g) {
+  const k = PVV.k, t = g.kmin < 1 ? Math.min(1, Math.max(0, (1 - k) / (1 - g.kmin))) : 0;
+  const x = pvSpan(g.cx, g.w * k, g.ax0, g.ax1, g.ox0, g.ox1, t), y = pvSpan(g.cy, g.h * k, g.ay0, g.ay1, g.oy0, g.oy1, t);
+  if (!g.land) { const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'); if (dk) y[0] = Math.min(y[0], Math.min(g.Hh, dk.getBoundingClientRect().top) - g.cy - g.h * k / 2); }
+  return { x, y };
+}
+// 50.1.10: the give. Past a limit the map follows your finger ever more slowly, never more than 60 px; a pinch past the zoom limits gives about a tenth.
+const pvRub = (v, [lo, hi]) => v > hi ? hi + 60 * (v - hi) / (v - hi + 60) : v < lo ? lo - 60 * (lo - v) / (lo - v + 60) : v;
+const pvRubK = (k, lo, hi) => { const l = Math.log(k), a = Math.log(lo), b = Math.log(hi), G = .12; return Math.exp(l < a ? a - G * (a - l) / (a - l + G) : l > b ? b + G * (l - b) / (l - b + G) : l); };
 function pvClamp(g) {
-  const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'), d = dk ? dk.getBoundingClientRect() : null, L = g.W > g.Hh;
-  PVV.x = pvAxis(PVV.x, g.cx, g.w * PVV.k, g.W, d && L ? Math.min(g.W, d.left - 37) : null);      // landscape: the deck's left edge minus its 37 px tab
-  PVV.y = pvAxis(PVV.y, g.cy, g.h * PVV.k, g.Hh, d && !L ? Math.min(g.Hh, d.top) : null);
+  if (PVV.spr) return;                                   // springing back: the spring sets the view
+  if (PVV.held) { const r = pvRange(g); PVV.x = pvRub(PVV.rx, r.x); PVV.y = pvRub(PVV.ry, r.y); return; }      // a finger is down: the give
+  PVV.k = Math.min(3, Math.max(g.kmin, PVV.k)); const r = pvRange(g);
+  PVV.x = Math.min(r.x[1], Math.max(r.x[0], PVV.x)); PVV.y = Math.min(r.y[1], Math.max(r.y[0], PVV.y));
+}
+const pvOver = g => { const r = pvRange(g); return PVV.k < g.kmin - 1e-4 || PVV.k > 3 + 1e-4 || PVV.x < r.x[0] - .5 || PVV.x > r.x[1] + .5 || PVV.y < r.y[0] - .5 || PVV.y > r.y[1] + .5; };
+function pvSpringStop() { cancelAnimationFrame(PVV.sraf); PVV.sraf = 0; PVV.spr = null; }
+function pvSpring(fx, fy) {                             // 50.1.10: let go past a limit and the view eases back inside it in 0.25 s (straight back with reduced motion)
+  const g = pvGeom(); pvSpringStop(); if (!g) return;
+  const k0 = PVV.k, x0 = PVV.x, y0 = PVV.y, k1 = Math.min(3, Math.max(g.kmin, k0)), r = k1 / k0, ox = fx - g.cx, oy = fy - g.cy;
+  PVV.k = k1; PVV.x = ox - r * (ox - x0); PVV.y = oy - r * (oy - y0); pvClamp(g);      // zoom back about the pinch's middle, then into the limits
+  const to = [PVV.x, PVV.y, PVV.k];
+  if (reduceMotion) { placePreview(); return; }
+  PVV.x = x0; PVV.y = y0; PVV.k = k0; PVV.spr = true; const t0 = performance.now();
+  (function step() {
+    const e = Math.min(1, (performance.now() - t0) / 250), s = e * e * (3 - 2 * e);
+    PVV.x = x0 + (to[0] - x0) * s; PVV.y = y0 + (to[1] - y0) * s; PVV.k = k0 + (to[2] - k0) * s;
+    if (e < 1) { placePreview(); PVV.sraf = requestAnimationFrame(step); } else { PVV.spr = null; placePreview(); }
+  })();
 }
 function placeFull(card, pv) {
   const g = pvGeom(), d = Math.min(window.devicePixelRatio || 1, 2.5), B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height);
@@ -3061,7 +3195,7 @@ function pvFlingGo() {
   };
   PVF.raf = requestAnimationFrame(step);
 }
-const pvReset = () => { pvFlingStop(); PVV.k = 1; PVV.x = PVV.y = 0; };
+const pvReset = () => { pvFlingStop(); pvSpringStop(); PVV.k = PVV.rk = 1; PVV.x = PVV.y = PVV.rx = PVV.ry = 0; PVV.held = PVV.ptrs.size > 0; };
 const pvLive = () => pvOnly && !$('menu').hidden && !!dkScr() && !$('pvCard').hidden && !!G && !!G.nodes;
 function pvApply() {                                   // re-limit the view (the deck moved) and redraw only if that changed it
   if (!pvLive()) return; const g = pvGeom(); if (!g) return;
@@ -3073,7 +3207,7 @@ function pvSync() {                                    // while the deck slides,
   (function loop() { pvApply(); if (performance.now() - t0 < 420) PVV.raf = requestAnimationFrame(loop); })();
 }
 function pvZoomAt(px, py, k2) {
-  const g = pvGeom(); if (!g) return; k2 = Math.min(3, Math.max(1, k2));
+  pvSpringStop(); const g = pvGeom(); if (!g) return; k2 = Math.min(3, Math.max(g.kmin, k2));      // 50.1.10: a wheel turn takes over from a spring; landscape's floor can be below 1x
   const ox = px - g.cx, oy = py - g.cy, r = k2 / PVV.k;
   PVV.x = ox - r * (ox - PVV.x); PVV.y = oy - r * (oy - PVV.y); PVV.k = k2; placePreview();
 }
@@ -3082,23 +3216,33 @@ window.addEventListener('pointerdown', e => {
   if (!pvOnMap(e) || (e.pointerType === 'mouse' && e.button !== 0)) return;
   try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
   pvFlingStop();
+  if (!PVV.held) { pvSpringStop(); PVV.held = true; PVV.rx = PVV.x; PVV.ry = PVV.y; PVV.rk = PVV.k; }      // 50.1.10: from here the finger moves the asked-for view; the limits give
   PVV.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t0: performance.now(), id: e.pointerId, hist: [] });
 });
 window.addEventListener('pointermove', e => {
   const p = PVV.ptrs.get(e.pointerId); if (!p) return;
   if (PVV.ptrs.size === 1) {
-    PVV.x += e.clientX - p.x; PVV.y += e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; placePreview();
+    PVV.rx += e.clientX - p.x; PVV.ry += e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; placePreview();
     p.hist.push([performance.now(), e.clientX, e.clientY]); if (p.hist.length > 8) p.hist.shift(); return;
   }
   const o = [...PVV.ptrs.values()].find(q => q.id !== e.pointerId), mx0 = (p.x + o.x) / 2, my0 = (p.y + o.y) / 2, d0 = Math.hypot(p.x - o.x, p.y - o.y);
   p.x = e.clientX; p.y = e.clientY;
   const mx = (p.x + o.x) / 2, my = (p.y + o.y) / 2, d1 = Math.hypot(p.x - o.x, p.y - o.y);
-  PVV.x += mx - mx0; PVV.y += my - my0;                // two fingers carry the map along as well as zoom it
-  if (d0 > 0) pvZoomAt(mx, my, PVV.k * d1 / d0); else placePreview();
+  PVV.rx += mx - mx0; PVV.ry += my - my0; PVV.fx = mx; PVV.fy = my;      // two fingers carry the map along as well as zoom it
+  const g = pvGeom();
+  if (d0 > 0 && g) {      // 50.1.10: zoom about the fingers' middle; past the zoom limits it gives a little
+    PVV.rk *= d1 / d0; const k2 = pvRubK(PVV.rk, g.kmin, 3), r = k2 / PVV.k, ox = mx - g.cx, oy = my - g.cy;
+    PVV.rx = ox - r * (ox - PVV.rx); PVV.ry = oy - r * (oy - PVV.ry); PVV.k = k2;
+  }
+  placePreview();
 });
 function pvUp(e) {
   const p = PVV.ptrs.get(e.pointerId); if (!p) return; PVV.ptrs.delete(e.pointerId);
-  if (e.type !== 'pointerup' || PVV.ptrs.size) { PVV.tap = null; return; }
+  if (PVV.ptrs.size) { PVV.tap = null; return; }
+  // 50.1.10: the last finger is off. Past a limit the view springs back (no flick); inside them a flick glides on and stops at the limits
+  PVV.held = false; const g = pvGeom(), fx = PVV.fx != null ? PVV.fx : e.clientX, fy = PVV.fy != null ? PVV.fy : e.clientY; PVV.fx = PVV.fy = null;
+  if (g && pvOver(g)) { PVV.tap = null; pvSpring(fx, fy); return; }
+  if (e.type !== 'pointerup') { PVV.tap = null; return; }
   const now = performance.now(), rec = p.hist.filter(q => now - q[0] < 120);
   if (rec.length >= 2) {      // a flick: glide on from the speed at lift-off
     const a = rec[0], z = rec[rec.length - 1], dtm = Math.max(16, z[0] - a[0]);
@@ -3148,6 +3292,7 @@ function dkSync(m) {                                   // the row values and the
   const nm = MODS.filter(x => modOn(m, x.k)).length + (otActive(m) ? 1 : 0);
   set('enemies', `${who}${c.opp === 'auto' ? ' (auto)' : ''} · ${DIFF_LABEL[c.diff]}${c.persona !== 'mixed' ? ' · ' + cap1(c.persona) : ''}`);
   set('shape', shape); set('special', c.special === 'on' ? 'On' : 'Off'); set('mods', modsLabel(m));
+  if (m === 'custom' && $('xlLenRow')) { $('xlLenRow').hidden = c.shape !== 'newgen'; set('xlLen', c.xlLen === 'auto' ? 'Auto' : c.xlLen === '1' ? 'Round' : c.xlLen + ' to 1'); }   // LOGGER BUILD
   sc.querySelector('.dksum').textContent = [SIZE_LABEL[c.size], c.shape === 'random' ? '' : shape, who, DIFF_LABEL[c.diff], nm ? nm + (nm === 1 ? ' modifier' : ' modifiers') : ''].filter(Boolean).join(' · ');
 }
 document.addEventListener('click', e => {
@@ -3615,11 +3760,20 @@ function updateVis() {
   VIS.x0 = Math.min(a.x, b.x) - m; VIS.x1 = Math.max(a.x, b.x) + m; VIS.y0 = Math.min(a.y, b.y) - m; VIS.y1 = Math.max(a.y, b.y) + m;
 }
 // shape decoration: barely-there hints of the terrain, in keeping with the black-background look
-function islandHulls() {                             // a soft outline around each island's bases, computed once per map
-  if (G.deco._hulls) return G.deco._hulls;
-  if (G.deco.land && G.land) return (G.deco._hulls = [G.land.outline]);      // 50.1.4: a footprint's land: its own coast, not a hull round the bases
+// 50.1.5: the scenery comes in layers. A footprint's land (G.land) is drawn as one island, its coast the outline, UNDER the shape's own
+// scenery (G.deco: a river, a ring), so a river or a ring inside a blob keeps the blob's coast. Islands need none: the islands are the land.
+// decoCur is the layer being drawn, so style code that asks islandHulls() for "the islands" gets that layer's.
+let coastD = null, coastOf = null, decoCur = null;
+function coastDeco() {
+  if (!G.land || (G.deco && G.deco.kind === 'islands')) return null;
+  if (coastOf !== G.land) { coastOf = G.land; coastD = { kind: 'islands', land: true, groups: G.nodes.map(() => 0) }; }
+  return coastD;
+}
+function islandHulls(D = decoCur || G.deco) {         // a soft outline around each island's bases, computed once per map
+  if (D._hulls) return D._hulls;
+  if (D.land && G.land) return (D._hulls = [G.land.outline]);      // a footprint's land: its own coast, not a hull round the bases
   const groups = {};
-  G.nodes.forEach((n, i) => { const g = G.deco.groups[i]; (groups[g] || (groups[g] = [])).push([n.x, n.y]); });
+  G.nodes.forEach((n, i) => { const g = D.groups[i]; (groups[g] || (groups[g] = [])).push([n.x, n.y]); });
   const hulls = [];
   for (const pts of Object.values(groups)) {
     pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -3630,7 +3784,7 @@ function islandHulls() {                             // a soft outline around ea
     const hull = lo.slice(0, -1).concat(up.slice(0, -1)), cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
     hulls.push(hull.map(([x, y]) => { const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1; return [x + dx / l * 40, y + dy / l * 40]; }));
   }
-  return (G.deco._hulls = hulls);
+  return (D._hulls = hulls);
 }
 // Special-base marks: white on neutral bases, the owner's color once held. Four silhouettes you can tell apart at a glance.
 function drawSpecialMark(n, now, struck) {
@@ -3747,8 +3901,12 @@ function drawCrown(n, now) {                         // a gold crown over the ba
   ctx.beginPath(); ctx.moveTo(-9, 6); ctx.lineTo(-9, -4); ctx.lineTo(-4.5, 0); ctx.lineTo(0, -7); ctx.lineTo(4.5, 0); ctx.lineTo(9, -4); ctx.lineTo(9, 6); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
-function drawDeco(now) {
-  const D = G.deco; if (!D) return;
+function drawDeco(now) {                             // 50.1.5: the coast layer, then the shape's own
+  const C = coastDeco(); if (C) { decoCur = C; drawDecoOne(C, now); }
+  if (G.deco) { decoCur = G.deco; drawDecoOne(G.deco, now); }
+  decoCur = null;
+}
+function drawDecoOne(D, now) {
   if (isNebula()) { drawNebulaDeco(D); return; }
   if (isRime()) { drawRimeDeco(D); return; }
   if (isEmber()) { drawEmberDeco(D); return; }
@@ -6336,6 +6494,7 @@ function pxGround(tk) {                               // the ground changes only
     const x = PX.x; PX.x = g.getContext('2d'); const y = PX.x, st = 24, pk = V.s * PX.k;
     y.setTransform(1, 0, 0, 1, 0, 0); y.clearRect(0, 0, g.width, g.height);
     const path = pts => { y.beginPath(); pts.forEach(([wx, wy], i) => { pxp(wx, wy); i ? y.lineTo(PXX + 0.5, PXY + 0.5) : y.moveTo(PXX + 0.5, PXY + 0.5); }); };
+    for (const D of [coastDeco(), G.deco]) { decoCur = D;           // 50.1.5: the coast layer, then the shape's own
     if (D && D.kind === 'river') {                                    // water: a dithered channel
       y.lineCap = 'round'; y.lineJoin = 'round'; path(D.line); y.lineWidth = D.hw * 1.7 * pk; y.strokeStyle = pxDither('rgba(40,80,170,0.55)', false); y.stroke();
     } else if (D && D.kind === 'islands') {                           // land: a sparse dither inside a dotted coast
@@ -6348,6 +6507,8 @@ function pxGround(tk) {                               // the ground changes only
       for (let i = 0; i < 160; i += 2) { const a = i / 160 * Math.PI * 2; pxp(D.cx + Math.cos(a) * D.rx, D.cy + Math.sin(a) * D.ry); y.rect(PXX, PXY, 1, 1); }
       y.fill();
     }
+    }
+    decoCur = null;
     y.fillStyle = 'rgba(80,100,170,0.3)'; y.beginPath();              // a faint dot grid fixed to the ground, like the tiles of an old map
     for (let wx = Math.floor(VIS.x0 / st) * st; wx < VIS.x1; wx += st) for (let wy = Math.floor(VIS.y0 / st) * st; wy < VIS.y1; wy += st) { pxp(wx, wy); if (PXX >= 0 && PXY >= 0 && PXX < g.width && PXY < g.height) y.rect(PXX, PXY, 1, 1); }
     y.fill();
@@ -9402,7 +9563,7 @@ const PERSONA_INFO = { mixed: 'Each rival is randomly Balanced, Aggressive, Stur
   aggressive: 'Fast and hard-hitting, but easy to hurt back. Strikes first and defends later.',
   sturdy: 'Tough and patient. Digs in early and is hard to move.',
   adaptive: 'Reads the board and goes after whoever is winning.' };
-const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.', newgen: 'In testing: one landmass with a soft, random outline. It never turns to fit your screen.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
+const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.', newgen: 'In testing: a random shape on a landmass with a soft, random outline. It never turns to fit your screen.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
 // the Shape buttons in Custom and Spectate come from the same table (49.3.2)
 document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random', ...(seg.dataset.mode === 'custom' ? ['newgen'] : [])].map(k => `<button data-v="${k}">${SHAPE_NAME(k)}</button>`).join(''); });      // 50.1.2: Custom's New-Gen sits beside Random, each half width
 const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'Every base is the same.' };
@@ -9916,6 +10077,7 @@ function optsFor(key) {
   return { size: c.size, diff: c.diff, seed: seedOf(c), shape, teams: teamsFor(key), watch, noBrutal: !unlocks.brutalCustom, noDeadly: !unlocks.deadlyCustom,
     specials: !classic && c.special === 'on', persona: classic ? 'mixed' : c.persona,
     overtime: otActive(key), ...(c.shape === 'newgen' ? { footprint: 'blob' } : {}),      // 50.1.3: New-Gen is a blob footprint (50.1.2: a stretched box)
+    ...(key === 'custom' && c.shape === 'newgen' && c.xlLen && c.xlLen !== 'auto' ? { landLen: +c.xlLen } : {}),   // LOGGER BUILD: a set land length (50.1.6 test switch)
     mods: classic ? {} : Object.fromEntries(Object.keys(c.mods).map(k => [k, modOn(key, k)])) };      // 49.8.3: only the modifiers that can work
 }
 function buildPreview(key) {                         // the map behind the menu is the map you'll get
@@ -9925,6 +10087,7 @@ function buildPreview(key) {                         // the map behind the menu 
   layout();
   newGame(optsFor(key));
   pvOwners = G.nodes.map(n => n.owner);
+  xlLenHint();   // LOGGER BUILD
   const sig = key + '|' + teamsFor(key) + '|' + G.nodes.reduce((a, n, i) => (a * 31 + Math.round(n.x * 3) + Math.round(n.y * 7) * 13 + i) | 0, 7);
   if (sig !== PVV.sig) { PVV.sig = sig; pvReset(); }      // 49.9.4: the view starts over only when the map itself changes (size, shape, seed, teams, mode), never for a colour or a modifier
   G.autoplay = true; acc = 0; hl = []; uiFx = [];
@@ -10417,7 +10580,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.1.4 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.1.10 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -10469,6 +10632,11 @@ function xlDownload() {
 }
 window.__xlLock = id => xlEv('lock', id);
 $('bLog').addEventListener('click', xlDownload); $('bLogP').addEventListener('click', () => { xlSave(); xlDownload(); });
+function xlLenHint() {   // LOGGER BUILD: the land-length row's line says how long this map's land really is
+  const h = $('hintCLen'); if (!h) return;   // LOGGER BUILD
+  const L = G && G.land ? landLen(G.land.outline).toFixed(2) : '';   // LOGGER BUILD
+  h.textContent = 'Test only (logger). How long the land is against its width. Auto rolls it the way the game does now (usually about 1.5, at most about 2.6). Round is as round as this map goes. Changing it keeps the same map, only longer or rounder.' + (L ? ' This map: ' + L + ' to 1.' : '');   // LOGGER BUILD
+}   // LOGGER BUILD
 function handleTap(px, py) {
   if (mode !== 'play' || !G || G.over) return;
   audioOn();

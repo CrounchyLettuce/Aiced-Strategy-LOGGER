@@ -736,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1087,15 +1087,15 @@ const CROWN_AI = { smart: 0, spawn: 0.3, margin: 2.6, interval: [6, 9], crownMar
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
-    size: 'small', teams: 2, shape: 'continent', map: 'alone', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI, rule: "Take a base and it'll make troops for you. Take another, and you can see where this is going. Godspeed.",
+    size: 'small', teams: 2, shape: 'continent', map: 'alone', face: 'wide', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI, rule: "Take a base and it'll make troops for you. Take another, and you can see where this is going. Godspeed.",
     objective: { type: 'hold', n: 12, secs: 45, text: 'Hold 12 bases for 45 seconds straight' },
     stars: [{ k: 'win', t: 'Hold 12 bases for 45 seconds straight' }, { k: 'time', v: 210, t: 'Win in under 3:30' }, { k: 'ko', t: 'Capture all rival bases before you win' }] },   // star 3's line holds because this rival never sends troops, so taking its bases knocks it out
   { id: 'crown-duel', tier: 1, name: 'Hot Seat', desc: 'Two colors, one crown.',
-    size: 'small', teams: 2, shape: 'continent', map: 'crown-duel', diff: 'easy', seed: 9002, fair: true, mods: { koth: true }, kothTarget: 60, kothRival: 150, specials: false, aiTune: CROWN_AI, rule: "The rival has the better seat. You'll have to build the better army.",      // 50.0.14: renamed from Crown Duel (that name is banked for a later level)
+    size: 'small', teams: 2, shape: 'continent', map: 'crown-duel', face: 'wide', diff: 'easy', seed: 9002, fair: true, mods: { koth: true }, kothTarget: 60, kothRival: 150, specials: false, aiTune: CROWN_AI, rule: "The rival has the better seat. You'll have to build the better army.",      // 50.0.14: renamed from Crown Duel (that name is banked for a later level)
     objective: { type: 'crown', text: 'Hold the crown for a total of 60 seconds' },
     stars: [{ k: 'win', t: 'Hold the crown for a total of 60 seconds' }, { k: 'time', v: 180, t: 'Win in under 3:00' }, { k: 'hillcap', v: 10, t: 'Win before the rival banks 10 seconds on the crown' }] },
   { id: 'bases-loaded', tier: 1, name: 'Border Dispute', desc: 'Neither side has any paperwork.',      // 50.0.14: renamed from Bases Loaded
-    size: 'small', teams: 2, shape: 'continent', map: 'bases-loaded', diff: 'easy', seed: 9003, fair: true, mods: {}, specials: false, aiTune: LOADED_AI, forcePair: 'atlas', rule: 'Two roads, and the rival is waiting at the end of both. If only you could be in two places at once...',
+    size: 'small', teams: 2, shape: 'continent', map: 'bases-loaded', face: 'wide', diff: 'easy', seed: 9003, fair: true, mods: {}, specials: false, aiTune: LOADED_AI, forcePair: 'atlas', rule: 'Two roads, and the rival is waiting at the end of both. If only you could be in two places at once...',
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 270, t: 'Win in under 4:30' }, { k: 'time', v: 55, t: 'Win in under 0:55' }] },   // 50.0.12: stars from Henry's runs (0:50 to 0:56 at his best; 3:19 and 3:57 handicapped); star 3 was 0:52 in 50.0.11
   // 50.0.10: the old Tier 1 maps First blood and Crown rush are retired (Henry, Oct 27); their entries are kept in src5009\core.js
@@ -2611,7 +2611,7 @@ const field = $('field'), hudEl = $('hud');
 const STEP = 1 / 60, SENDS = [1, .5, .25];
 const speeds = () => watching ? [1, 2, 4] : [1, 2];
 let dpr = 1, V = { s: 1, ex: 0, ey: 0, rot: false };
-let F = { x: 0, y: 0, w: 1, h: 1 }, FI = { w: 1, h: 1 }, s0 = 1, rot = false, cam = { z: 1, cu: W / 2, cv: H / 2 }, arrowHits = [];
+let F = { x: 0, y: 0, w: 1, h: 1 }, FI = { w: 1, h: 1 }, s0 = 1, rot = false, tall = false, cam = { z: 1, cu: W / 2, cv: H / 2 }, arrowHits = [];
 let drawDirty = true, lastDrawAt = 0;                   // F2: paused and the menu demo draw less often; drawDirty asks for a redraw at once
 let FIT_K = 1, statsHold = false;                      // FIT_K: how far the whole-battlefield view backs away to clear the HUD; statsHold: the stats panel is folded while the minimap is open
 const zmax = () => 3 * Math.max(1, W / 1000);
@@ -2891,11 +2891,11 @@ function layout() {
   let r;
   const b = document.body.getBoundingClientRect();
   r = hudEl.hidden ? { left: b.left + 16, top: b.top + 16, width: b.width - 32, height: b.height - 32 } : b;
-  const newRot = r.height > r.width * 1.1;
+  tall = r.height > r.width * 1.1;                  // the screen's shape (portrait HUD layout)
   F = { x: b.left, y: b.top, w: Math.max(1, b.width), h: Math.max(1, b.height) };     // 49.9.1: the whole screen, in menus too (it was inset 16 px there, so every background and decoration stopped at a visible rectangle)
   FI = { w: Math.max(1, r.width), h: Math.max(1, r.height) };                         // the size the map is fitted into: still 16 px in from each edge in menus
-  if (newRot !== rot) { rot = newRot; resetCam(); }
-  hudEl.classList.toggle('rotv', rot);
+  if (mode === 'demo' && tall !== rot) { rot = tall; resetCam(); }     // 50.1.1: in a match the map keeps the way it faced at the start; turning the phone only reshapes the view
+  hudEl.classList.toggle('rotv', tall);
   if (!hudEl.hidden) placeMapButton();
   refitHud();
   s0 = fitScale();
@@ -3168,7 +3168,7 @@ function placeMapButton() {                           // the map button (bottom 
   const has = r.height > 0 && !hudEl.classList.contains('watch') && !hudEl.classList.contains('noup');
   const lift = has ? Math.round(fr.bottom - r.top + 14) : 8;
   $('mapWrap').style.bottom = lift + 'px';
-  $('sendTri').style.bottom = (rot ? lift : 8) + 'px';
+  $('sendTri').style.bottom = (tall ? lift : 8) + 'px';
 }
 function resetCam() { const B = boxUV(); cam = { z: 1, cu: (B.u0 + B.u1) / 2, cv: (B.v0 + B.v1) / 2 }; }
 function updateView() {
@@ -3779,7 +3779,7 @@ function drawEdges(now) {
     const A = nodes[a], B = nodes[b], oa = A.owner, ob = B.owner;
     if (Math.max(A.x, B.x) < VIS.x0 || Math.min(A.x, B.x) > VIS.x1 || Math.max(A.y, B.y) < VIS.y0 || Math.min(A.y, B.y) > VIS.y1) continue;
     /*STYLE:L1*/
-    if (oa < 0 && ob < 0) { if (LSEG) LSEG(A, B, 1); else if (RM) rimeSeg(A, B, 1); else { ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); } }        // nobody's
+    if (oa < 0 && ob < 0) { if (LSEG) LSEG(A, B, 1); else { ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); } }        // nobody's
     else if (oa === ob) inner[oa].push(A, B);                                     // inside one color's territory
     else if (ob < 0) out[oa].push(A, B, 1);                                       // a way out: that color's to take
     else if (oa < 0) out[ob].push(B, A, 1);
@@ -3794,7 +3794,7 @@ function drawEdges(now) {
       /*STYLE:V9*/
       ctx.strokeStyle = SG_ON ? SG_EDGE.held(TEAM_COLORS[i], HC) : SD_ ? hexA(saCol(TEAM_COLORS[i]), HC ? 0.85 : 0.6) : IK_ ? hexA(ikHex(TEAM_COLORS[i]), HC ? 0.75 : 0.5) : hexA(TEAM_COLORS[i], HC ? 0.6 : NB ? 0.2 : RM ? 0.36 : EM ? 0.34 : CK ? 0.42 : NO ? 0.42 : 0.28); ctx.lineDashOffset = slow; ctx.beginPath();
       /*STYLE:L2*/
-      for (let j = 0; j < L.length; j += 2) { if (LSEG) LSEG(L[j], L[j + 1], 1); else if (RM) rimeSeg(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
+      for (let j = 0; j < L.length; j += 2) { if (LSEG) LSEG(L[j], L[j + 1], 1); else { ctx.moveTo(L[j].x, L[j].y); ctx.lineTo(L[j + 1].x, L[j + 1].y); } }
       /*STYLE:L5*/
       ctx.stroke(); if (LAFT) LAFT(lw, i, 'held'); if (IK_) ctx.setLineDash(DASH);
       if (NO) { ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = hexA(TEAM_COLORS[i], 0.09); ctx.lineWidth = lw * 4.5; ctx.stroke(); ctx.lineWidth = lw * 0.9; ctx.globalCompositeOperation = 'source-over'; }   // Neon: every line glows
@@ -3808,7 +3808,7 @@ function drawEdges(now) {
       for (let j = 0; j < O.length; j += 3) {
         const P = O[j], Q = O[j + 1], f = O[j + 2];
         /*STYLE:L3*/
-        if (LSEG) LSEG(P, Q, f); else if (RM) rimeSeg(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
+        if (LSEG) LSEG(P, Q, f); else { ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + (Q.x - P.x) * f, P.y + (Q.y - P.y) * f); }
       }
       /*STYLE:V13*/ /*STYLE:L6*/
       ctx.stroke(); if (LAFT) LAFT(lw, i, 'out'); ctx.lineWidth = SG_ON ? lw * SG_EDGE.w : SD_ ? lw * 1.7 : lw; if (IK_ || SD_ || SG_ON) ctx.setLineDash(DASH);
@@ -4940,6 +4940,7 @@ function rimeSeg(A, B, f) {                          // one line as a hairline c
     if (i) ctx.lineTo(pts[j * 2], pts[j * 2 + 1]); else ctx.moveTo(pts[j * 2], pts[j * 2 + 1]);
   }
 }
+LINE_STYLE.rime = { seg: (A, B, f) => rimeSeg(A, B, f) };     // 50.1.1: Rime's cracked roads through the line slot
 function drawRimeFx() {                              // a troop lost is a small glint; a capture is a hexagon of ice racing outward with six spikes
   const fogD = fogOn();
   for (const f of G.fx) {
@@ -9981,6 +9982,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   else if (curScen) newGame({ scenario: curScen });          // fixed map and rules: the same every attempt
   else { newGame(PERF && window.__fixedOnce ? Object.assign(optsFor(curModeKey), { fixedMap: window.__fixedOnce, teams: 0 }) : optsFor(curModeKey)); cfg.seed = rnd32(); save('ice-settings', settings); }   // play the previewed map, then roll the next one
   { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours
+  { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = sc && sc.face === 'wide' ? false : tall; }      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
   setMinimap(false); fling.vx = fling.vy = 0;
   G.autoplay = watching;
@@ -10387,7 +10389,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.1 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.1.1 LOGGER', crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),

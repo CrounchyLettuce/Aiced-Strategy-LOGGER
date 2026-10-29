@@ -736,7 +736,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.12 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.1.14 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1162,7 +1162,8 @@ const PRACTICE_PHASES = ['Look around', 'Send troops', 'Upgrades', 'Special base
 const PRACTICE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6 };      // the rival builds a little and never attacks
 function practiceOpts(id) {
   const c = PRACTICE.find(x => x.id === id); if (!c) return {};
-  return { practice: c.id, size: c.size, teams: c.teams, shape: 'continent', diff: 'easy', seed: c.seed, fair: true, mods: {}, specials: !!c.specials,
+  // 50.1.14: the lesson keeps its old box map (the guided match is being rebuilt; Henry and DC)
+  return { practice: c.id, size: c.size, teams: c.teams, shape: 'continent', footprint: 'box', diff: 'easy', seed: c.seed, fair: true, mods: {}, specials: !!c.specials,
     specialKinds: c.specialKinds, playerTroops: c.playerTroops, startPoints: c.startPoints, aiTune: PRACTICE_AI };
 }
 function scenarioOpts(id) {
@@ -1288,7 +1289,8 @@ function hopMatrix(N, adj) {
 }
 
 // five starting bases: each with 2-3 ways out, none directly linked to another, spread as far apart as possible
-function pickStarts(pts, edges, rng, k, grp) {
+// even (50.1.14, New-Gen maps): of the sets as spread out as the best, take the most even one (see evenStarts)
+function pickStarts(pts, edges, rng, k, grp, even) {
   k = k || 5;
   const sepGroups = grp && new Set(grp).size >= k;     // challenge maps: give every color its own island when there are enough
   const N = pts.length, adj = pts.map(() => []);
@@ -1297,7 +1299,7 @@ function pickStarts(pts, edges, rng, k, grp) {
   const ok = [...Array(N).keys()].filter(i => adj[i].length >= 2 && adj[i].length <= 3);
   if (ok.length < k) return null;
   const eu = (a, b) => Math.hypot(pts[a][0] - pts[b][0], pts[a][1] - pts[b][1]);
-  let bestSet = null, bestScore = -Infinity;
+  let bestSet = null, bestScore = -Infinity; const sets = [];
   for (let trial = 0; trial < 14; trial++) {
     const chosen = [ok[Math.floor(rng() * ok.length)]];
     while (chosen.length < k) {
@@ -1321,14 +1323,46 @@ function pickStarts(pts, edges, rng, k, grp) {
     }
     const score = mh * 1000 + me;
     if (score > bestScore) { bestScore = score; bestSet = chosen.slice(); }
+    sets.push({ set: chosen.slice(), mh, score });
   }
   if (!bestSet) return null;
+  if (even && !(grp && new Set(grp).size >= k)) bestSet = evenStarts(sets, M, ok, k, N);      // never when every color must have its own island
   for (let i = bestSet.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1)); [bestSet[i], bestSet[j]] = [bestSet[j], bestSet[i]];
   }
   return bestSet;
 }
 
+// 50.1.14 (Henry and DC): fair starts on New-Gen maps. A start's share is the bases nearer to it by road than to any other start (ties split) over
+// an equal share; a set is as even as its smallest share. pick(need): of the sets the picker tried that keep starts at least `need` roads apart,
+// take the most even, then move one start at a time to a base a road or two away while that makes the set more even and keeps them `need` apart.
+// The best spread is kept unless a start would still get under 80% of an equal share; then one road less spread is allowed if it is more even.
+// Before, about 1 Large or Huge map in 7 left a start under 60% of an equal share; on DC's 240 test maps none do now.
+function evenStarts(sets, M, ok, k, N) {
+  const share = st => { const t = new Array(k).fill(0); let all = 0;
+    for (let j = 0; j < N; j++) { let m = Infinity; for (const s of st) m = Math.min(m, M[s][j]); if (m === Infinity) continue; all++;
+      const w = st.filter(s => M[s][j] === m).length; st.forEach((s, i) => { if (M[s][j] === m) t[i] += 1 / w; }); }
+    return all ? Math.min(...t) / (all / k) : 0; };
+  const spread = st => { let mh = Infinity; for (let a = 0; a < k; a++) for (let b = a + 1; b < k; b++) mh = Math.min(mh, M[st[a]][st[b]]); return mh; };
+  const pick = need => {
+    let best = null;
+    for (const x of sets) { if (x.mh < need) continue; const e = share(x.set); if (!best || e > best.e + 1e-9 || (Math.abs(e - best.e) <= 1e-9 && x.score > best.score)) best = { set: x.set.slice(), e, score: x.score }; }
+    for (let round = 0; round < 40; round++) {
+      let step = null;
+      for (let i = 0; i < k; i++) for (const c of ok) {
+        if (best.set.includes(c) || M[best.set[i]][c] > 2) continue;
+        const st = best.set.slice(); st[i] = c; if (spread(st) < need) continue;
+        const e = share(st); if (e > (step ? step.e : best.e) + 1e-9) step = { set: st, e };
+      }
+      if (!step) break;
+      best = { set: step.set, e: step.e, score: best.score };
+    }
+    return best;
+  };
+  const top = Math.max(...sets.map(x => x.mh)), full = pick(top);
+  if (full.e >= 0.8 || top <= 2) return full.set;
+  const near = pick(top - 1); return near.e > full.e + 1e-9 ? near.set : full.set;
+}
 // keep: rectangles (world units) where no base may sit, so the floating HUD never covers one
 // ---- map shapes ----
 // Every shape uses the same pipeline: scatter bases inside the shape's land (never closer than 100 apart), connect
@@ -1438,6 +1472,7 @@ function makeShape(shape, rng, N, fp) {
 }
 // MAP FOOTPRINT (50.1.3, map-box step B; MAP_BOX_DESIGN.md). The land's outline is made first and the world box (W x H) wraps it.
 // 'box': the land is the whole box, at a set width-to-height (1.78 unless given): every generated map before New-Gen, unchanged to the bit.
+// Since 50.1.14 only what asks for it gets the box (the practice lesson); everything else is a blob (newGame).
 // 'blob': a soft outline (a circle bent by four slow waves, stretched and turned), scaled so the LAND has the area asked for.
 // A blob rolls its own dice from the seed, so the match's dice are untouched. `land(x, y)`: on land; `inside(x, y)`: room for a base there.
 // LAND LENGTH (50.1.6). How long a land is: its widest caliper width over its narrowest (1 = round, 2 = twice as long as wide).
@@ -1589,7 +1624,7 @@ function randomMap(rng, spec, keep, k, shapeName, fair, fp) {
         edges.push([pick[1], pick[2]]); has.add(key(pick[1], pick[2])); deg[pick[1]]++; deg[pick[2]]++;
       }
     }
-    const starts = pickStarts(pts, edges, rng, k, fair ? grp : null);
+    const starts = pickStarts(pts, edges, rng, k, fair ? grp : null, !!fp);      // 50.1.14: New-Gen maps pick even starts
     const out = { nodes: pts, edges, bridges, deco: S.deco, shape };
     if (shape === 'islands') out.deco = { kind: 'islands', groups: grp };
     if (starts) return { ...out, starts };
@@ -1624,7 +1659,8 @@ function newGame(opts) {
   if (fixed) { W = fixed.w; H = fixed.h; }
   else if (opts.world) { W = opts.world.w; H = opts.world.h; }
   let fp = null;                                       // 50.1.3: the land comes first; the world box wraps it
-  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint, spec.area * SHAPE_AREA[shape], seed, asp, opts.landLen, LAND_LEN_CAP[opts.size] || LAND_LEN_CAP.medium); W = fp.W; H = fp.H; }
+  // 50.1.14 (Henry): New-Gen everywhere. Every generated map is a blob unless its options ask for the box
+  if (!fixed && !opts.world) { fp = makeFootprint(opts.footprint || 'blob', spec.area * SHAPE_AREA[shape], seed, asp, opts.landLen, LAND_LEN_CAP[opts.size] || LAND_LEN_CAP.medium); W = fp.W; H = fp.H; }
   m = fixed ? fixedToMap(fixed, nTeams) : randomMap(rng, spec, opts.keep, nTeams, shape, opts.fair, fp && fp.outline ? fp : null);
   if (!m) {                                            // belt and braces: a world too small for the map falls back to a plain one rather than failing to start
     const area = spec.area; H = Math.sqrt(area / asp); W = area / H; fp = null;
@@ -1738,7 +1774,8 @@ function loadSnap(str) {
     if (v && v.$ && v.a) return new globalThis[v.$](v.a);
     return v;
   });
-  newGame(S.opts);                                        // same map, same colours and world size
+  // 50.1.14: a match saved before New-Gen everywhere was built on the box, and its options never said so; say it now (a New-Gen match saved its land)
+  newGame(S.opts && !S.opts.footprint && !(S.g && S.g.land) ? Object.assign({}, S.opts, { footprint: 'box' }) : S.opts);      // same map, same colours and world size
   W = S.W; H = S.H;
   for (const k of Object.keys(S.g)) G[k] = S.g[k];
   const byId = new Map(G.troops.map(t => [t.id, t]));
@@ -2836,7 +2873,7 @@ function cleanProfile(kind, p, old) {
   if (kind !== 'spec') c.color = oneOf(p.color ?? old.color, COLOR_KEYS, 'blue');
   if (kind !== 'classic') {
     const mods = isObj(p.mods) ? p.mods : isObj(old.mods) ? old.mods : {};
-    c.shape = oneOf(p.shape ?? old.shape, kind === 'custom' ? [...SHAPE_CHOICES, 'newgen'] : SHAPE_CHOICES, 'random');      // 50.1.2: New-Gen is Custom's only, while the map box is being reworked
+    c.shape = oneOf(p.shape ?? old.shape, SHAPE_CHOICES, 'random');      // 50.1.14: every shape is New-Gen now, so its button is gone; a saved New-Gen becomes Random (the same roll)
     if (kind === 'custom') c.xlLen = oneOf(String(p.xlLen ?? old.xlLen ?? 'auto'), ['auto', '1', '1.6', '2', '2.5', '3'], 'auto');   // LOGGER BUILD: the land-length test switch (50.1.6)
     c.special = oneOf(p.special ?? old.special, ['on', 'off'], 'on');
     c.opp = oneOf(String(p.opp ?? (kind === 'custom' ? old.opp : null) ?? 'auto'), kind === 'custom' ? ['auto', '1', '2', '3', '4'] : ['auto', '2', '3', '4', '5'], 'auto');
@@ -2852,8 +2889,8 @@ function cleanProfile(kind, p, old) {
   for (const k of ['size', 'diff', 'persona', 'opp', 'shape', 'special', 'mods', 'color', 'map']) delete settings[k];
 })();
 const seedOf = c => c.seed || (c.seed = rnd32());                  // every setup has a map seed: what the menu previews is what you play
-const shapeFor = c => c.shape === 'random' || c.shape === 'newgen' ? SHAPES[seedOf(c) % SHAPES.length] : c.shape;      // 50.1.5: New-Gen picks its shape the way Random does, then lays it on a blob
-const SHAPE_NAME = k => k === 'random' ? 'Random' : k === 'newgen' ? 'New-Gen' : SHAPE_DEFS[k].label;
+const shapeFor = c => SHAPES.includes(c.shape) ? c.shape : SHAPES[seedOf(c) % SHAPES.length];      // Random (and anything else, like a New-Gen setting from before 50.1.14) rolls the shape from the seed
+const SHAPE_NAME = k => SHAPE_DEFS[k] ? SHAPE_DEFS[k].label : 'Random';      // anything not a shape is Random (as shapeFor rolls it)
 const teamsFor = m => { const c = settings[m]; return m === 'classic' ? SIZES[c.size].teams : c.opp === 'auto' ? SIZES[c.size].teams : m === 'custom' ? +c.opp + 1 : +c.opp; };
 const MODS = [
   { k: 'blitz', n: 'Blitz', d: 'Troops spawn twice as fast for everyone, and march faster too.' },
@@ -3125,14 +3162,17 @@ function placePreview() {
 // 49.9.2: on a deck screen the preview is the whole screen behind the deck (nothing resizes when the deck moves). Landscape fits the map into the space left of the rail.
 // 49.9.4: the map can be panned (one finger) and pinch-zoomed (1x to 3x, never below the fit); PVV is that view, in screen pixels from the fitted position.
 // held/rx/ry/rk (50.1.10): a finger is on the map and this is the view it asks for, before the give at the limits; fx/fy: the last pinch's middle; spr/sraf: springing back
-const PVV = { k: 1, x: 0, y: 0, sig: '', land: null, raf: 0, ptrs: new Map(), tap: null, held: false, rx: 0, ry: 0, rk: 1, fx: null, fy: null, spr: null, sraf: 0 };
-// 50.1.10: the deck's CLOSED footprint. The map's home and its pan limits use it, never the deck as it stands, so opening, closing or dragging the deck moves nothing
-// (portrait's lift, in pvRange, is the one link, as since 49.9.4). Portrait: the closed deck's top (its handle and Start bar, which never change height).
+// rest (50.1.13): the outermost bases' box where the map last came to rest (centre and half size, screen pixels); it stays allowed until you move the map
+const PVV = { k: 1, x: 0, y: 0, sig: '', land: null, raf: 0, ptrs: new Map(), tap: null, held: false, rx: 0, ry: 0, rk: 1, fx: null, fy: null, spr: null, sraf: 0, rest: null };
+// 50.1.10: the deck's CLOSED footprint. The map's home uses it, never the deck as it stands, so opening, closing or dragging the deck moves nothing.
+// Portrait: the closed deck's top (its handle and Start bar, which never change height).
 // Landscape: the closed rail's handle (the rail keeps 44 px on screen and its handle sits 37 px left of it); open: the open rail's handle, for the zoom floor.
+// now (50.1.13): the deck's edge as it stands (portrait its top, landscape the rail's handle), for the middle the pan limits use; the deck moving never moves the map.
 function pvDeckEdges(W, Hh) {
   const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'), body = sc && sc.querySelector('.dkbody'), land = W > Hh;
-  if (!dk || !body) return { closed: land ? W : Hh, open: land ? W : Hh };
-  return land ? { closed: W - 44 - 37, open: W - dk.offsetWidth - 37 } : { closed: Hh - (dk.offsetHeight - body.offsetHeight), open: null };
+  if (!dk || !body) return { closed: land ? W : Hh, open: land ? W : Hh, now: land ? W : Hh };
+  const d = dk.getBoundingClientRect(), closed = land ? W - 44 - 37 : Hh - (dk.offsetHeight - body.offsetHeight);
+  return land ? { closed, open: W - dk.offsetWidth - 37, now: Math.min(closed, d.left - 37) } : { closed, open: null, now: Math.min(closed, d.top) };
 }
 function pvGeom() {                                    // where the fitted map sits (its centre cx, cy and size w, h at 1x), the open area its limits use (ax0..ax1, ay0..ay1) and the zoom floor (kmin)
   const B = document.body.getBoundingClientRect(), W = Math.round(B.width), Hh = Math.round(B.height), land = W > Hh, E = pvDeckEdges(W, Hh);
@@ -3140,35 +3180,32 @@ function pvGeom() {                                    // where the fitted map s
   // deck's handle and Start bar (was the whole screen below the header). The open area is that same space: 22 px in at the sides, the header above, 14 px clear of the closed deck.
   const top = 64, mg = 14, R = land ? E.closed + 21 : W, aw = R - 2 * mg - 16, ah = (land ? Hh : E.closed) - top - mg;
   if (aw < 90 || ah < 60) return null;
-  const mv = mapView(), k = Math.min(aw / mv.w, ah / mv.h), w = Math.max(40, Math.round(mv.w * k)), h = Math.max(30, Math.round(mv.h * k));
+  const mv = mapView(), b = boxUV(), k = Math.min(aw / mv.w, ah / mv.h), w = Math.max(40, Math.round(mv.w * k)), h = Math.max(30, Math.round(mv.h * k));
   // 50.1.10: landscape may zoom out until the whole map fits beside the OPEN rail, never below half (a map that already fits there doesn't zoom out); portrait stays at 1x,
-  // where the lift shows what is under the deck. 50.1.9 (Henry): in portrait the map starts right under the header; landscape is centred in the height.
+  // and drags (50.1.13) reach what is under the deck. 50.1.9 (Henry): in portrait the map starts right under the header; landscape is centred in the height.
   const kmin = land ? Math.max(.5, Math.min(1, (E.open - 1 - 22) / w)) : 1;
   // landscape: a map that fits beside the open rail is centred there, as in 50.1.9; a wider one starts at the left, away from the rail (as portrait starts at the top,
   // away from the deck), and its far end runs under the open rail
-  // ax/ay: the open area inset like the home view; ox/oy: the same area edge to edge (under the header, up to the closed deck), which a map zoomed in covers
-  return { W, Hh, w, h, cx: land ? 22 + Math.max(w, E.open - 23) / 2 : R / 2, cy: land ? top + ah / 2 : top + h / 2, land, kmin, ax0: 22, ax1: R - 22, ay0: top, ay1: top + ah, ox0: 0, ox1: land ? E.closed : W, oy0: 0, oy1: land ? Hh : E.closed };
+  // ax/ay: the open area inset like the home view. 50.1.13: mx/my, the middle of what you can see now (left of the rail's handle, or between the header and
+  // the deck's top, 14 px clear like the home view), which the outermost bases may be brought to (pvRange); bw/bh: the outermost bases' box at 1x, in pixels
+  // (the drawing's own scale)
+  const s = Math.min(w / mv.w, h / mv.h);
+  return { W, Hh, w, h, cx: land ? 22 + Math.max(w, E.open - 23) / 2 : R / 2, cy: land ? top + ah / 2 : top + h / 2, land, kmin, ax0: 22, ax1: R - 22, ay0: top, ay1: top + ah,
+    mx: land ? (22 + E.now - 1) / 2 : R / 2, my: land ? top + ah / 2 : Math.max(top, (top + E.now - mg) / 2), bw: (b.u1 - b.u0) * s, bh: (b.v1 - b.v0) * s };
 }
-// 50.1.10: what a drag may do along one axis (off: how far the map's centre is from home c; s: the map's size; i0..i1: the open area inset like the home view;
-// o0..o1: the same area edge to edge; t: how far below 1x, 0 at 1x, 1 at the floor). A map bigger than the inset area may move until its edge meets the area's edge
-// (a drag only reveals); as it grows the margins close, and once it is bigger than the whole area it covers it edge to edge, as before 50.1.10. One that fits
-// stays home at 1x and may roam the inset area the further you zoom out below 1x, or (50.1.11, Henry) zoom in above it: t opens the room either way.
-// Portrait also lifts to the deck (pvRange).
-function pvSpan(c, s, i0, i1, o0, o1, t) {
-  const I = i1 - i0, D = Math.max(1, (o1 - o0) - I);
-  if (s > I) { const u = Math.min(1, Math.pow((s - I) / D, 2)), a0 = i0 + (o0 - i0) * u, a1 = i1 + (o1 - i1) * u; return [a1 - c - s / 2, a0 - c + s / 2]; }
-  const a0 = i0, a1 = i1;
-  const lo = a0 - c + s / 2, hi = a1 - c - s / 2, p = Math.min(hi, Math.max(lo, 0));
-  return [p + (lo - p) * t, p + (hi - p) * t];
-}
+// 50.1.13 (Henry): what a drag may do, one rule at every zoom, as in a match: the outermost base on each side may be brought to the middle of what you can
+// see (mx, my) and no further. Allowed as well: home (the map as it sits at home at the smallest zoom; portrait's home is under the header, above the middle)
+// and wherever the map last came to rest (PVV.rest), so when the deck moves the limits move but the map never does, and touching it later never makes it jump.
+// The map's box only grows as you zoom in, so zooming in about a point on the map never shifts it. Replaces 50.1.10's room that grew and shrank with the zoom
+// (a map that fits was pinned at 1x) and portrait's lift, which pulled the map along with the deck.
+const pvBand = ([z0, z1], c, s) => [Math.min(z0, c + s), Math.max(z1, c - s)];      // reach out to a box (centre c, half size s) unless it already spans the band
 function pvRange(g) {
-  // t: the room a map that fits may roam. Below 1x it opens toward the floor (landscape); 50.1.11 (Henry): above 1x it opens too, all of it from 1.5x,
-  // so zoomed in a wide map in portrait (or a narrow one in landscape) can be moved to the middle; at 1x it stays home
-  const k = PVV.k, t = k > 1 ? Math.min(1, (k - 1) / .5) : g.kmin < 1 ? Math.min(1, Math.max(0, (1 - k) / (1 - g.kmin))) : 0;
-  const x = pvSpan(g.cx, g.w * k, g.ax0, g.ax1, g.ox0, g.ox1, t), y = pvSpan(g.cy, g.h * k, g.ay0, g.ay1, g.oy0, g.oy1, t);
-  if (!g.land) { const sc = dkScr(), dk = sc && sc.querySelector('.dkdeck'); if (dk) y[0] = Math.min(y[0], Math.min(g.Hh, dk.getBoundingClientRect().top) - g.cy - g.h * k / 2); }
-  return { x, y };
+  const k = PVV.k, R = PVV.rest, bw = g.bw * k / 2, bh = g.bh * k / 2;
+  let zx = pvBand([g.mx, g.mx], g.cx, g.bw * g.kmin / 2), zy = pvBand([g.my, g.my], g.cy, g.bh * g.kmin / 2);
+  if (R) { zx = pvBand(zx, R.cx, R.sx); zy = pvBand(zy, R.cy, R.sy); }
+  return { x: [zx[0] - g.cx - bw, zx[1] - g.cx + bw], y: [zy[0] - g.cy - bh, zy[1] - g.cy + bh] };
 }
+function pvRest(g) { PVV.rest = g ? { cx: g.cx + PVV.x, cy: g.cy + PVV.y, sx: g.bw * PVV.k / 2, sy: g.bh * PVV.k / 2 } : null; }      // 50.1.13: the map has come to rest here
 // 50.1.10: the give. Past a limit the map follows your finger ever more slowly, never more than 60 px; a pinch past the zoom limits gives about a tenth.
 const pvRub = (v, [lo, hi]) => v > hi ? hi + 60 * (v - hi) / (v - hi + 60) : v < lo ? lo - 60 * (lo - v) / (lo - v + 60) : v;
 const pvRubK = (k, lo, hi) => { const l = Math.log(k), a = Math.log(lo), b = Math.log(hi), G = .12; return Math.exp(l < a ? a - G * (a - l) / (a - l + G) : l > b ? b + G * (l - b) / (l - b + G) : l); };
@@ -3185,12 +3222,12 @@ function pvSpring(fx, fy) {                             // 50.1.10: let go past 
   const k0 = PVV.k, x0 = PVV.x, y0 = PVV.y, k1 = Math.min(3, Math.max(g.kmin, k0)), r = k1 / k0, ox = fx - g.cx, oy = fy - g.cy;
   PVV.k = k1; PVV.x = ox - r * (ox - x0); PVV.y = oy - r * (oy - y0); pvClamp(g);      // zoom back about the pinch's middle, then into the limits
   const to = [PVV.x, PVV.y, PVV.k];
-  if (reduceMotion) { placePreview(); return; }
+  if (reduceMotion) { placePreview(); pvRest(g); return; }
   PVV.x = x0; PVV.y = y0; PVV.k = k0; PVV.spr = true; const t0 = performance.now();
   (function step() {
     const e = Math.min(1, (performance.now() - t0) / 250), s = e * e * (3 - 2 * e);
     PVV.x = x0 + (to[0] - x0) * s; PVV.y = y0 + (to[1] - y0) * s; PVV.k = k0 + (to[2] - k0) * s;
-    if (e < 1) { placePreview(); PVV.sraf = requestAnimationFrame(step); } else { PVV.spr = null; placePreview(); }
+    if (e < 1) { placePreview(); PVV.sraf = requestAnimationFrame(step); } else { PVV.spr = null; placePreview(); pvRest(g); }
   })();
 }
 function placeFull(card, pv) {
@@ -3214,7 +3251,7 @@ function pvFlingGo() {
   PVF.t = performance.now(); cancelAnimationFrame(PVF.raf);
   const step = now => {
     const dt = Math.min(.05, (now - PVF.t) / 1000); PVF.t = now;
-    if (!pvLive() || Math.hypot(PVF.vx, PVF.vy) < 20) { pvFlingStop(); return; }
+    if (!pvLive() || Math.hypot(PVF.vx, PVF.vy) < 20) { pvFlingStop(); if (pvLive()) pvRest(pvGeom()); return; }
     const dx = PVF.vx * dt, dy = PVF.vy * dt, x0 = PVV.x, y0 = PVV.y;
     PVV.x += dx; PVV.y += dy; placePreview();           // placeFull applies the limits
     if (Math.abs(PVV.x - x0 - dx) > .5) PVF.vx = 0; if (Math.abs(PVV.y - y0 - dy) > .5) PVF.vy = 0;      // an edge stops that direction
@@ -3222,21 +3259,21 @@ function pvFlingGo() {
   };
   PVF.raf = requestAnimationFrame(step);
 }
-const pvReset = () => { pvFlingStop(); pvSpringStop(); PVV.k = PVV.rk = 1; PVV.x = PVV.y = PVV.rx = PVV.ry = 0; PVV.held = PVV.ptrs.size > 0; };
+const pvReset = () => { pvFlingStop(); pvSpringStop(); PVV.k = PVV.rk = 1; PVV.x = PVV.y = PVV.rx = PVV.ry = 0; PVV.held = PVV.ptrs.size > 0; PVV.rest = null; };
 const pvLive = () => pvOnly && !$('menu').hidden && !!dkScr() && !$('pvCard').hidden && !!G && !!G.nodes;
 function pvApply() {                                   // re-limit the view (the deck moved) and redraw only if that changed it
   if (!pvLive()) return; const g = pvGeom(); if (!g) return;
   const was = PVV.k + '|' + PVV.x + '|' + PVV.y; pvClamp(g);
   if (was !== PVV.k + '|' + PVV.x + '|' + PVV.y) placePreview();
 }
-function pvSync() {                                    // while the deck slides, the map follows its limit (a hidden deck lets the map settle back down)
+function pvSync() {                                    // while the deck slides, the limits are checked again (50.1.13: where the map rests stays allowed, so it stays put)
   cancelAnimationFrame(PVV.raf); const t0 = performance.now();
   (function loop() { pvApply(); if (performance.now() - t0 < 420) PVV.raf = requestAnimationFrame(loop); })();
 }
 function pvZoomAt(px, py, k2) {
   pvSpringStop(); const g = pvGeom(); if (!g) return; k2 = Math.min(3, Math.max(g.kmin, k2));      // 50.1.10: a wheel turn takes over from a spring; landscape's floor can be below 1x
   const ox = px - g.cx, oy = py - g.cy, r = k2 / PVV.k;
-  PVV.x = ox - r * (ox - PVV.x); PVV.y = oy - r * (oy - PVV.y); PVV.k = k2; placePreview();
+  PVV.x = ox - r * (ox - PVV.x); PVV.y = oy - r * (oy - PVV.y); PVV.k = k2; placePreview(); pvRest(g);
 }
 const pvOnMap = e => pvLive() && !e.target.closest('.dkdeck, .screen.deck header > *, .ver, .newsBtn');
 window.addEventListener('pointerdown', e => {
@@ -3269,6 +3306,7 @@ function pvUp(e) {
   // 50.1.10: the last finger is off. Past a limit the view springs back (no flick); inside them a flick glides on and stops at the limits
   PVV.held = false; const g = pvGeom(), fx = PVV.fx != null ? PVV.fx : e.clientX, fy = PVV.fy != null ? PVV.fy : e.clientY; PVV.fx = PVV.fy = null;
   if (g && pvOver(g)) { PVV.tap = null; pvSpring(fx, fy); return; }
+  if (g) { pvClamp(g); pvRest(g); }                      // 50.1.13: let go within half a pixel of a limit, it settles exactly on it; this is where it rests (a flick updates it)
   if (e.type !== 'pointerup') { PVV.tap = null; return; }
   const now = performance.now(), rec = p.hist.filter(q => now - q[0] < 120);
   if (rec.length >= 2) {      // a flick: glide on from the speed at lift-off
@@ -3319,7 +3357,7 @@ function dkSync(m) {                                   // the row values and the
   const nm = MODS.filter(x => modOn(m, x.k)).length + (otActive(m) ? 1 : 0);
   set('enemies', `${who}${c.opp === 'auto' ? ' (auto)' : ''} · ${DIFF_LABEL[c.diff]}${c.persona !== 'mixed' ? ' · ' + cap1(c.persona) : ''}`);
   set('shape', shape); set('special', c.special === 'on' ? 'On' : 'Off'); set('mods', modsLabel(m));
-  if (m === 'custom' && $('xlLenRow')) { $('xlLenRow').hidden = c.shape !== 'newgen'; set('xlLen', c.xlLen === 'auto' ? 'Auto' : c.xlLen === '1' ? 'Round' : c.xlLen + ' to 1'); }   // LOGGER BUILD
+  if (m === 'custom' && $('xlLenRow')) { set('xlLen', c.xlLen === 'auto' ? 'Auto' : c.xlLen === '1' ? 'Round' : c.xlLen + ' to 1'); }   // LOGGER BUILD
   sc.querySelector('.dksum').textContent = [SIZE_LABEL[c.size], c.shape === 'random' ? '' : shape, who, DIFF_LABEL[c.diff], nm ? nm + (nm === 1 ? ' modifier' : ' modifiers') : ''].filter(Boolean).join(' · ');
 }
 document.addEventListener('click', e => {
@@ -9590,9 +9628,9 @@ const PERSONA_INFO = { mixed: 'Each rival is randomly Balanced, Aggressive, Stur
   aggressive: 'Fast and hard-hitting, but easy to hurt back. Strikes first and defends later.',
   sturdy: 'Tough and patient. Digs in early and is hard to move.',
   adaptive: 'Reads the board and goes after whoever is winning.' };
-const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.', newgen: 'In testing: a random shape on a landmass with a soft, random outline. It never turns to fit your screen.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
+const SHAPE_INFO = Object.assign({ random: 'A random shape, different each time the map is rolled.' }, Object.fromEntries(SHAPES.map(k => [k, SHAPE_DEFS[k].blurb])));
 // the Shape buttons in Custom and Spectate come from the same table (49.3.2)
-document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random', ...(seg.dataset.mode === 'custom' ? ['newgen'] : [])].map(k => `<button data-v="${k}">${SHAPE_NAME(k)}</button>`).join(''); });      // 50.1.2: Custom's New-Gen sits beside Random, each half width
+document.querySelectorAll('.seg[data-key="shape"]').forEach(seg => { seg.innerHTML = [...SHAPES, 'random'].map(k => `<button data-v="${k}">${SHAPE_NAME(k)}</button>`).join(''); });      // 50.1.14: New-Gen's button is gone, Random spans the row again
 const SPECIAL_INFO = { on: 'Fortress, Forge, Beacon and Relay bases are scattered across the map. Tap the i to see what each does.', off: 'Every base is the same.' };
 // 49.8.4: the tone, visual, menuSound, screen and volume lines are struck (the Shop's pair blurbs describe the styles); only the Accessibility lines remain
 const SETTINGS_INFO = {
@@ -10103,8 +10141,8 @@ function optsFor(key) {
   const c = settings[key], watch = key === 'spec', classic = key === 'classic', shape = classic ? 'continent' : shapeFor(c);
   return { size: c.size, diff: c.diff, seed: seedOf(c), shape, teams: teamsFor(key), watch, noBrutal: !unlocks.brutalCustom, noDeadly: !unlocks.deadlyCustom,
     specials: !classic && c.special === 'on', persona: classic ? 'mixed' : c.persona,
-    overtime: otActive(key), ...(c.shape === 'newgen' ? { footprint: 'blob' } : {}),      // 50.1.3: New-Gen is a blob footprint (50.1.2: a stretched box)
-    ...(key === 'custom' && c.shape === 'newgen' && c.xlLen && c.xlLen !== 'auto' ? { landLen: +c.xlLen } : {}),   // LOGGER BUILD: a set land length (50.1.6 test switch)
+    overtime: otActive(key),      // 50.1.14: every generated map is New-Gen (core's newGame), so no footprint here
+    ...(key === 'custom' && c.xlLen && c.xlLen !== 'auto' ? { landLen: +c.xlLen } : {}),   // LOGGER BUILD: a set land length (50.1.6 test switch; every shape since 50.1.14)
     mods: classic ? {} : Object.fromEntries(Object.keys(c.mods).map(k => [k, modOn(key, k)])) };      // 49.8.3: only the modifiers that can work
 }
 function buildPreview(key) {                         // the map behind the menu is the map you'll get
@@ -10160,7 +10198,7 @@ function saveAndQuit() {
   const T = SAVE_TEXT, fog = !!G.mods.fog;
   const mods = MODS.filter(x => G.mods[x.k]).map(x => x.n); if (G.overtimeOn) mods.push('Overtime'); if (G.specials) mods.push('Special bases');
   const rivals = G.teams.filter(U => U.active).length - 1;
-  const line = [curModeKey === 'classic' ? 'Classic' : 'Custom', (SIZE_LABEL[G.sizeName] || G.sizeName) + (curModeKey === 'custom' && G.noTurn ? ' new-gen' : curModeKey === 'custom' && SHAPE_LABEL[G.shape] ? ' ' + SHAPE_LABEL[G.shape] : ''), rivals + ' ' + (rivals === 1 ? T.rival : T.rivals), DIFF_LABEL[G.diffName] || G.diffName].join(' · ');
+  const line = [curModeKey === 'classic' ? 'Classic' : 'Custom', (SIZE_LABEL[G.sizeName] || G.sizeName) + (curModeKey === 'custom' && SHAPE_LABEL[G.shape] ? ' ' + SHAPE_LABEL[G.shape] : ''), rivals + ' ' + (rivals === 1 ? T.rival : T.rivals), DIFF_LABEL[G.diffName] || G.diffName].join(' · ');
   const meta = { k: curModeKey, line, mods, t: G.t, bases: G.teams[PLAYER].bases, total: G.nodes.length, at: Date.now(), color: settings[curModeKey].color, W, H,
     nodes: G.nodes.map(n => [n.x, n.y, fog && n.owner > PLAYER ? NEUTRAL_COLOR : colorOf(n.owner)]), edges: G.edges,
     cam: { z: cam.z, cu: cam.cu, cv: cam.cv, land: innerWidth > innerHeight } };
@@ -10607,7 +10645,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.1.12 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.1.14 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -10662,7 +10700,7 @@ $('bLog').addEventListener('click', xlDownload); $('bLogP').addEventListener('cl
 function xlLenHint() {   // LOGGER BUILD: the land-length row's line says how long this map's land really is
   const h = $('hintCLen'); if (!h) return;   // LOGGER BUILD
   const L = G && G.land ? landLen(G.land.outline).toFixed(2) : '';   // LOGGER BUILD
-  h.textContent = 'Test only (logger). How long the land is against its width. Auto rolls it the way the game does now (usually about 1.5, at most about 2.6). Round is as round as this map goes. Changing it keeps the same map, only longer or rounder.' + (L ? ' This map: ' + L + ' to 1.' : '');   // LOGGER BUILD
+  h.textContent = 'Test only (logger). How long the land is against its width. Auto rolls it the way the game does now (longest: Small 1.8, Medium 2.2, Large 2.6, Huge 3). Round is as round as this map goes. Changing it keeps the same map, only longer or rounder.' + (L ? ' This map: ' + L + ' to 1.' : '');   // LOGGER BUILD
 }   // LOGGER BUILD
 function handleTap(px, py) {
   if (mode !== 'play' || !G || G.over) return;
@@ -10831,7 +10869,7 @@ function rollCustom() {
   const c = settings.custom, vals = k => [...document.querySelectorAll(`.seg[data-mode=custom][data-key=${k}] button`)].map(b => b.dataset.v);
   const pickW = (items, w) => { let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < items.length; i++) if ((r -= w[i]) < 0) return items[i]; return items[items.length - 1]; };
   const uni = k => { const v = vals(k); return v[(Math.random() * v.length) | 0]; };
-  c.size = uni('size'); c.shape = (v => v[(Math.random() * v.length) | 0])(vals('shape').filter(v => v !== 'newgen')); c.persona = uni('persona'); c.seed = rnd32();      // 50.1.2: Randomize never rolls New-Gen
+  c.size = uni('size'); c.shape = (v => v[(Math.random() * v.length) | 0])(vals('shape')); c.persona = uni('persona'); c.seed = rnd32();      // 50.1.14: every shape it rolls is New-Gen
   c.diff = unlocks.deadlyCustom ? pickW(DIFFS_ALL, [0.17, 0.3, 0.28, 0.15, 0.1]) : unlocks.brutalCustom ? pickW(DIFFS, [0.2, 0.35, 0.3, 0.15]) : pickW(DIFFS.slice(0, 3), [0.2, 0.35, 0.3]);       // Brutal and Deadly are only rolled once they are open here
   c.opp = c.size === 'small' ? pickW(['auto', '1', '2'], [0.3, 0.3, 0.4]) : pickW(['auto', '1', '2', '3', '4'], [0.25, 0.2, 0.25, 0.2, 0.1]);
   c.special = Math.random() < 0.7 ? 'on' : 'off';

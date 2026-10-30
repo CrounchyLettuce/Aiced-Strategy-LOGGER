@@ -20,7 +20,7 @@
 /* The playfield is black by design (it's the game's whole look), so both themes share it. */
 :root {
   --bg: #000000; --ink: #ececee; --dim: #85858c; --faint: rgba(255,255,255,.13); --hair: rgba(255,255,255,.07);
-  --blue: #3577ff; --blue-soft: rgba(53,119,255,.16);
+  --blue: #3577ff; --blue-soft: rgba(53,119,255,.16); --blue-glow: rgba(53,119,255,.85); --blue-halo: rgba(53,119,255,.4);   /* C27: the point glow's halos */
   --rc: 8px; --rk: 12px;     /* Build 49.2: menu corner radius, controls / cards (the Shop look) */
   color-scheme: dark;
   box-sizing: border-box;
@@ -57,7 +57,7 @@ body { position: relative; }
 #upg .xp { grid-column: 1 / -1; }
 #diffTag { margin-left: 8px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; align-self: center; }
 #diffTag:empty { display: none; }
-#upg.ptsGlow { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue), 0 0 30px rgba(53,119,255,.85), 0 0 70px rgba(53,119,255,.4); transition: box-shadow .3s ease-out, border-color .3s ease-out; }
+#upg.ptsGlow { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue), 0 0 30px var(--blue-glow), 0 0 70px var(--blue-halo); transition: box-shadow .3s ease-out, border-color .3s ease-out; }
 #ptsFx { position: fixed; z-index: 2; pointer-events: none; }
 #mapWrap { position: absolute; left: 10px; bottom: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
 #hud:not(.rotv) #mapWrap { flex-direction: row-reverse; align-items: flex-end; }          /* landscape: the minimap opens beside the map button, not above it */
@@ -748,7 +748,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.2.8 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -6405,9 +6405,18 @@ function drawInkFx(now) {                              // drops, blots, lifted i
 // Edgeless by construction: the grain is a tile laid edge to edge, and the raked lines are drawn across whatever is on screen, so nothing
 // has a border. The rings are part of the cached background and are painted again when a base changes hands. Reduce motion: no sweeps,
 // smoothing or spiral animation (the result simply appears).
-const SA_BG = '#bdab8c', SA_GROOVE = 'rgba(92,70,44,0.42)', SA_RIDGE = 'rgba(255,247,228,0.42)', SA_STONE = [62, 64, 68], SA_NEUTRAL = '#7a6c56';   // 49.7.1: pale warm sand (the dusk brown read as wood planks)
+const SA_BG = '#bdab8c', SA_GROOVE = 'rgba(92,70,44,0.42)', SA_RIDGE = 'rgba(255,247,228,0.42)', SA_STONE = [62, 64, 68], SA_NEUTRAL = '#7a6c56', SA_PEBBLE = '#4a4b50';   // 49.7.1: pale warm sand (the dusk brown read as wood planks). B1: an empty base's guards are the garden's dark pebbles
 const SA_COLS = new Map();
-function saCol(hex) { let k = SA_COLS.get(hex); if (k) return k; const n = parseInt(hex.slice(1), 16), r0 = [n >> 16, (n >> 8) & 255, n & 255], lum = (0.3 * r0[0] + 0.59 * r0[1] + 0.11 * r0[2]) / 255, c = emMix(r0, [40, 28, 14], lum > 0.6 ? 0.4 : 0.22); k = '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); SA_COLS.set(hex, k); return k; }   // a team colour a shade deeper, so it holds on light sand
+const saLum = c => { const f = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+function saBase(hex) { const n = parseInt(hex.slice(1), 16), r0 = [n >> 16, (n >> 8) & 255, n & 255], lum = (0.3 * r0[0] + 0.59 * r0[1] + 0.11 * r0[2]) / 255; return emMix(r0, [40, 28, 14], lum > 0.6 ? 0.4 : 0.22); }   // a team colour a shade deeper, so it holds on light sand
+function saDeep() {                                    // B4: High contrast and Color-safe are pale palettes, made for a dark ground. On this sand every colour of the palette is deepened
+  const floor = HC ? 2.2 : paletteMode === 'safe' ? 1.6 : 0, key = paletteMode + floor;   // by one shared amount, just enough that the palest reaches the floor (contrast against the sand), so
+  if (SA.dk === key) return SA.dm;                     // their light-to-dark order, which colour-blind players read, is kept. Standard is unchanged (0)
+  const bg = saLum([0xbd, 0xab, 0x8c]), cr = c => (bg + 0.05) / (saLum(c) + 0.05); let m = 0;
+  if (floor) for (const p of PALETTE) { const c = saBase(p.c); if (cr(c) >= floor) continue; let lo = 0, hi = 1; for (let i = 0; i < 20; i++) { const k = (lo + hi) / 2; if (cr(emMix(c, [40, 28, 14], k)) >= floor) hi = k; else lo = k; } m = Math.max(m, hi); }
+  SA.dk = key; SA.dm = m; return m;
+}
+function saCol(hex) { const m = saDeep(), key = hex + '|' + m; let k = SA_COLS.get(key); if (k) return k; k = '#' + emMix(saBase(hex), [40, 28, 14], m).map(v => v.toString(16).padStart(2, '0')).join(''); SA_COLS.set(key, k); return k; }
 const SA = { tile: null, layer: null, lx: null, own: new Map(), og: null, stones: new Map(), back: null };
 const isSand = () => settings.visual === 'sand';
 function saReset() { if (SA.og !== G) { SA.og = G; SA.own.clear(); SA.stones.clear(); SA.back = null; } }
@@ -6502,7 +6511,7 @@ function drawSandBase(n, c0, now) {
     ctx.strokeStyle = hexA(c, 1); ctx.lineWidth = HC ? 3.2 : 2.6; ctx.beginPath(); ctx.arc(x, y, SA_R0, T, T + TAU * h); ctx.stroke();
   } else {
     ctx.strokeStyle = SA_GROOVE; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, SA_R0, 0, TAU); ctx.stroke();
-    if (h < 0.995) { ctx.strokeStyle = hexA(SA_NEUTRAL, 0.7); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, SA_R0, T, T + TAU * h); ctx.stroke(); }
+    if (h < 0.995) { ctx.strokeStyle = hexA(SA_PEBBLE, 0.95); ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(x, y, SA_R0, T, T + TAU * h); ctx.stroke(); }   // B1: once hurt, its gauge in stone-dark
   }
   const st = saStone(n), struck = G.t - n.lastHitT < 0.07, k = own ? 1 : 0.8;
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; saStonePath(n, x + 1.6, y + 2, r); ctx.fill();                         // its shadow, thrown away from the low sun
@@ -6570,12 +6579,12 @@ function drawSandTroops(buckets) {                     // 49.7.1: small pebbles 
   }
   for (let b = 0; b < 6; b++) {
     const arr = buckets[b]; if (!arr.length) continue;
-    const col = b === 0 ? SA_NEUTRAL : saCol(TEAM_COLORS[b - 1]);
+    const col = b === 0 ? SA_PEBBLE : saCol(TEAM_COLORS[b - 1]);   // B1: an empty base's guards are dark pebbles, so they can be counted
     ctx.fillStyle = col; ctx.beginPath();
     if (SYM && b > 0) for (const t of arr) troopShape(ctx, symOf(b - 1), t.x, t.y, t.nx, t.ny, 0.84 * sc);
-    else for (const t of arr) { const a = Math.atan2(t.ny, t.nx), r = (b ? 1.75 : 1.4) * sc; ctx.moveTo(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r); ctx.ellipse(t.x, t.y, r, r * 0.74, a, 0, 6.283); }
+    else for (const t of arr) { const a = Math.atan2(t.ny, t.nx), r = 1.75 * sc; ctx.moveTo(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r); ctx.ellipse(t.x, t.y, r, r * 0.74, a, 0, 6.283); }
     ctx.fill();
-    if (b > 0 && !SYM) { ctx.fillStyle = 'rgba(255,250,235,0.55)'; ctx.beginPath(); for (const t of arr) ctx.rect(t.x - 0.9 * sc, t.y - 0.9 * sc, 0.7, 0.7); ctx.fill(); }   // the lit side of each pebble
+    if (b === 0 || !SYM) { ctx.fillStyle = 'rgba(255,250,235,0.55)'; ctx.beginPath(); for (const t of arr) ctx.rect(t.x - 0.9 * sc, t.y - 0.9 * sc, 0.7, 0.7); ctx.fill(); }   // the lit side of each pebble
   }
 }
 function saSpiral(x, y, c, e0) {                       // a knockout: one spiral raked round where they fell, held, then filled in
@@ -6898,7 +6907,7 @@ const BI_RH = 70, BI_RO = 27, BI_RI = 10.5, BI_BAND = 15;   // halo reach, gauge
 const BI_DEN = 0.07, BI_DUST = 0.011, BI_Q = [1, 0.8, 0.6, 0.45];   // filings per square unit: field, loose dust; and per picture-quality step
 const BI_LV = [0.75, 1.5, 3, 6, 12], BI_CH = 512;   // chunk zoom levels (device px per world unit) and chunk size in device px
 const BI_SIL = [200, 206, 214];
-const BI = { g: null, ring: [], halo: [], grid: new Map(), own: [], ch: new Map(), lvl: 0, ver: 0, mk: '', tile: null, tk: '', rs: [], fxn: new WeakMap(), wk: new Map(), hs: [], ht: [], rmk: 0, fc: 0, miss: new Set() };
+const BI = { g: null, ring: [], halo: [], grid: new Map(), own: [], ch: new Map(), lvl: 0, ver: 0, mk: '', tile: null, tk: '', rs: [], fxn: new WeakMap(), wk: new Map(), hs: [], ht: [], rmk: 0, fc: 0, miss: new Set(), stale: new Map(), old: null, part: true };
 const isBlackIron = () => settings.visual === 'blackiron';
 const BI_TC = new Map();
 function biRgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
@@ -6919,7 +6928,7 @@ function biScreenWorld(g) {                          // the picture being painte
 function biPrep() {                                  // once per match (and per picture-quality step): scatter the field's filings and work out each one's pull
   const L = BI;
   if (L.g === G && L.ne === G.edges.length) return;
-  L.g = G; L.ne = G.edges.length; L.ch.clear(); L.ver++; L.rs = []; L.own = G.nodes.map(n => n.owner); L.wk = new Map(); L.hs = []; L.ht = []; L.miss.clear();
+  L.g = G; L.ne = G.edges.length; L.ch.clear(); L.ver++; L.rs = []; L.own = G.nodes.map(n => n.owner); L.wk = new Map(); L.hs = []; L.ht = []; L.miss.clear(); L.stale.clear(); L.old = null;
   const N = G.nodes, E = G.edges, RH = BI_RH, B = BI_BAND, den = BI_DEN, rnd = biRand((G.seed | 0) * 7 + 3);
   L.ring = N.map(() => []); L.halo = N.map(() => []); L.grid = new Map();
   const NG = new Map(), EG = new Map(), cell = (M, k) => M.get(k) || (M.set(k, []), M.get(k));   // lookup grids: bases by 140-unit cells, roads by 64-unit cells
@@ -7001,8 +7010,10 @@ function biDust(k) {                                 // the loose dust on the de
   L.tk = key; return c;
 }
 function biWatch() {                                 // who holds what: a change rebakes only the chunks near that base and along its roads
-  const L = BI, mk = settings.colors + (HC ? 'h' : '') + quality;
-  if (L.mk !== mk) { L.mk = mk; L.ch.clear(); L.rs = []; L.ver++; L.miss.clear(); }
+  const L = BI, mc = settings.colors + (HC ? 'h' : ''), mk = mc + quality;
+  if (L.mk !== mk) {   // fix a3.1 (Oct 29): a picture-quality step only thins the filings, so the old squares stand in until rebaked (a3 showed bare dust)
+    if (L.mk && L.mc === mc) for (const [key, v] of L.ch) L.stale.set(key, v); else { L.stale.clear(); L.old = null; }
+    L.mk = mk; L.mc = mc; L.ch.clear(); L.rs = []; L.ver++; L.miss.clear(); }
   const boxes = [];
   G.nodes.forEach((n, i) => {
     if (L.own[i] === n.owner) return;
@@ -7011,8 +7022,17 @@ function biWatch() {                                 // who holds what: a change
   });
   if (!boxes.length) return;
   for (const [key, v] of L.ch) { const [lv, cx, cy] = key.split(',').map(Number), cs = BI_CH / lv, x0 = cx * cs, y0 = cy * cs;
-    if (boxes.some(b => b[0] < x0 + cs + 6 && b[2] > x0 - 6 && b[1] < y0 + cs + 6 && b[3] > y0 - 6)) L.ch.delete(key); }
+    if (boxes.some(b => b[0] < x0 + cs + 6 && b[2] > x0 - 6 && b[1] < y0 + cs + 6 && b[3] > y0 - 6)) { if (v) L.stale.set(key, v); L.ch.delete(key); } }   // fix (Oct 29): it stands in until rebaked
   L.ver++;
+}
+function biStand(g, key, x, y, s) {                // fix (Oct 29, Henry's flicker): what a square not baked yet shows, instead of bare dust
+  const L = BI, st = L.stale.get(key);
+  if (st) { g.drawImage(st, x, y, s, s); return; }    // the same square before a capture (or before a picture-quality step)
+  if (L.stale.has(key)) return;                       // a3.1: it was empty before the step, so bare dust is right
+  if (!L.old) return;
+  g.save(); g.beginPath(); g.rect(x, y, s, s); g.clip();   // the last whole level's squares, clipped to this one
+  for (const [ox, oy, os, oc] of L.old) if (oc && ox < x + s && ox + os > x && oy < y + s && oy + os > y) g.drawImage(oc, ox, oy, os, os);
+  g.restore();
 }
 function drawBlackIronBack(now) {                        // called with the world transform in place; leaves it in place
   // 50.2.x (fold-in adaptation, Oct 29): the ground is on the backdrop slot (HOOK_MAP "BD"), not bgCache. The same pieces in the same order:
@@ -7022,21 +7042,28 @@ function drawBlackIronBack(now) {                        // called with the worl
   biPrep(); biWatch();
   const L = BI, m = ctx.getTransform(), k = Math.hypot(m.a, m.b);
   let lvl = BI_LV[BI_LV.length - 1]; for (const v of BI_LV) if (v >= k * 0.7) { lvl = v; break; }   // up to ~1.4x upscale before the next level, so a pinch rarely crosses a level
-  if (L.lvl !== lvl) { for (const key of [...L.ch.keys()]) if (+key.split(',')[0] !== lvl) L.ch.delete(key); L.lvl = lvl; L.ver++; L.miss.clear(); }
+  if (L.lvl !== lvl) {   // fix (Oct 29, Henry's flicker): the last level whose screen was whole stands in while this one bakes (r5 showed bare dust)
+    if (L.lvl && !L.part) L.old = [...L.ch, ...L.stale].map(([key, c]) => { const [lv, cx, cy] = key.split(',').map(Number), s = BI_CH / lv; return [cx * s, cy * s, s, c]; });
+    L.ch.clear(); L.stale.clear(); L.lvl = lvl; L.ver++; L.miss.clear(); }
   const cs = BI_CH / lvl, span = (x0, y0, x1, y1) => { const o = []; for (let cx = Math.floor(x0 / cs); cx <= Math.floor(x1 / cs); cx++) for (let cy = Math.floor(y0 / cs); cy <= Math.floor(y1 / cs); cy++) o.push([cx, cy]); return o; };
   const vis = span(VIS.x0, VIS.y0, VIS.x1, VIS.y1), ah = (BD_AHEAD + 64) / k;   // the screen's chunks, then the ones a pan's strips will reach next
   const ahead = span(VIS.x0 - ah, VIS.y0 - ah, VIS.x1 + ah, VIS.y1 + ah), want = vis.concat(ahead.filter(([cx, cy]) => !vis.some(v => v[0] === cx && v[1] === cy)));
   const t0 = performance.now(); let baked = 0;
-  for (const [cx, cy] of want) { const key = lvl + ',' + cx + ',' + cy; if (L.ch.has(key)) continue; if (baked && performance.now() - t0 > 6) break; L.ch.set(key, biChunk(cx, cy, lvl)); baked++;   // a few per frame, so a capture never stalls a frame
+  const nv = vis.length, cover = (key, cx, cy) => L.stale.has(key) || (L.old && L.old.some(o => o[0] < (cx + 1) * cs && o[0] + o[2] > cx * cs && o[1] < (cy + 1) * cs && o[1] + o[2] > cy * cs));
+  for (let i = 0; i < want.length; i++) { const [cx, cy] = want[i], key = lvl + ',' + cx + ',' + cy; if (L.ch.has(key)) continue;
+    if (baked && performance.now() - t0 > (i < nv && !cover(key, cx, cy) ? 12 : 6)) break;   // a few per frame, so a capture never stalls a frame; more for a bare square on screen (fix, Oct 29)
+    L.ch.set(key, biChunk(cx, cy, lvl)); baked++; L.stale.delete(key);
     if (L.miss.has(key)) { L.miss.delete(key); L.ver++; } }   // a picture was painted without this chunk: paint it again (as r5 did every frame)
-  if (L.ch.size > want.length * 2 + 8) { const keep = new Set(want.map(([cx, cy]) => lvl + ',' + cx + ',' + cy)); for (const key of [...L.ch.keys()]) if (!keep.has(key)) L.ch.delete(key); }   // forget what panned far away (memory)
+  L.part = vis.some(([cx, cy]) => { const key = lvl + ',' + cx + ',' + cy; return !L.ch.has(key) && !L.stale.has(key); });   // a3.1: stand-ins count as whole
+  if (L.old && !want.some(([cx, cy]) => !L.ch.has(lvl + ',' + cx + ',' + cy))) L.old = null;   // all baked: the stand-ins go   // a picture was painted without this chunk: paint it again (as r5 did every frame)
+  if (L.ch.size > want.length * 2 + 8) { const keep = new Set(want.map(([cx, cy]) => lvl + ',' + cx + ',' + cy)); for (const key of [...L.ch.keys()]) if (!keep.has(key)) L.ch.delete(key); for (const key of [...L.stale.keys()]) if (!keep.has(key)) L.stale.delete(key); }   // forget what panned far away (memory)
   backdrop(BI_BG, 'blackiron' + L.ver + '|' + lvl, L, {
     map: g => {                                          // world space; while the slot paints a strip, VIS is that strip (plus 70)
       const mm = g.getTransform(), T = biDust(k);
       if (L.pt !== T || L.ptk !== L.tk) { L.pt = T; L.ptk = L.tk; L.pat = g.createPattern(T, 'repeat'); }
       g.save(); g.setTransform(1, 0, 0, 1, 0, 0); L.pat.setTransform(new DOMMatrix([1, 0, 0, 1, mm.e, mm.f])); g.fillStyle = L.pat; g.fillRect(0, 0, g.canvas.width, g.canvas.height); g.restore();   // device-pixel tile pinned to g's transform, covering g.canvas (map-layer rule 2)
       for (const [cx, cy] of span(VIS.x0, VIS.y0, VIS.x1, VIS.y1)) { const key = lvl + ',' + cx + ',' + cy, c = L.ch.get(key);
-        if (c) g.drawImage(c, cx * cs, cy * cs, cs, cs); else if (!L.ch.has(key)) L.miss.add(key); }   // not baked yet: noted, so its bake repaints
+        if (c) g.drawImage(c, cx * cs, cy * cs, cs, cs); else if (!L.ch.has(key)) { L.miss.add(key); biStand(g, key, cx * cs, cy * cs, cs); } }   // not baked yet: noted, so its bake repaints; meanwhile its stand-in
     },
     over: g => {                                         // a desk lamp: light falling off toward the frame's edges, in screen space so it never ends where the map ends
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -7387,7 +7414,7 @@ const LL_TINT = [[82, 82, 86], [84, 84, 74], [86, 80, 70], [82, 80, 84]];   // c
 const LL_SMOKE = [[29, 27, 25], [27, 26, 25], [31, 28, 26]];               // off the land: smoked glass, much darker than unowned land (Henry, Oct 28)
 const LL_RIVER = [[52, 74, 80], [46, 67, 74], [58, 80, 84]];   // slate-teal water glass (r8: Henry picked it over r4's blue)
 const LL_CLEAR = [226, 222, 206], LL_LOST = [84, 88, 92], LL_LEAD = '#0b0c0e';
-const LL = { g: null, seed: 0, panes: new Map(), sites: new Map(), near: new Map(), coarse: [], own: [], ch: new Map(), lvl: 0, ver: 0, mk: '', tex: null, reg: [], rose: new Map(), spentT: -9, land: null, scr: [], ko: new WeakMap(), dark: [], rings: [], seen: new WeakSet(), old: false, cam: '', movedT: -1e9, idle: 0, pe: 0, pf: 0, pk: 0, miss: new Set() };
+const LL = { g: null, seed: 0, panes: new Map(), sites: new Map(), near: new Map(), coarse: [], own: [], ch: new Map(), lvl: 0, ver: 0, mk: '', tex: null, reg: [], rose: new Map(), spentT: -9, land: null, scr: [], ko: new WeakMap(), dark: [], rings: [], seen: new WeakSet(), old: false, cam: '', movedT: -1e9, idle: 0, pe: 0, pf: 0, pk: 0, miss: new Set(), st: new Map() };
 const isLeadlight = () => settings.visual === 'leadlight';
 function llRgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function llMix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
@@ -7455,7 +7482,7 @@ function llPrep() {                                  // once per match: forget t
   L.g = G; L.seed = (G.seed | 0) * 7 + 11; L.panes.clear(); L.sites.clear(); L.near.clear(); L.ch.clear();
   const P = LL_PC; G.nodes.forEach(n => { for (let i = Math.floor((n.x - 30) / P); i <= Math.floor((n.x + 30) / P); i++) for (let j = Math.floor((n.y - 30) / P); j <= Math.floor((n.y + 30) / P); j++) { const k = (i + 30000) * 65536 + (j + 30000); (L.near.get(k) || L.near.set(k, []).get(k)).push(n); } });
   const c0 = LL_CH / LL_LV[0], M = 200; L.coarse = []; for (let cx = Math.floor(-M / c0); cx <= Math.floor((W + M) / c0); cx++) for (let cy = Math.floor(-M / c0); cy <= Math.floor((H + M) / c0); cy++) L.coarse.push([cx, cy]);
-  L.reg = []; L.ver++; L.miss.clear(); L.own = G.nodes.map(n => n.owner); L.land = llLand(); L.ko = new WeakMap(); L.rings = []; L.seen = new WeakSet(); L.old = false; L.full = false;
+  L.reg = []; L.ver++; L.miss.clear(); L.st.clear(); L.own = G.nodes.map(n => n.owner); L.land = llLand(); L.ko = new WeakMap(); L.rings = []; L.seen = new WeakSet(); L.old = false; L.full = false;
   llKeep();
 }
 function llTouch(p, q) {                             // two panes share a lead: two corners of p lie on the line halfway between them
@@ -7550,7 +7577,7 @@ function llChunk(cx, cy, lvl) {                      // one square of the baked 
 }
 function llWatch() {                                 // who holds what: a change rebakes only the chunks near that base. A capture waits until its dark has covered the panes
   const L = LL, mk = settings.colors + (HC ? 'h' : '');
-  if (L.mk !== mk) { L.mk = mk; L.ch.clear(); L.ver++; L.rose.clear(); L.miss.clear(); }
+  if (L.mk !== mk) { L.mk = mk; L.ch.clear(); L.ver++; L.rose.clear(); L.miss.clear(); L.st.clear(); }
   const boxes = [];
   G.nodes.forEach((n, i) => {
     if (L.own[i] === n.owner) return;
@@ -7559,7 +7586,7 @@ function llWatch() {                                 // who holds what: a change
   });
   if (!boxes.length) return;
   for (const key of [...L.ch.keys()]) { const [lv, cx, cy] = key.split(',').map(Number), cs = LL_CH / lv, x0 = cx * cs, y0 = cy * cs;
-    if (boxes.some(b => b[0] < x0 + cs && b[2] > x0 && b[1] < y0 + cs && b[3] > y0)) L.ch.delete(key); }
+    if (boxes.some(b => b[0] < x0 + cs && b[2] > x0 && b[1] < y0 + cs && b[3] > y0)) { L.st.set(key, L.ch.get(key)); L.ch.delete(key); } }   // 50.2.9: the old picture stays on show until the new one is baked (r8 showed bare background for those frames)
   L.ver++;
 }
 function llRings() {                                 // the game forgets a capture after 2 s, and a knockout's dark lasts longer, so the window keeps its own list
@@ -7588,7 +7615,7 @@ function drawLeadlightBack(now) {                        // called with the worl
   const cs = LL_CH / lvl, vis = [], ring = [], X0 = Math.floor(VIS.x0 / cs), X1 = Math.floor(VIS.x1 / cs), Y0 = Math.floor(VIS.y0 / cs), Y1 = Math.floor(VIS.y1 / cs);
   for (let cx = X0 - 1; cx <= X1 + 1; cx++) for (let cy = Y0 - 1; cy <= Y1 + 1; cy++) (cx < X0 || cx > X1 || cy < Y0 || cy > Y1 ? ring : vis).push([cx, cy]);
   const key = (cx, cy) => lvl + ',' + cx + ',' + cy, mx = (X0 + X1) / 2, my = (Y0 + Y1) / 2, near = (a, b) => Math.hypot(a[0] - mx, a[1] - my) - Math.hypot(b[0] - mx, b[1] - my);
-  const put = (kk, c) => { L.ch.set(kk, c); if (L.miss.delete(kk)) L.ver++; };   // a picture was painted without this square: paint it again (r8 did on every bake, but r8 repainted every frame anyway)
+  const put = (kk, c) => { L.ch.set(kk, c); L.st.delete(kk); if (L.miss.delete(kk)) L.ver++; };   // a picture was painted without this square: paint it again (r8 did on every bake, but r8 repainted every frame anyway)
   const t0 = performance.now(), budget = L.ch.size ? 6 : 40; let baked = 0;
   const LV0 = LL_LV[0], k0 = c => LV0 + ',' + c[0] + ',' + c[1], c0 = LL_CH / LV0, under = (cx, cy) => L.ch.has(k0([Math.floor((cx + 0.5) * cs / c0), Math.floor((cy + 0.5) * cs / c0)]));
   for (const [cx, cy] of vis.filter(([cx, cy]) => !L.ch.has(key(cx, cy))).sort(near)) {   // the middle of the screen first
@@ -7607,16 +7634,18 @@ function drawLeadlightBack(now) {                        // called with the worl
     for (const [cx, cy] of ring.filter(([cx, cy]) => cx >= AX0 && cx <= AX1 && cy >= AY0 && cy <= AY1 && !L.ch.has(key(cx, cy))).sort(near)) { if (performance.now() - t0 > budget) break; put(key(cx, cy), llChunk(cx, cy, lvl)); }
   }
   const keepC = k => +k.split(',')[0] === LV0;
-  if (L.old && vis.every(([cx, cy]) => L.ch.has(key(cx, cy)))) { for (const k of [...L.ch.keys()]) if (+k.split(',')[0] !== lvl && !keepC(k)) L.ch.delete(k); L.old = false; L.ver++; }
-  if (L.ch.size > (vis.length + ring.length) * (L.old ? 1.5 : 1) + L.coarse.length + 8) { L.old = false; const keep = new Set(vis.concat(ring).map(([cx, cy]) => key(cx, cy))); for (const k of [...L.ch.keys()]) if (!keep.has(k) && !keepC(k)) L.ch.delete(k); }
+  if (L.old && vis.every(([cx, cy]) => L.ch.has(key(cx, cy)))) { for (const k of [...L.ch.keys()]) if (+k.split(',')[0] !== lvl && !keepC(k)) L.ch.delete(k); for (const k of [...L.st.keys()]) if (+k.split(',')[0] !== lvl && !keepC(k)) L.st.delete(k); L.old = false; L.ver++; }
+  if (L.ch.size > (vis.length + ring.length) * (L.old ? 1.5 : 1) + L.coarse.length + 8) { L.old = false; const keep = new Set(vis.concat(ring).map(([cx, cy]) => key(cx, cy))); for (const k of [...L.ch.keys()]) if (!keep.has(k) && !keepC(k)) L.ch.delete(k); for (const k of [...L.st.keys()]) if (!keep.has(k) && !keepC(k)) L.st.delete(k); }
   backdrop(LL_BG, 'leadlight' + L.ver + '|' + lvl, L, {
     map: g => {                                          // world space; while the slot paints a strip, VIS is that strip (plus 70), so these are the strip's squares
       const sv = [], SX0 = Math.floor(VIS.x0 / cs), SX1 = Math.floor(VIS.x1 / cs), SY0 = Math.floor(VIS.y0 / cs), SY1 = Math.floor(VIS.y1 / cs);
       for (let cx = SX0; cx <= SX1; cx++) for (let cy = SY0; cy <= SY1; cy++) sv.push([cx, cy]);
-      const holes = sv.some(([cx, cy]) => !L.ch.has(key(cx, cy)));
-      if (L.old || holes) for (const [kk, c] of [...L.ch].sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]))) {   // squares still to bake: the coarser glass under them (coarsest first; finer squares are never drawn shrunk)
+      const holes = sv.some(([cx, cy]) => !L.ch.has(key(cx, cy)) && !L.st.has(key(cx, cy)));
+      if (L.old || holes) for (const [kk, c] of [...L.ch, ...[...L.st].filter(([kk]) => !L.ch.has(kk))].sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]))) {   // squares still to bake: the coarser glass under them (coarsest first; finer squares are never drawn shrunk)
         const [lv, cx, cy] = kk.split(',').map(Number), co = LL_CH / lv; if (lv < lvl && cx * co < VIS.x1 && (cx + 1) * co > VIS.x0 && cy * co < VIS.y1 && (cy + 1) * co > VIS.y0) g.drawImage(c, cx * co, cy * co, co, co); }
-      for (const [cx, cy] of sv) { const c = L.ch.get(key(cx, cy)); if (c) g.drawImage(c, cx * cs, cy * cs, cs, cs); else L.miss.add(key(cx, cy)); }   // not baked yet: noted, so its bake repaints
+      if (holes) for (const [cx, cy] of sv) { const kk = key(cx, cy); if (L.ch.has(kk) || L.st.has(kk)) continue;   // 50.2.9: zoomed out before this level is baked: the finer squares still kept stand in, shrunk, until it is
+        const x0 = cx * cs, y0 = cy * cs; for (const [k2, c] of L.ch) { const [lv, x, y] = k2.split(',').map(Number), co = LL_CH / lv; if (lv > lvl && x * co >= x0 && (x + 1) * co <= x0 + cs && y * co >= y0 && (y + 1) * co <= y0 + cs) g.drawImage(c, x * co, y * co, co, co); } }
+      for (const [cx, cy] of sv) { const kk = key(cx, cy), c = L.ch.get(kk) || L.st.get(kk); if (c) g.drawImage(c, cx * cs, cy * cs, cs, cs); if (!L.ch.has(kk)) L.miss.add(kk); }   // not baked yet: noted, so its bake repaints
     },
     over: g => {                                         // daylight from above the window, in screen space so it never ends where the map ends
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = llDay(); g.fillRect(F.x, F.y, F.w, F.h);
@@ -8684,6 +8713,7 @@ function applyColors(watch, colorKey) {
   for (let i = 0; i < 5; i++) { segs[i].style.background = TEAM_COLORS[i]; rivalCells[i][0].style.background = TEAM_COLORS[i]; rivalCells[i][0].dataset.s = TEAM_SLOT[i]; }
   $('triPath').setAttribute('fill', me); $('triPath').setAttribute('d', TRI_PATH[SYM ? TEAM_SLOT[PLAYER] : 0]);
   hudEl.style.setProperty('--blue', me); hudEl.style.setProperty('--blue-soft', hexA(me, 0.16));   // HUD accents follow you
+  hudEl.style.setProperty('--blue-glow', hexA(me, 0.85)); hudEl.style.setProperty('--blue-halo', hexA(me, 0.4));   // C27: and so does the point glow
   renderSwatches();
 }
 function syncLook() {                                 // Colors and Team symbols -> the flags the drawing code reads, and two page attributes the CSS reads
@@ -8956,6 +8986,12 @@ function drKnell(N, t) {                              // a color is out: one lon
     o.connect(g); g.connect(N.dry); g.connect(N.rev); o.start(t); o.stop(t + 3.8);
   }
 }
+function drToll(N, t) {                               // B2 (50.2.x): over the knell, a slow falling toll on its own notes, D, A, then the low D, ringing out (a phone can't play the knell)
+  [[62, 0.164], [57, 0.151], [50, 0.176]].forEach(([m, a], i) => drPluck(N, t + 0.06 + i * 0.42, m, a, 0, 1.3));
+}
+function drTollTwice(N, t) {                          // B2: the last note's toll: D in two octaves plucked together, then again, softer
+  for (const [d, k] of [[0.06, 1], [0.8, 0.62]]) { drPluck(N, t + d, 62, 0.18 * k, -0.08, 1.3); drPluck(N, t + d + 0.012, 50, 0.21 * k, 0.08, 1.3); }
+}
 function drLose(N, t, d0, pan) {                      // a base is lost: the capture's climb turned over. Three soft plucks sinking, slower, with the low bell under them
   for (let i = 0; i < 3; i++) drPluck(N, t + i * 0.2, drMidi(Math.max(0, d0 - 2 * i)), 0.095 - 0.012 * i, pan, 1.1);
   drBell(N, t + 0.04, 0.105, pan);
@@ -9008,7 +9044,7 @@ function driftClock() {
     if (f.dr) continue; f.dr = 1; if (f.ftq) continue;
     if (fogOn() && f.x !== undefined && !seenXY(f.x, f.y)) continue;
     if (f.k === 'ring') DR.caps.push({ mine: !awatch() && f.c === PLAYER, lost: lostMine(f), pan: screenPan(f.x, f.y) });
-    else if (f.k === 'elim') drKnell(N, now + 0.02);
+    else if (f.k === 'elim') { drKnell(N, now + 0.02); drToll(N, now + 0.02); }
     else if (f.k === 'retreat') { if (rtOK('dr', 2)) DR.caps.push({ ret: true, pan: f.x !== undefined ? screenPan(f.x, f.y) : 0 }); }
   }
   if (DR.next < now - 0.25) { const k = Math.ceil((now - DR.next) / DR_STEP); DR.next += k * DR_STEP; DR.step += k; }
@@ -9189,6 +9225,7 @@ function chipPreview() {                              // a combo climbing and fa
 // troop hits ping on a slow grid, echo back and forth and hang in a vast reverb, sitting higher the more ground you hold.
 // Base hits are a deep sonar pulse, a capture blooms into a bright chord, and a knockout sinks into a long low swell.
 const CS_STEP = 60 / 72 / 2, CS_LEVEL = 0.29, CS_SCALE = [0, 2, 4, 6, 7, 9, 11];
+const CS_LIFT = 1.585;                                // B3/C11 (50.2.x): the top layer +4 dB, so a phone hears Cosmos; the drone and the low swell are divided by it, so headphones hear them as before
 const csMidi = d => 52 + 12 * Math.floor(d / 7) + CS_SCALE[((d % 7) + 7) % 7];
 const CS_CHORDS = [                                   // pad voicings (MIDI), one every 16 steps (about 6.7 s)
   [52, 59, 63, 66, 68],                               // E maj9
@@ -9205,7 +9242,7 @@ function csIR() {                                     // a vast space: five seco
 }
 function csBuild(withBed) {
   const t = AC.currentTime, N = { oscs: [], tier: AQ() };
-  N.out = AC.createGain(); N.out.gain.value = 0.0001; N.out.gain.setTargetAtTime(CS_LEVEL, t, withBed ? 0.8 : 0.01); N.out.connect(outBus());
+  N.out = AC.createGain(); N.out.gain.value = 0.0001; N.out.gain.setTargetAtTime(CS_LEVEL * CS_LIFT, t, withBed ? 0.8 : 0.01); N.out.connect(outBus());
   N.dry = AC.createGain(); N.dry.gain.value = 0.5; N.dry.connect(N.out);
   N.rev = AC.createConvolver(); N.rev.buffer = csIR(); const rg = AC.createGain(); rg.gain.value = 0.6; N.rev.connect(rg); rg.connect(N.out);
   N.dl = AC.createDelay(2); N.dl.delayTime.value = CS_STEP * 3;                                  // an echo that keeps coming back, duller each time
@@ -9215,7 +9252,7 @@ function csBuild(withBed) {
   N.send = AC.createGain(); N.send.gain.value = 0.5; N.send.connect(N.dl);
   N.wet = AC.createGain(); N.wet.gain.value = 0.9; N.wet.connect(N.rev);
   if (withBed) {
-    for (const [f, a] of [[41.2, 0.09], [61.74, 0.04], [82.41, 0.02]]) {                       // the drone: E, B and E, breathing slowly
+    for (const [f, a] of [[41.2, 0.09 / CS_LIFT], [61.74, 0.04 / CS_LIFT], [82.41, 0.02 / CS_LIFT]]) {                       // the drone: E, B and E, breathing slowly
       const o = AC.createOscillator(), g = AC.createGain(), l = AC.createOscillator(), d = AC.createGain();
       o.frequency.value = f; g.gain.value = a; l.frequency.value = 0.045 + f / 4000; d.gain.value = a * 0.45;
       l.connect(d); d.connect(g.gain); o.connect(g); g.connect(N.dry); g.connect(N.wet); o.start(t); l.start(t); N.oscs.push(o, l);
@@ -9272,8 +9309,11 @@ function csEbb(N, t, d0, peak, pan) {                 // a base lost: the bloom 
 function csSink(N, t) {                               // a color is out: a long low swell, sinking
   const o = AC.createOscillator(), g = AC.createGain();
   o.frequency.setValueAtTime(55, t); o.frequency.exponentialRampToValueAtTime(34, t + 3.5);
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.13, t + 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.8);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.13 / CS_LIFT, t + 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.8);
   o.connect(g); g.connect(N.dry); g.connect(N.wet); o.start(t); o.stop(t + 3.9);
+}
+function csToll(N, t, i) {                            // B3: over the low swell, a knockout's top layer, one beat every other slot: the bloom turned over, then two long pings, B and E
+  if (i === 0) csEbb(N, t, 0, 0.05, 0); else csPing(N, t, csMidi(i === 1 ? 4 : 0), 0.06, 0, 3.2);
 }
 function cosmosHits(ev) {
   for (const e of ev) {
@@ -9298,10 +9338,14 @@ function csSlot(N, t, heat) {
   }
   const share = (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
   const centre = 7 + Math.round(share * 7);           // the pings sit higher the more ground you hold
-  if (CS.caps.length) { const c = CS.caps.shift(); if (c.lost) csEbb(N, t, centre - 2, 0.038, c.pan); else csBloom(N, t, centre, c.mine ? 0.05 : 0.025, c.pan); }
+  const capped = CS.caps.length > 0;
+  if (capped) { const c = CS.caps.shift(); if (c.lost) csEbb(N, t, centre - 2, 0.038, c.pan); else csBloom(N, t, centre, c.mine ? 0.05 : 0.025, c.pan); }
   if (fc && fc.kind === 'loss' && fc.g > 0.08 && CS.step % 2 === 0 && !CS.sonar) CS.sonar = { mine: true, pan: 0, lvl: 0.03 + 0.13 * fc.g };      // the last base under attack: a slow heartbeat of sonar, louder as it gives way (still one every two slots)
   if (fc && fc.kind === 'win' && fc.g > 0.08 && CS.step % 2 === 1 && !(CS.pool.length && heat > 0.3)) csPing(N, t, csMidi(centre + Math.floor(fc.g * 5)), 0.025 + 0.04 * fc.g, 0, 2.2);   // the last base nearly yours: a ping climbing the scale on the off beats
   if (CS.sonar && CS.step % 2 === 0) { csSonar(N, t, CS.sonar.lvl || (CS.sonar.mine ? 0.16 : 0.08), CS.sonar.pan); CS.sonar = null; }
+  if (CS.toll && CS.step % 2 === 0 && (CS.toll.i || !capped)) {   // B3: a knockout's toll takes the place of that slot's troop ping and retreat; its first beat waits for a capture's chord
+    csToll(N, t, CS.toll.i++); if (CS.toll.i >= 3) CS.toll = null; CS.ret = null; CS.pool.length = 0;
+  }
   let retDone = false;
   if (CS.ret && CS.step % 2 === 0) { csRetreat(N, t, centre, CS.ret.pan); CS.ret = null; retDone = true; }       // a retreat takes the place of that slot's troop ping
   const n = CS.pool.length;
@@ -9321,7 +9365,7 @@ function cosmosTick() {
   const want = AC && AC.state === 'running' && settings.sound && settings.tone === 'cosmos' && audible() && G && (!G.over || ftLive());
   if (!want || (CS.nodes && CS.nodes.tier !== AQ())) {         // off, or the sound level changed: let it fade (and rebuild below)
     if (CS.nodes) { const N = CS.nodes, t = AC.currentTime; CS.nodes = null; N.out.gain.cancelScheduledValues(t); N.out.gain.setTargetAtTime(0.0001, t, 0.5); for (const o of N.oscs) o.stop(t + 3); setTimeout(() => { try { N.out.disconnect(); } catch (_) {} }, 6000); }
-    if (!want) { CS.pool.length = 0; CS.caps.length = 0; CS.sonar = null; CS.ret = null; return; }
+    if (!want) { CS.pool.length = 0; CS.caps.length = 0; CS.sonar = null; CS.ret = null; CS.toll = null; return; }
   }
   if (!CS.nodes) { CS.nodes = csBuild(true); CS.next = AC.currentTime + 0.05; CS.step = 0; }
   const N = CS.nodes, now = AC.currentTime, heat = 1 - Math.exp(-shotRate / 30);
@@ -9329,7 +9373,7 @@ function cosmosTick() {
     if (f.cs) continue; f.cs = 1; if (f.ftq) continue;
     if (fogOn() && f.x !== undefined && !seenXY(f.x, f.y)) continue;
     if (f.k === 'ring') CS.caps.push({ mine: !awatch() && f.c === PLAYER, lost: lostMine(f), pan: screenPan(f.x, f.y) });
-    else if (f.k === 'elim') csSink(N, now + 0.02);
+    else if (f.k === 'elim') { csSink(N, now + 0.02); CS.toll = { i: 0 }; }   // B3: and its toll, on the slot clock (see csSlot)
     else if (f.k === 'retreat') { if (rtOK('cs', 2.5)) CS.ret = { pan: f.x !== undefined ? screenPan(f.x, f.y) : 0 }; }
   }
   if (CS.caps.length > 2) CS.caps.splice(0, CS.caps.length - 2);
@@ -11534,7 +11578,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.2.8', t: 'Build 50.2', b: ['New maps. Every generated map is now its own landmass with a coastline, in all sorts of shapes and lengths, with rivers, rings and islands inside the land. The New-Gen button is gone: every map is New-Gen now.', 'Fairer starts: every color begins with a fair share of the land around it.', 'Rivers are wider, and bigger maps get more bridges.', 'The map no longer turns when you turn your phone mid-match. Tier 1 levels always lie wide.', 'On the setup screen the map stays put under the header. Pulling up the deck never moves it, and you can pan and zoom to every corner.', 'Smoother panning: Atlas, Nebula, Rime, Clockwork, Neon, Ink, Sand and Velvet no longer redraw their whole background while you move the camera. On slower phones some of them now pan at more than twice the frame rate.', 'The space around the land has its own look in every style but Pixel: deep chart water in Atlas, the rake following the shore in Sand, a stitched seam in Velvet, and so on. A ring map\'s middle reads as water too.', 'HUD size in Settings: four picture buttons, one a little smaller than before and two bigger (for PC screens). The HUD changes as you tap, also mid-match from Pause. On a small screen it grows only as far as it fits.', 'Reset all data has a screen of its own: Settings > Data, from the main menu only. It no longer shows in Settings during a match.', 'The Shop counts its pages: "3/11" under the dots, also in Your styles. The style cards lost their "Pair" numbers. In the Shop the dots show what you own: filled for a pair you own, half for half of one, hollow for none.', 'Fixed: on some phones a thin line slid across the screen while you panned, in Sand, Clockwork, Velvet and other styles.', 'A new style pair, Black Iron + Hollow. Iron filings on a dark desk pull toward every base, and a theremin-like voice sings where every note bends into place.', 'A new style pair, Leadlight + Bellows. A chapel window at dusk, and a little organ that fights for breath.'] },     // 50.2.2 to 50.2.8: DC's draft, Henry's memory note (rewritten with WC for Build 51)
+  { v: '50.3', t: 'Build 50.3', b: ['New maps. Every generated map is now its own landmass with a coastline, in all sorts of shapes and lengths, with rivers, rings and islands inside the land. The New-Gen button is gone: every map is New-Gen now.', 'Fairer starts: every color begins with a fair share of the land around it.', 'Rivers are wider, and bigger maps get more bridges.', 'The map no longer turns when you turn your phone mid-match. Tier 1 levels always lie wide.', 'On the setup screen the map stays put under the header. Pulling up the deck never moves it, and you can pan and zoom to every corner.', 'Smoother panning: Atlas, Nebula, Rime, Clockwork, Neon, Ink, Sand and Velvet no longer redraw their whole background while you move the camera. On slower phones some of them now pan at more than twice the frame rate.', 'The space around the land has its own look in every style but Pixel: deep chart water in Atlas, the rake following the shore in Sand, a stitched seam in Velvet, and so on. A ring map\'s middle reads as water too.', 'HUD size in Settings: four picture buttons, one a little smaller than before and two bigger (for PC screens). The HUD changes as you tap, also mid-match from Pause. On a small screen it grows only as far as it fits.', 'Reset all data has a screen of its own: Settings > Data, from the main menu only. It no longer shows in Settings during a match.', 'The Shop counts its pages: "3/11" under the dots, also in Your styles. The style cards lost their "Pair" numbers. In the Shop the dots show what you own: filled for a pair you own, half for half of one, hollow for none.', 'Fixed: on some phones a thin line slid across the screen while you panned, in Sand, Clockwork, Velvet and other styles.', 'A new style pair, Black Iron + Hollow. Iron filings on a dark desk pull toward every base, and a theremin-like voice sings where every note bends into place.', 'A new style pair, Leadlight + Bellows. A chapel window at dusk, and a little organ that fights for breath.', 'Leadlight: when a base changes hands, the window around it no longer blinks dark for a moment.', 'Black Iron: zooming, or a base changing hands, no longer flashes bare squares of dust.', 'Black Iron: on a slower phone, the desk no longer flashes bare when the game lowers picture quality.', 'The glow when you earn an upgrade point is now your colour in every style (it was always blue).', 'Drift: a knockout and your last note now come through on a phone speaker too (a plucked toll over the low knell).', 'Sand: an empty base\'s guards are now dark pebbles and its health ring shows when it\'s hurt, and High contrast and Color-safe colours hold up on the sand.', 'Cosmos: a knockout now comes through on a phone speaker too (a lost base\'s chord and two long pings over the low swell), and Cosmos is a little louder on a phone, with the low drone just as it was.'] },     // 50.1.1 to 50.2.15, shipped as Build 50.3: DC's draft, Henry's memory note (rewritten with WC for Build 51)
   { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string over a deep velvet case, it trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps, Tier 1 rebuilt: three new levels, Land Rush, Hot Seat and Border Dispute, each built around one idea.', 'Some challenge levels bring their own look and sound. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge now closes with a tap.'] },     // 50.1: DC's pitch, edited by Henry
   { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu. Its written rules are rewritten, finally explaining the percentage-selection-tool.', 'Setup is one screen now: a map you can pan and zoom, with a deck of options you pull up over it.', 'A new match summary with three tabs: Result, Moments and Stats, each showing a variety of details.', 'The Stats screen is rebuilt: your record, your last ten matches, your fastest win on each map size, and how you\'ve done against each AI strength.', 'Modifiers that can\'t work together are greyed out, and they explain why.'] },
   { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
@@ -12484,7 +12528,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.2.8 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.3 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13146,7 +13190,7 @@ FTS.drift = {                                             // soft and spare: plu
     drKnell(N, t); for (let i = 0; i < 5; i++) drPluck(N, t + i * 0.24, drMidi(Math.max(0, 11 - 2 * i)), 0.075 - 0.007 * i, 0, 1.3); drBell(N, t + 0.04, 0.09, 0);
   },
   hold(t) { const N = DR.nodes; if (N) drPluck(N, t, drMidi(3), 0.04, 0, 1.4); },
-  end(kind, t) { const N = DR.nodes; if (!N) return; drKnell(N, t); drPluck(N, t + 0.1, drMidi(2), 0.06, 0, 1.4); },
+  end(kind, t) { const N = DR.nodes; if (!N) return; drKnell(N, t); drTollTwice(N, t); drPluck(N, t + 0.1, drMidi(2), 0.06, 0, 1.4); },
   relief(t) { const N = DR.nodes; if (N) { drPluck(N, t, drMidi(7), 0.05, 0, 1.0); drPluck(N, t + 0.24, drMidi(10), 0.05, 0, 1.0); } }
 };
 FTS.chip = {                                              // four channels, nothing more: a stepping arpeggio on pulse 2 with a triangle thump (win: major), then every channel takes the floor for the fall
@@ -13422,4 +13466,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.2.8, from source sha256 ffe8694b027b0fed -->
+<!-- Aiced build 50.3, from source sha256 e6772e264045e19e -->

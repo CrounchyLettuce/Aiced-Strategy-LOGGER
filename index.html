@@ -748,7 +748,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3.10 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3.14 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -2833,11 +2833,13 @@ function symPath(x, kind, cx, cy, h) {                // adds one base-sized sha
 }
 // Special-base glyphs (unit coordinates, about +-1): drawn at the center of the base in place of the plain square.
 const GLYPHS = {
-  fortress: [[[-1, -1], [-.6, -1], [-.6, -.5], [-.2, -.5], [-.2, -1], [.2, -1], [.2, -.5], [.6, -.5], [.6, -1], [1, -1], [1, 1], [-1, 1]]],      // a battlement
-  forge:    [[[0, -1.15], [1, 0], [.45, 0], [.45, 1], [-.45, 1], [-.45, 0], [-1, 0]]],                                                          // an arrow up: output
-  beacon:   [[[0, -1.25], [.3, -.3], [1.25, 0], [.3, .3], [0, 1.25], [-.3, .3], [-1.25, 0], [-.3, -.3]]],                                       // a four-point star
-  relay:    [[[-1.25, 0], [-.35, -.75], [-.35, .75]], [[1.25, 0], [.35, -.75], [.35, .75]]]                                                     // twin arrows pointing away
+  // 50.3.x (SC, set B, Henry Oct 31): each icon shows what the base does. The old up arrow read as "faster", like the Relay.
+  fortress: [[[-1.1, -1.1], [-.62, -1.1], [-.62, -.6], [-.24, -.6], [-.24, -1.1], [.24, -1.1], [.24, -.6], [.62, -.6], [.62, -1.1], [1.1, -1.1], [1.1, 1.05], [.36, 1.05], [.36, .3], [0, .02], [-.36, .3], [-.36, 1.05], [-1.1, 1.05]]],   // a castle with a gate: more health
+  forge:    [[[0, -1.2], [.5, .2], [-.5, .2]], [[-.86, -.55], [-.34, .85], [-1.38, .85]], [[.86, -.55], [1.38, .85], [.34, .85]]],        // three troops, one a step ahead: more troops
+  beacon:   [[[0, -1.2], [.306, -.321], [1.236, -.302], [.495, .261], [.764, 1.152], [0, .62], [-.764, 1.152], [-.495, .261], [-1.236, -.302], [-.306, -.321]]],   // a five-point star: more XP
+  relay:    [[[1.36, 0], [.86, -.78], [.56, -.78], [1.06, 0], [.56, .78], [.86, .78]], [[.86, 0], [.36, -.78], [.06, -.78], [.56, 0], [.06, .78], [.36, .78]], [[-1.36, 0], [-.86, -.78], [-.56, -.78], [-1.06, 0], [-.56, .78], [-.86, .78]], [[-.86, 0], [-.36, -.78], [-.06, -.78], [-.56, 0], [-.06, .78], [-.36, .78]]]   // double chevrons, out both ways: faster along its lines
 };
+const SPECIAL_MIN_PX = 7;                             // a special's icon is never narrower than this many CSS px on screen (zoomed out it would be 2-5 px)
 function glyphPath(x, kind, cx, cy, g) {
   for (const poly of GLYPHS[kind]) { poly.forEach(([px, py], i) => i ? x.lineTo(cx + px * g, cy + py * g) : x.moveTo(cx + px * g, cy + py * g)); x.closePath(); }
 }
@@ -3079,6 +3081,11 @@ let audFix = (() => { try { const v = JSON.parse(localStorage.getItem('ice-audio
 let rainLvl = 0;                                      // 49.5.6: the rain bed stays off (the dense ticks sounded like frying); the tester rows for it are gone
 const AQ = () => audFix >= 0 ? audFix : quality >= 3 ? 2 : quality >= 2 ? 1 : 0;       // sound weight: 0 Full, 1 Light, 2 Lite (Auto follows the picture level)
 const AQ_IR = [1, 0.55, 0.35];                         // how long the echo tails are, against Full
+function irSeeded(seed, f, ...a) {                  // C28 (LV): a reverb's noise from its own fixed seed, so each sound's room, and its level, is the same on every load
+  const r = Math.random; let x = (seed * 2654435761) >>> 0 || 1;
+  Math.random = () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+  try { return f(...a); } finally { Math.random = r; }
+}
 function watchFrameRate(frameMs, nowMs) {
   if (qualFix >= 0) { slowSince = 0; calmSince = 0; return; }   // a held level never moves by itself
   if (mode !== 'play' || document.hidden) { slowSince = 0; calmSince = 0; frameAvg = 16.7; return; }
@@ -3896,10 +3903,11 @@ function islandHulls(D = decoCur || G.deco) {         // a soft outline around e
 }
 // Special-base marks: white on neutral bases, the owner's color once held. Four silhouettes you can tell apart at a glance.
 function drawSpecialMark(n, now, struck) {
-  const IK_ = isInk(), own = n.owner >= 0, col = own ? (IK_ ? ikHex(colorOf(n.owner)) : colorOf(n.owner)) : (IK_ ? IK_NEUTRAL : NEUTRAL_COLOR), g = HC ? 8.2 : 7.4;
-  ctx.save(); ctx.translate(n.x, n.y); ctx.setLineDash([]);
+  const IK_ = isInk(), own = n.owner >= 0, col = own ? (IK_ ? ikHex(colorOf(n.owner)) : colorOf(n.owner)) : (IK_ ? IK_NEUTRAL : NEUTRAL_COLOR);
+  const g0 = HC ? 8.2 : 7.4, g = Math.max(g0, SPECIAL_MIN_PX / 2.2 / V.s), k = g / g0;   // 50.3.x: a size floor when zoomed out (the glyph spans about +-1.1 g); k scales the ring and pulse with it
+  ctx.save(); ctx.translate(n.x, n.y); if (V.rot) ctx.rotate(-Math.PI / 2); ctx.setLineDash([]);   // 50.3.x: upright on the screen, even when a box map is turned
   if (SYM && own) {                                  // with team symbols on, the holder's shape rings the glyph so both read
-    const h = HC ? 11.5 : 10.5; ctx.strokeStyle = col; ctx.lineWidth = HC ? 2.2 : 1.8; ctx.globalAlpha = 0.9; ctx.beginPath();
+    const h = (HC ? 11.5 : 10.5) * k; ctx.strokeStyle = col; ctx.lineWidth = (HC ? 2.2 : 1.8) * k; ctx.globalAlpha = 0.9; ctx.beginPath();
     if (symOf(n.owner) === 'cross') { const a = h * 1.3, t = h * .48; [[-t, -a], [t, -a], [t, -t], [a, -t], [a, t], [t, t], [t, a], [-t, a], [-t, t], [-a, t], [-a, -t], [-t, -t]].forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); }
     else symPath(ctx, symOf(n.owner), 0, 0, h);
     ctx.stroke();
@@ -3908,7 +3916,7 @@ function drawSpecialMark(n, now, struck) {
   if (struck) { ctx.globalAlpha = 0.55; ctx.fillStyle = IK_ ? IK_BG : '#fff'; ctx.fill(); }
   if (n.kind === 'beacon' && !reduceMotion) {        // a beacon keeps sending out slow pulses
     const ph = (now * 0.6 + n.id * 0.37) % 1;
-    ctx.globalAlpha = 0.5 * (1 - ph); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, 1.2 / V.s); ctx.beginPath(); ctx.arc(0, 0, 14 + ph * 14, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 0.5 * (1 - ph); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, 1.2 / V.s); ctx.beginPath(); ctx.arc(0, 0, (14 + ph * 14) * k, 0, Math.PI * 2); ctx.stroke();
   }
   ctx.restore();
 }
@@ -8037,10 +8045,10 @@ const PXM = {                                         // hand-drawn sprites: X i
   cross:    ['..XXX..', '..XXX..', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '..XXX..', '..XXX..'],
   neutral:  ['XXXXX', 'XXXXX', 'XXXXX', 'XXXXX', 'XXXXX'],
   hollow:   ['XXXXX', 'X...X', 'X...X', 'X...X', 'XXXXX'],
-  fortress: ['XX.XXX.XX', 'XX.XXX.XX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXX...XXX', 'XXX...XXX', 'XXX...XXX'],
-  forge:    ['....X....', '...XXX...', '..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', '...XXX...', '...XXX...', '...XXX...', '...XXX...'],
-  beacon:   ['....X....', '....X....', '...XXX...', '..XXXXX..', 'XXXXXXXXX', '..XXXXX..', '...XXX...', '....X....', '....X....'],
-  relay:    ['..X...X..', '.XX...XX.', 'XXX...XXX', '.XX...XX.', '..X...X..'],
+  fortress: ['XX.XXX.XX', 'XX.XXX.XX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXXX.XXXX', 'XXX...XXX', 'XXX...XXX', 'XXX...XXX'],   // 50.3.x set B: the same four icons as GLYPHS
+  forge:    ['......X......', '.....XXX.....', '..X.XXXXX.X..', '.XXX.....XXX.', 'XXXXX...XXXXX'],
+  beacon:   ['....X....', '....X....', '...XXX...', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '..XXXXX..', '.XX...XX.', '.X.....X.'],
+  relay:    ['..X.X.X.X..', '.X.X...X.X.', 'X.X.....X.X', '.X.X...X.X.', '..X.X.X.X..'],
   crown:    ['X...X...X', 'XX.XXX.XX', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.'],
   no:       ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X']
 };
@@ -9128,8 +9136,9 @@ function odPreview() {                                // one bar of the track at
 }
 // ---- "Drift": the sea the battle is on (50.3.x audit C15, SC; Henry, Oct 31 2026: "i actually really like 'The Sea'") ----
 // The fight is weather, not a melody. Under everything a tide of soft noise breathes about every eleven seconds and rocks slowly from side to
-// side; fighting makes it rougher (fuller and brighter) and raises a faint wind over it, and it calms over several seconds when the fighting
-// stops. A very quiet open fifth on the horizon (D and A) comes and goes on its own slow breath and lifts a step as you hold more ground.
+// side; fighting makes it rougher, not louder or brighter (its waves come quicker and deeper, it rocks faster), and raises a faint, high wind
+// over the notes, and it calms over several seconds when the fighting stops (50.3.x r1, Henry Oct 31: "B: Rougher sounds the best").
+// A very quiet open fifth on the horizon (D and A) comes and goes on its own slow breath and lifts a step as you hold more ground.
 // Only your own troops' hits make notes: a felted pluck that glows on the water, at most one every two or three seconds, on a slow clock
 // that sways with the tide, taking a random walk along a D major pentatonic scale (higher the more ground you hold). Every event you must
 // know is one of Drift's plucks, the moment it happens: a capture climbs a little arpeggio, a lost base sinks over a low bell, a knockout
@@ -9143,17 +9152,20 @@ function drNoise() {                                  // four seconds of noise, 
   if (!DR.bedBuf) { const sr = AC.sampleRate; DR.bedBuf = AC.createBuffer(1, sr * 4, sr); const d = DR.bedBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
   return DR.bedBuf;
 }
+function drIR() { return irSeeded(30, drIRNoise); }   // C28 (part 2): Drift's room from its own fixed seed, the same on every load (it was built inside drBuild, so the first seeding missed it)
+function drIRNoise() {                                // the room: two seconds and a half of softly dulled, fading noise (shorter on the lighter sound levels)
+  const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 2.6 * k), ir = AC.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = ir.getChannelData(c); let lp = 0;
+    for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.35; d[i] = lp * Math.exp(-i / sr * 2.6 / k) * Math.min(1, i / (sr * 0.02)); }
+  }
+  return ir;
+}
 function drBuild(withBed) {
   const t = AC.currentTime, N = { oscs: [], tier: AQ(), t0: t };
   N.out = AC.createGain(); N.out.gain.value = 0.72; N.out.connect(outBus());          // sits level with Simple
   N.dry = AC.createGain(); N.dry.gain.value = 0.8; N.dry.connect(N.out);
-  if (!DR.ir || DR.irT !== AQ()) {                    // the room: two seconds and a half of softly dulled, fading noise (shorter on the lighter sound levels)
-    const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 2.6 * k); DR.ir = AC.createBuffer(2, len, sr); DR.irT = AQ();
-    for (let c = 0; c < 2; c++) {
-      const d = DR.ir.getChannelData(c); let lp = 0;
-      for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.35; d[i] = lp * Math.exp(-i / sr * 2.6 / k) * Math.min(1, i / (sr * 0.02)); }
-    }
-  }
+  if (!DR.ir || DR.irT !== AQ()) { DR.ir = drIR(); DR.irT = AQ(); }   // the room (C28: drIR, the same room on every load)
   N.rev = AC.createConvolver(); N.rev.buffer = DR.ir; N.rev.connect(N.out);
   if (withBed) {
     const q = AQ(), send = (node, wet) => { node.connect(N.dry); const w = AC.createGain(); w.gain.value = wet; node.connect(w); w.connect(N.rev); };
@@ -9162,12 +9174,12 @@ function drBuild(withBed) {
     sea.buffer = drNoise(); sea.loop = true; N.seaLp = AC.createBiquadFilter(); N.seaLp.type = 'lowpass'; N.seaLp.frequency.value = 560; N.seaLp.Q.value = 0.5;
     N.seaG = AC.createGain(); N.seaG.gain.value = 0.026 * DR_SEA; sw.frequency.value = 0.09; swd.gain.value = 0.014 * DR_SEA; sw.connect(swd); swd.connect(N.seaG.gain);
     sea.connect(N.seaLp); N.seaLp.connect(N.seaG); let so = N.seaG;
-    if (AC.createStereoPanner && q < 2) { const sp = AC.createStereoPanner(), pl = AC.createOscillator(), pd = AC.createGain(); pl.frequency.value = 0.037; pd.gain.value = 0.35; pl.connect(pd); pd.connect(sp.pan); N.seaG.connect(sp); so = sp; pl.start(t); N.oscs.push(pl); }
-    send(so, 0.5);
-    // the wind: a narrow band of the same noise, drifting in pitch (held still on the lightest level), only there when the fight is rough
+    if (AC.createStereoPanner && q < 2) { const sp = AC.createStereoPanner(), pl = AC.createOscillator(), pd = AC.createGain(); pl.frequency.value = 0.037; pd.gain.value = 0.35; pl.connect(pd); pd.connect(sp.pan); N.seaG.connect(sp); so = sp; pl.start(t); N.oscs.push(pl); N.pl = pl; }
+    N.sw = sw; N.swd = swd; send(so, 0.5);
+    // the wind: a narrow band of the same noise, high over the plucks (about 2.1 kHz), drifting in pitch (held still on the lightest level), only there when the fight is rough
     const wind = AC.createBufferSource(), wbp = AC.createBiquadFilter(); wind.buffer = drNoise(); wind.loop = true;
-    wbp.type = 'bandpass'; wbp.frequency.value = 900; wbp.Q.value = 7;
-    if (q < 2) { const wl = AC.createOscillator(), wd = AC.createGain(); wl.frequency.value = 0.061; wd.gain.value = 260; wl.connect(wd); wd.connect(wbp.frequency); wl.start(t); N.oscs.push(wl); }
+    wbp.type = 'bandpass'; wbp.frequency.value = 2100; wbp.Q.value = 5;
+    if (q < 2) { const wl = AC.createOscillator(), wd = AC.createGain(); wl.frequency.value = 0.061; wd.gain.value = 380; wl.connect(wd); wd.connect(wbp.frequency); wl.start(t); N.oscs.push(wl); }
     N.windG = AC.createGain(); N.windG.gain.value = 0.0001; wind.connect(wbp); wbp.connect(N.windG); let wo = N.windG;
     if (AC.createStereoPanner) { const wp = AC.createStereoPanner(); wp.pan.value = -0.25; N.windG.connect(wp); wo = wp; }
     send(wo, 0.7);
@@ -9263,8 +9275,12 @@ function driftClock() {
     DR.wxT = now + 0.1;
     DR.share = (awatch() ? Math.max(...G.teams.map(T => T.bases)) : G.teams[PLAYER].bases) / G.nodes.length;
     const h = G.over ? 0 : DR.h, lv = G.over ? -1 : DR.share < 0.32 ? 0 : DR.share < 0.55 ? 1 : 2;
-    N.seaG.gain.setTargetAtTime((0.026 + 0.04 * h) * DR_SEA, now, 0.3); N.seaLp.frequency.setTargetAtTime(560 + 900 * h, now, 0.3);
-    N.windG.gain.setTargetAtTime(0.0001 + 0.15 * DR_SEA * Math.pow(Math.max(0, h), 1.5), now, 0.3);
+    // a fight makes the sea rougher, not louder or brighter (a phone plays the brightening, not the sea's low body, and it covered the plucks):
+    // the level grows only 2.3 dB and the filter opens only to 680 Hz; the swell comes quicker (11 s waves down to about 4 s) and deeper, the rock quicker
+    N.seaG.gain.setTargetAtTime((0.026 + 0.008 * h) * DR_SEA, now, 0.3); N.seaLp.frequency.setTargetAtTime(560 + 120 * h, now, 0.3);
+    N.sw.frequency.setTargetAtTime(0.09 + 0.14 * h, now, 0.5); N.swd.gain.setTargetAtTime((0.014 + 0.008 * h) * DR_SEA, now, 0.3);
+    if (N.pl) N.pl.frequency.setTargetAtTime(0.037 + 0.06 * h, now, 0.5);
+    N.windG.gain.setTargetAtTime(0.0001 + 0.018 * DR_SEA * Math.pow(Math.max(0, h), 1.5), now, 0.3);
     if (lv !== DR.level) {                            // (-9: just built, so the first notes are set at once; -1: the match is over and the horizon goes)
       for (let k = 0; k < 2; k++) {
         const v = N.hzn[k];
@@ -9478,7 +9494,8 @@ const CS_CHORDS = [                                   // pad voicings (MIDI), on
   [47, 56, 59, 63, 66]                                // G#m7/B
 ];
 const CS = { nodes: null, pool: [], sonar: null, caps: [], deg: 9, next: 0, step: 0, ir: null };
-function csIR() {                                     // a vast space: five seconds, bright, slowly fading
+function csIR() { return irSeeded(103, csIRNoise); }   // C28: the same room on every load (seed 103, picked in LV)
+function csIRNoise() {                                     // a vast space: five seconds, bright, slowly fading
   if (CS.ir && CS.ir.sampleRate === AC.sampleRate && CS.irT === AQ()) return CS.ir;
   const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 5 * k); CS.ir = AC.createBuffer(2, len, sr); CS.irT = AQ();
   for (let c = 0; c < 2; c++) { const d = CS.ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.6; d[i] = lp * Math.exp(-i / sr * 1.3 / k) * Math.min(1, i / (sr * 0.06)); } }
@@ -9660,13 +9677,15 @@ const TD_ORDER = ['dark', 'low', 'open', 'home', 'bright'];
 const TD = { nodes: null, ir: null, irT: -1, wir: null, clk: 0, heat: 0, share: 0.3, mood: 0, setName: 'open', set: TD_SETS.open, idx: 3, pool: null,
   nextHit: 0, siege: null, nextSiege: 0, sk: 0, beat: -9, lastEv: -9, pedal: false, n: 0, cap: 8, pressT: -9, block: 0, live: [], holdPedal: 0 };
 const isTide = () => settings.tone === 'tide';
-function tdIR() {                                     // a small quiet room: two seconds, warm, the top rolled off
+function tdIR() { return irSeeded(2, tdIRNoise); }   // C28: the same room on every load (seed 2, picked in LV)
+function tdIRNoise() {                                     // a small quiet room: two seconds, warm, the top rolled off
   if (TD.ir && TD.ir.sampleRate === AC.sampleRate && TD.irT === AQ()) return TD.ir;
   const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 2.2 * k); TD.ir = AC.createBuffer(2, len, sr); TD.irT = AQ();
   for (let c = 0; c < 2; c++) { const d = TD.ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.3; d[i] = lp * 1.5 * Math.exp(-i / sr * 2.6 / k) * Math.min(1, i / (sr * 0.03)); } }
   return TD.ir;
 }
-function tdWashIR() {                                 // the strings and soundboard ringing together while the pedal is down
+function tdWashIR() { return irSeeded(2, tdWashIRNoise); }   // C28: the same room on every load (seed 2, picked in LV)
+function tdWashIRNoise() {                                 // the strings and soundboard ringing together while the pedal is down
   if (TD.wir && TD.wir.sampleRate === AC.sampleRate && TD.wir.tier === AQ()) return TD.wir;
   const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 3 * k), b = AC.createBuffer(2, len, sr); b.tier = AQ();
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.45; d[i] = lp * 1.2 * Math.exp(-i / sr * 1.5 / k) * Math.min(1, i / (sr * 0.03)); } }
@@ -9877,7 +9896,8 @@ const BW = { nodes: null, pool: [], low: null, caps: [], deg: 6, next: 0, step: 
 const isBowl = () => settings.tone === 'bowl';
 const bwBed = 1;                                         // 49.7.4: the bed is rubbed bowls (pairs of tones beating slowly, no Cosmos shimmer); Henry chose it over 49.7's pad by ear
 const bwJit = () => Math.random() * 0.07;               // nothing lands exactly on the clock
-function bwIR() {                                      // still evening air in a walled garden: two and a half seconds, soft, a little bright
+function bwIR() { return irSeeded(2, bwIRNoise); }   // C28: the same room on every load (seed 2, picked in LV)
+function bwIRNoise() {                                      // still evening air in a walled garden: two and a half seconds, soft, a little bright
   if (BW.ir && BW.ir.sampleRate === AC.sampleRate && BW.irT === AQ()) return BW.ir;
   const sr = AC.sampleRate, k = AQ_IR[AQ()], len = Math.floor(sr * 2.6 * k); BW.ir = AC.createBuffer(2, len, sr); BW.irT = AQ();
   for (let c = 0; c < 2; c++) { const d = BW.ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { lp += (Math.random() * 2 - 1 - lp) * 0.45; d[i] = lp * 1.3 * Math.exp(-i / sr * 2.2 / k) * Math.min(1, i / (sr * 0.02)); } }
@@ -10051,7 +10071,8 @@ const CM_END_P = { 50: 0.1, 57: 0.07, 62: 0.05, 65: 0.05, 66: 0.04, 69: 0.045, 7
 const CM = { sws: [], glow: 0, ph: { sw: [], br: [], chord: 0, chordT: 0, mood: 0, cur: null, ev: -99 }, nodes: null, heat: 0, ks: {}, ksR: 0, ir: null, irT: -1, nb: null, hit: { mine: 0, other: 0, bMine: 0, bOn: 0, bFar: 0 }, rcap: [], ch: [], ft: 0, ftKind: null, idleT: 0 };
 const isChamber = () => settings.tone === 'chamber';
 const cmPick = a => a[(Math.random() * a.length) | 0];
-function cmIR() {                                        // the hall: a long tail that darkens as it fades, a few early reflections; shorter at Light and Lite
+function cmIR() { return irSeeded(1, cmIRNoise); }   // C28: the same room on every load (seed 1, picked in LV)
+function cmIRNoise() {                                        // the hall: a long tail that darkens as it fades, a few early reflections; shorter at Light and Lite
   if (CM.ir && CM.ir.sampleRate === AC.sampleRate && CM.irT === AQ()) return CM.ir;
   const sr = AC.sampleRate, secs = 3.2 * AQ_IR[AQ()], len = Math.floor(sr * secs); CM.ir = AC.createBuffer(2, len, sr); CM.irT = AQ();
   for (let c = 0; c < 2; c++) {
@@ -10306,7 +10327,8 @@ const HO_GL = HO_VOICE === 'A' ? 1.2 : 1, HO_PK = HO_VOICE === 'A' ? 1.3 : 1;   
 const HO_VIB = HO_VOICE === 'A' ? [4.8, 7] : [5.1, 9];   // rate Hz, depth cents: arrives late, stays small (a theremin hand, never a wobble)
 const hoPick = a => a[Math.floor(Math.random() * a.length)];
 const hoFade = (p, t, tc) => { const v = p.value; p.cancelScheduledValues(t); p.setValueAtTime(Math.max(0.0001, v), t); p.setTargetAtTime(0.0001, t, tc); };   // let go from where it is now (a cancel alone would drop it back to its default of 1)
-function hoIR() {                                    // dark air in a large quiet room at night: soft early reflections, a long dark tail. Shorter at Light and Lite
+function hoIR() { return irSeeded(3, hoIRNoise); }   // C28: the same room on every load (seed 3, picked in LV)
+function hoIRNoise() {                                    // dark air in a large quiet room at night: soft early reflections, a long dark tail. Shorter at Light and Lite
   if (HO.ir && HO.ir.sampleRate === AC.sampleRate && HO.irT === AQ()) return HO.ir;
   const sr = AC.sampleRate, secs = 2.8 * AQ_IR[AQ()], len = Math.floor(sr * secs), b = AC.createBuffer(2, len, sr); HO.irT = AQ();
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let lp = 0;
@@ -10559,7 +10581,8 @@ const BL_RBOW = [
 const BL_DM = [[50, .45, -0.15], [57, .38, 0.1], [62, .3, -0.05], [65, .24, 0.2]];
 const blHome = m => { const n = m + BL.home; return n < 41 && m >= 45 ? n + 12 : n; };   // the whole instrument moves with home
 const blPick = a => a[Math.floor(Math.random() * a.length)];
-function blIR() {                                    // a small stone chapel: hard early reflections, a short tail (not a cathedral). Shorter at Light and Lite
+function blIR() { return irSeeded(3, blIRNoise); }   // C28: the same room on every load (seed 3, picked in LV)
+function blIRNoise() {                                    // a small stone chapel: hard early reflections, a short tail (not a cathedral). Shorter at Light and Lite
   if (BL.ir && BL.ir.sampleRate === AC.sampleRate && BL.irT === AQ()) return BL.ir;
   const sr = AC.sampleRate, secs = 1.7 * AQ_IR[AQ()], len = Math.floor(sr * secs), b = AC.createBuffer(2, len, sr); BL.irT = AQ();
   for (let c = 0; c < 2; c++) {
@@ -10749,7 +10772,8 @@ const FLP = {                                                          // fs pit
 const flp = () => FLP[settings.tone] || FLP.floe;
 const isFloe = () => settings.tone === 'floe';
 const FL = { nodes: null, v: 0, tAt: 0, cAt: 0, st: {}, win: null, ir: {} };
-function flIR(P) {                                    // a long echo whose tail darkens as it fades, with one faint far-off bounce per side
+function flIR(P) { return irSeeded(4, flIRNoise, P); }   // C28: the same room on every load (seed 4, picked in LV)
+function flIRNoise(P) {                                    // a long echo whose tail darkens as it fades, with one faint far-off bounce per side
   const key = settings.tone + ':' + AQ(), sr = AC.sampleRate, rv = P.rev * AQ_IR[AQ()];
   if (FL.ir[key] && FL.ir[key].sampleRate === sr) return FL.ir[key];
   const len = Math.floor(sr * rv), pre = Math.floor(sr * 0.03), buf = AC.createBuffer(2, len, sr), tau = rv / 7.5;
@@ -11116,7 +11140,8 @@ const RN_TEAMF = [1080, 840, 960, 720, 1200];                                   
 const RN_RAIN = [0, 0.055, 0.12, 0.3];                                                  // the rain's level for the tester setting: Off, Faint, Medium, Loud (set by the measurements in t_rain3.py)
 const RN = { nodes: null, v: 0, kn: 0, tAt: { a: 0, c: 0 }, cAt: { a: 0, b: 0, c: 0 }, st: {}, heat: 0, at: 0, ft: 0, ftKind: 'loss', ir: null, rc: [], og: null, fadeAt: 0, hum: null, plinks: 0, thunks: 0, swells: 0, rb: null };
 const isRain = () => settings.tone === 'rain';
-function rnIR() {                                       // a wet street: short, dark reflections off the walls either side
+function rnIR() { return irSeeded(2, rnIRNoise); }   // C28: the same room on every load (seed 2, picked in LV)
+function rnIRNoise() {                                       // a wet street: short, dark reflections off the walls either side
   if (RN.ir && RN.ir.sampleRate === AC.sampleRate) return RN.ir;
   const sr = AC.sampleRate, len = Math.floor(sr * 0.7), b = AC.createBuffer(2, len, sr);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let l = 0; for (let i = 0; i < len; i++) { l += (Math.random() * 2 - 1 - l) * 0.25; d[i] = l * Math.exp(-i / (sr * 0.16)) * (1 - Math.exp(-i / (sr * 0.008))); } }
@@ -11431,7 +11456,8 @@ function heBank() {                                     // the snaps, made once:
   const quiet = [], loud = []; for (let i = 0; i < 28; i++) quiet.push(make(false)); for (let i = 0; i < 20; i++) loud.push(make(true));
   return (HE.bank = { sr, quiet, loud });
 }
-function heIR() {                                       // a short dark room: noise that decays in about 0.4 s, softened above 2.6 kHz
+function heIR() { return irSeeded(2, heIRNoise); }   // C28: the same room on every load (seed 2, picked in LV)
+function heIRNoise() {                                       // a short dark room: noise that decays in about 0.4 s, softened above 2.6 kHz
   const key = AQ(), sr = AC.sampleRate; if (HE.ir && HE.ir.k === key && HE.ir.b.sampleRate === sr) return HE.ir.b;
   const len = Math.floor(sr * 1.7 * AQ_IR[key]), buf = AC.createBuffer(2, len, sr), a = 1 - Math.exp(-2 * Math.PI * 2600 / sr);
   for (let c = 0; c < 2; c++) {
@@ -11873,7 +11899,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.3.10', t: 'Build 50.3', b: ['New maps. Every generated map is now its own landmass with a coastline, in all sorts of shapes and lengths, with rivers, rings and islands inside the land, and every color starts with a fair share of the land around it. The New-Gen button is gone: every map is New-Gen now. Rivers are wider, and bigger maps get more bridges.', 'The map no longer turns when you turn your phone mid-match, and Tier 1 levels always lie wide. On the setup screen the map stays put under the header: pulling up the deck never moves it, and you can pan and zoom to every corner.', 'The space around the land has its own look in every style but Pixel: deep chart water in Atlas, the rake following the shore in Sand, a stitched seam in Velvet, and so on. A ring map\'s middle reads as water too.', 'Two new style pairs. Black Iron + Hollow: iron filings on a dark desk pull toward every base, and a theremin-like voice sings where every note bends into place. Leadlight + Bellows: a chapel window at dusk, and a little organ that fights for breath.', 'Ink + Tide reworked. Ink: a calmer, darker page with tighter washes, so colours stop running together and the match reads even zoomed out. Empty bases are drawn in dark ink and their health shows, troops are a little bigger, and earning a point draws a brush stroke round the panel. Tide is rebuilt as Wet ink: no more loop or pad, the fight holds a piano\'s sustain pedal down, and when it lifts the keys are cut and only the room rings on. It\'s silent when nothing happens, and winning now rises.', 'Atlas + Drift reworked. Atlas has its own pieces now. Bases are survey stations, and a hurt base shows a compass card that empties clockwise. Roads are dotted tracks, with a solid line between bases you hold. The river and the sea are a softer, darker water that the chart runs across. A fallen troop fades where it fell, a capture opens the station\'s ring out in segments, and earning a point draws contours round the panel in your own colour. Drift is now the sea the battle is fought on. A quiet tide grows rougher with the fighting, a far horizon lifts as you hold more ground, and your own hits glint on the water. Captures, losses and the bell keep Drift\'s own notes, and ring out clearer.', 'Smoother, and looking the same: Atlas, Nebula, Rime, Clockwork, Neon, Ink, Sand and Velvet no longer redraw their whole background while you pan (on slower phones some pan at more than twice the frame rate), Pixel redraws its ground far more cheaply when you pan, and Leadlight, Black Iron and Ember are smoother zoomed out. Black Iron\'s filings only shift round marching troops when you\'re close enough to see it.', 'Fixed flashes: no thin line sliding across the screen while you pan (Sand, Clockwork, Velvet and others); Leadlight\'s window no longer blinks dark round a base that changes hands; Black Iron no longer flashes bare squares of dust when you zoom, when a base changes hands, or when the game lowers picture quality, and its desk dust now stays put on the map while you zoom instead of sliding under it, which makes pinching lighter too.', 'Earning an upgrade point: the glow is your colour in every style (it was always blue), and Classic\'s and Pixel\'s burst is in your colour too.', 'Phone speakers: Drift\'s knockout and your last note now come through (a plucked toll over the low knell), and so does Cosmos\'s knockout (a lost base\'s chord and two long pings over the low swell). Cosmos is a little louder on a phone, with the low drone just as it was.', 'Sand: an empty base\'s guards are now dark pebbles and its health ring shows when it\'s hurt, and High contrast and Color-safe colours hold up on the sand. Classic: the river reads the same from end to end, on top of the land\'s edge.', 'HUD size in Settings: four picture buttons, one a little smaller than before and two bigger (for PC screens). The HUD changes as you tap, also mid-match from Pause. On a small screen it grows only as far as it fits.', 'The Shop counts its pages ("3/11" under the dots, also in Your styles), the style cards lost their "Pair" numbers, and the dots show what you own: filled for a pair you own, half for half of one, hollow for none.', 'Reset all data has a screen of its own: Settings > Data, from the main menu only. It no longer shows in Settings during a match.'] },     // 50.1.1 to 50.2.15 (shipped as Build 50.3), then 50.3.1 on: one summary since 50.3.6 (Henry, Oct 31), each sub-build tied in; DC's draft, Henry's memory note (rewritten with WC for Build 51)
+  { v: '50.3.14', t: 'Build 50.3', b: ['New maps. Every generated map is now its own landmass with a coastline, in all sorts of shapes and lengths, with rivers, rings and islands inside the land, and every color starts with a fair share of the land around it. The New-Gen button is gone: every map is New-Gen now. Rivers are wider, and bigger maps get more bridges.', 'The map no longer turns when you turn your phone mid-match, and Tier 1 levels always lie wide. On the setup screen the map stays put under the header: pulling up the deck never moves it, and you can pan and zoom to every corner.', 'The space around the land has its own look in every style but Pixel: deep chart water in Atlas, the rake following the shore in Sand, a stitched seam in Velvet, and so on. A ring map\'s middle reads as water too.', 'Two new style pairs. Black Iron + Hollow: iron filings on a dark desk pull toward every base, and a theremin-like voice sings where every note bends into place. Leadlight + Bellows: a chapel window at dusk, and a little organ that fights for breath.', 'Ink + Tide reworked. Ink: a calmer, darker page with tighter washes, so colours stop running together and the match reads even zoomed out. Empty bases are drawn in dark ink and their health shows, troops are a little bigger, and earning a point draws a brush stroke round the panel. Tide is rebuilt as Wet ink: no more loop or pad, the fight holds a piano\'s sustain pedal down, and when it lifts the keys are cut and only the room rings on. It\'s silent when nothing happens, and winning now rises.', 'Atlas + Drift reworked. Atlas has its own pieces now. Bases are survey stations, and a hurt base shows a compass card that empties clockwise. Roads are dotted tracks, with a solid line between bases you hold. The river and the sea are a softer, darker water that the chart runs across. A fallen troop fades where it fell, a capture opens the station\'s ring out in segments, and earning a point draws contours round the panel in your own colour. Drift is now the sea the battle is fought on. A quiet tide grows rougher with the fighting, a far horizon lifts as you hold more ground, and your own hits glint on the water. Captures, losses and the bell keep Drift\'s own notes, and ring out clearer: in a fight the water gets rougher instead of louder, and the wind rises above the notes.', 'Smoother, and looking the same: Atlas, Nebula, Rime, Clockwork, Neon, Ink, Sand and Velvet no longer redraw their whole background while you pan (on slower phones some pan at more than twice the frame rate), Pixel redraws its ground far more cheaply when you pan, and Leadlight, Black Iron and Ember are smoother zoomed out. Black Iron\'s filings only shift round marching troops when you\'re close enough to see it.', 'Fixed flashes: no thin line sliding across the screen while you pan (Sand, Clockwork, Velvet and others); Leadlight\'s window no longer blinks dark round a base that changes hands; Black Iron no longer flashes bare squares of dust when you zoom, when a base changes hands, or when the game lowers picture quality, and its desk dust now stays put on the map while you zoom instead of sliding under it, which makes pinching lighter too.', 'Earning an upgrade point: the glow is your colour in every style (it was always blue), and Classic\'s and Pixel\'s burst is in your colour too.', 'Phone speakers: Drift\'s knockout and your last note now come through (a plucked toll over the low knell), and so does Cosmos\'s knockout (a lost base\'s chord and two long pings over the low swell). Cosmos is a little louder on a phone, with the low drone just as it was.', 'Sand: an empty base\'s guards are now dark pebbles and its health ring shows when it\'s hurt, and High contrast and Color-safe colours hold up on the sand. Classic: the river reads the same from end to end, on top of the land\'s edge.', 'Special bases have new icons that show what they do, stay upright when the map turns, and stay readable zoomed all the way out.', 'HUD size in Settings: four picture buttons, one a little smaller than before and two bigger (for PC screens). The HUD changes as you tap, also mid-match from Pause. On a small screen it grows only as far as it fits.', 'The Shop counts its pages ("3/11" under the dots, also in Your styles), the style cards lost their "Pair" numbers, and the dots show what you own: filled for a pair you own, half for half of one, hollow for none.', 'Reset all data has a screen of its own: Settings > Data, from the main menu only. It no longer shows in Settings during a match.'] },     // 50.1.1 to 50.2.15 (shipped as Build 50.3), then 50.3.1 on: one summary since 50.3.6 (Henry, Oct 31), each sub-build tied in; DC's draft, Henry's memory note (rewritten with WC for Build 51)
   { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string over a deep velvet case, it trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps, Tier 1 rebuilt: three new levels, Land Rush, Hot Seat and Border Dispute, each built around one idea.', 'Some challenge levels bring their own look and sound. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge now closes with a tap.'] },     // 50.1: DC's pitch, edited by Henry
   { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu. Its written rules are rewritten, finally explaining the percentage-selection-tool.', 'Setup is one screen now: a map you can pan and zoom, with a deck of options you pull up over it.', 'A new match summary with three tabs: Result, Moments and Stats, each showing a variety of details.', 'The Stats screen is rebuilt: your record, your last ten matches, your fastest win on each map size, and how you\'ve done against each AI strength.', 'Modifiers that can\'t work together are greyed out, and they explain why.'] },
   { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
@@ -12823,7 +12849,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.3.10 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.3.14 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13756,4 +13782,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.3.10, from source sha256 fc6720a3245b53ed -->
+<!-- Aiced build 50.3.14, from source sha256 d5e5962cdb85bd8e -->

@@ -748,7 +748,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3.14 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3.16 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -5231,10 +5231,10 @@ function bgCache(clear, key, src, paint) {        // the static part of a backgr
 // device pixels (so up to half a pixel off until the camera settles), and when the screen reaches the edge of what is painted, a strip is
 // painted ahead of it in the direction of the pan. The screen layers come from pictures of their own (BD.u, BD.o). Once the
 // camera has stayed put for BD_SETTLE frames, everything is painted again at the exact camera. A zoom, a turn, a new key or src, a new screen
-// size or quality step, or a jump of more than half the screen paints everything at once, as before.
+// size or quality step, or a jump of more than half the screen paints everything at once, as before (a zoom: see bdZoom, 50.3.16).
 // Cost: a look with an under layer paints its map layer twice when it settles (fine for one picture, as Neon's city is; heavy maps should
 // leave under empty). bgCache stays as it was, for looks that are not on the slot yet: it paints its one function again on any camera move.
-const BD = { m: null, ma: null, t: null, ta: null, r: null, u: null, o: null, lin: '', src: null, m0: null, wx: 0, wy: 0, vx0: 0, vx1: 0, vy0: 0, vy1: 0, rOk: false, tOk: false, sk: '', mp: '', still: 0, miss: 0, strip: 0, land: null, hit: false };
+const BD = { m: null, ma: null, t: null, ta: null, r: null, u: null, o: null, lin: '', src: null, m0: null, wx: 0, wy: 0, vx0: 0, vx1: 0, vy0: 0, vy1: 0, rOk: false, tOk: false, sk: '', mp: '', still: 0, miss: 0, strip: 0, land: null, hit: false, zs: false, zp: 0, pk: 0, linS: '' };
 const BD_SETTLE = 4, BD_AHEAD = 128;                 // BD_SETTLE: still frames before the exact repaint (a drag on a 90 Hz screen can skip a frame between touch moves).
                                                      // BD_AHEAD: device pixels painted ahead of a pan at a time (a few frames' worth), so a heavy map layer is painted in a few larger strips
 function bdCv(name) {                                // one of the slot's pictures (m, t, r, u opaque; ma, ta, o see-through): screen-sized, the wrap-around ones (t, ta) BD_AHEAD bigger each way
@@ -5321,11 +5321,53 @@ function bdBlit(t, wx, wy) {                         // screen pixel s shows the
   for (const [sx, dx, w] of a ? [[a, 0, W2 - a], [0, W2 - a, a]] : [[0, 0, W2]])
     for (const [sy, dy, h] of b ? [[b, 0, H2 - b], [0, H2 - b, b]] : [[0, 0, H2]]) ctx.drawImage(t, sx, sy, w, h, dx, dy, w, h);
 }
+// 50.3.16 (ledger 01, zoom C, Henry Oct 31): while the zoom moves (a pinch, a zoom animation), the slot does not paint every frame. The picture
+// already painted is scaled to the camera, and painted again, BD_ZPAD bigger than the screen each way, only when the zoom has moved BD_ZSTEP from it
+// or the screen would reach its edge. Once the camera stays put for BD_SETTLE frames, bdFull paints everything exactly as before, so a still frame
+// is the same pixel for pixel. While scaled the picture is a little soft, and a change inside it (a capture) shows at the next repaint.
+const BD_ZSTEP = 1.6, BD_ZPAD = 0.15;
+function bdZoom(clear, L, m, lin, linS) {           // a frame of a zoom: the last picture, scaled. false: paint as before (a jump on the zoom's first frame)
+  const W2 = cv.width, H2 = cv.height, zn = L.under ? 'za' : 'z', first = !BD.zs;
+  let src = first ? (L.under ? 'ma' : 'm') : BD.zsrc, zm = first ? BD.m0 : BD.zm, G = first ? 0 : BD.zG;
+  const fit = () => m.multiply(new DOMMatrix([zm.a, zm.b, zm.c, zm.d, zm.e + G, zm.f + G]).inverse());   // picture pixel -> screen pixel
+  let need = !BD[src], jump = need;
+  if (!need) {
+    const T = fit(), k = Math.hypot(T.a, T.b), c = BD[src], inv = T.inverse();
+    if (k > BD_ZSTEP || k < 1 / BD_ZSTEP) need = jump = true;
+    else for (const [x, y] of [[0, 0], [W2, 0], [0, H2], [W2, H2]]) { const p = inv.transformPoint(new DOMPoint(x, y)); if (p.x < -0.5 || p.y < -0.5 || p.x > c.width + 0.5 || p.y > c.height + 0.5) need = true; }
+  }
+  if (jump && first) return false;                   // a jump, not a pinch: paint as before (a pinch out starts here too, but with a small step: it gets its margin below)
+  BD.zs = true; BD.rOk = false; BD.tOk = false;
+  if (need) {                                        // paint the map layer again at this camera, with a margin all round
+    G = Math.round(BD_ZPAD * Math.max(W2, H2)); const c = BD[zn] || (BD[zn] = document.createElement('canvas'));
+    if (c.width !== W2 + 2 * G || c.height !== H2 + 2 * G) { c.width = W2 + 2 * G; c.height = H2 + 2 * G; }
+    const g = c.getContext('2d', { alpha: !!L.under }); bdStart(g, L.under ? null : clear);
+    const mt = new DOMMatrix([m.a, m.b, m.c, m.d, m.e + G, m.f + G]), inv = mt.inverse(), keep = { ...VIS };
+    const P = [[0, 0], [c.width, 0], [0, c.height], [c.width, c.height]].map(([x, y]) => inv.transformPoint(new DOMPoint(x, y)));
+    VIS.x0 = Math.min(...P.map(p => p.x)) - 70; VIS.x1 = Math.max(...P.map(p => p.x)) + 70; VIS.y0 = Math.min(...P.map(p => p.y)) - 70; VIS.y1 = Math.max(...P.map(p => p.y)) + 70;
+    g.save(); g.setTransform(mt); L.map(g); g.restore(); Object.assign(VIS, keep);
+    src = zn; zm = m; BD.zp++;
+  }
+  BD.zsrc = src; BD.zm = zm; BD.zG = G;
+  if ((L.under || L.over) && BD.zsk !== linS) { bdScreen(clear, L, lin); BD.zsk = linS; }
+  const T = fit(), full = F.x <= 0 && F.y <= 0 && (F.x + F.w) * dpr >= W2 - 0.5 && (F.y + F.h) * dpr >= H2 - 0.5;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if (L.under) ctx.drawImage(BD.u, 0, 0); else if (!full) { ctx.fillStyle = clear; ctx.fillRect(0, 0, W2, H2); }
+  if (!full) { ctx.beginPath(); ctx.rect(F.x * dpr, F.y * dpr, F.w * dpr, F.h * dpr); ctx.clip(); }
+  if (!L.under) { ctx.fillStyle = clear; ctx.fillRect(0, 0, W2, H2); }   // under a turned or soft-edged picture, the background colour (as bdFull's start)
+  ctx.setTransform(T); ctx.drawImage(BD[src], 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); if (L.over) ctx.drawImage(BD.o, 0, 0);
+  ctx.restore(); return true;
+}
 function backdrop(clear, key, src, L) {              // called with the world transform in place; leaves it in place
   const AR = AROUND[settings.visual], land = AR ? aroundLand() : null; BD.hit = true;
   if (AR) { const mp = L.map; L = { ...L, map: AR.first ? g => { aroundPaint(AR, g); mp(g); } : g => { mp(g); aroundPaint(AR, g); } }; }     // 50.2.1: the around-the-land layer goes into the map layer
   const m = ctx.getTransform(), lin = [m.a, m.b, m.c, m.d, cv.width, cv.height, F.x, F.y, F.w, F.h, quality, key, !!L.under, !!L.over, !!AR].join(), mk = lin + ',' + m.e + ',' + m.f;
   BD.still = mk === BD.mp ? BD.still + 1 : 0; BD.mp = mk;
+  { const k = Math.hypot(m.a, m.b), pk = BD.pk, linS = [cv.width, cv.height, F.x, F.y, F.w, F.h, quality, !!L.under, !!L.over, !!AR].join(); BD.pk = k;   // 50.3.16: zoom C
+    if (BD.m0 && BD.linS === linS && BD.src === src && BD.land === land && (k !== pk || BD.zs) && BD.still < BD_SETTLE && !(PERF && window.__noBgCache)
+        && bdZoom(clear, L, m, lin, linS)) { BD.lin = lin; return; }
+    BD.zs = false; BD.linS = linS; }
   let rest = true;
   if (BD.lin !== lin || BD.src !== src || BD.land !== land || !BD.m0 || (PERF && window.__noBgCache)) bdFull(clear, L, m);
   else if (m.e === BD.m0.e && m.f === BD.m0.f && BD.rOk) {}
@@ -11899,7 +11941,8 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.3.14', t: 'Build 50.3', b: ['New maps. Every generated map is now its own landmass with a coastline, in all sorts of shapes and lengths, with rivers, rings and islands inside the land, and every color starts with a fair share of the land around it. The New-Gen button is gone: every map is New-Gen now. Rivers are wider, and bigger maps get more bridges.', 'The map no longer turns when you turn your phone mid-match, and Tier 1 levels always lie wide. On the setup screen the map stays put under the header: pulling up the deck never moves it, and you can pan and zoom to every corner.', 'The space around the land has its own look in every style but Pixel: deep chart water in Atlas, the rake following the shore in Sand, a stitched seam in Velvet, and so on. A ring map\'s middle reads as water too.', 'Two new style pairs. Black Iron + Hollow: iron filings on a dark desk pull toward every base, and a theremin-like voice sings where every note bends into place. Leadlight + Bellows: a chapel window at dusk, and a little organ that fights for breath.', 'Ink + Tide reworked. Ink: a calmer, darker page with tighter washes, so colours stop running together and the match reads even zoomed out. Empty bases are drawn in dark ink and their health shows, troops are a little bigger, and earning a point draws a brush stroke round the panel. Tide is rebuilt as Wet ink: no more loop or pad, the fight holds a piano\'s sustain pedal down, and when it lifts the keys are cut and only the room rings on. It\'s silent when nothing happens, and winning now rises.', 'Atlas + Drift reworked. Atlas has its own pieces now. Bases are survey stations, and a hurt base shows a compass card that empties clockwise. Roads are dotted tracks, with a solid line between bases you hold. The river and the sea are a softer, darker water that the chart runs across. A fallen troop fades where it fell, a capture opens the station\'s ring out in segments, and earning a point draws contours round the panel in your own colour. Drift is now the sea the battle is fought on. A quiet tide grows rougher with the fighting, a far horizon lifts as you hold more ground, and your own hits glint on the water. Captures, losses and the bell keep Drift\'s own notes, and ring out clearer: in a fight the water gets rougher instead of louder, and the wind rises above the notes.', 'Smoother, and looking the same: Atlas, Nebula, Rime, Clockwork, Neon, Ink, Sand and Velvet no longer redraw their whole background while you pan (on slower phones some pan at more than twice the frame rate), Pixel redraws its ground far more cheaply when you pan, and Leadlight, Black Iron and Ember are smoother zoomed out. Black Iron\'s filings only shift round marching troops when you\'re close enough to see it.', 'Fixed flashes: no thin line sliding across the screen while you pan (Sand, Clockwork, Velvet and others); Leadlight\'s window no longer blinks dark round a base that changes hands; Black Iron no longer flashes bare squares of dust when you zoom, when a base changes hands, or when the game lowers picture quality, and its desk dust now stays put on the map while you zoom instead of sliding under it, which makes pinching lighter too.', 'Earning an upgrade point: the glow is your colour in every style (it was always blue), and Classic\'s and Pixel\'s burst is in your colour too.', 'Phone speakers: Drift\'s knockout and your last note now come through (a plucked toll over the low knell), and so does Cosmos\'s knockout (a lost base\'s chord and two long pings over the low swell). Cosmos is a little louder on a phone, with the low drone just as it was.', 'Sand: an empty base\'s guards are now dark pebbles and its health ring shows when it\'s hurt, and High contrast and Color-safe colours hold up on the sand. Classic: the river reads the same from end to end, on top of the land\'s edge.', 'Special bases have new icons that show what they do, stay upright when the map turns, and stay readable zoomed all the way out.', 'HUD size in Settings: four picture buttons, one a little smaller than before and two bigger (for PC screens). The HUD changes as you tap, also mid-match from Pause. On a small screen it grows only as far as it fits.', 'The Shop counts its pages ("3/11" under the dots, also in Your styles), the style cards lost their "Pair" numbers, and the dots show what you own: filled for a pair you own, half for half of one, hollow for none.', 'Reset all data has a screen of its own: Settings > Data, from the main menu only. It no longer shows in Settings during a match.'] },     // 50.1.1 to 50.2.15 (shipped as Build 50.3), then 50.3.1 on: one summary since 50.3.6 (Henry, Oct 31), each sub-build tied in; DC's draft, Henry's memory note (rewritten with WC for Build 51)
+  { v: '50.3.16', t: 'Build 50.3', b: ['Atlas + Drift reworked: Atlas is a surveyor\'s chart with its own pieces, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide reworked: a calmer, darker page that reads even zoomed out, and Tide rebuilt around a piano\'s sustain pedal.', 'Zooming in and out is smoother on most looks, Leadlight, Black Iron, Ember and Pixel run smoother too, and Black Iron\'s dust stays put on the map while you zoom.', 'Special bases have new icons that stay upright and readable zoomed all the way out.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
+  { v: '50.2', t: 'Build 50.2', b: ['New maps: every map is its own landmass with a coastline, rivers, rings and islands, and every color starts with a fair share of land. The space around the land has its own look in each style.', 'The map no longer turns mid-match, and on the setup screen it stays put while you pull up the deck.', 'Two new style pairs: Black Iron + Hollow, and Leadlight + Bellows.', 'Smoother panning in most styles, fewer flashes, and Drift and Cosmos come through on phone speakers.', 'HUD size in Settings, a page counter in the Shop, and Reset all data on its own screen.'] },     // 50.1.1 to 50.2.15 (shipped labelled Build 50.3): DC's summary, Henry's OK Nov 1
   { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string over a deep velvet case, it trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps, Tier 1 rebuilt: three new levels, Land Rush, Hot Seat and Border Dispute, each built around one idea.', 'Some challenge levels bring their own look and sound. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge now closes with a tap.'] },     // 50.1: DC's pitch, edited by Henry
   { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu. Its written rules are rewritten, finally explaining the percentage-selection-tool.', 'Setup is one screen now: a map you can pan and zoom, with a deck of options you pull up over it.', 'A new match summary with three tabs: Result, Moments and Stats, each showing a variety of details.', 'The Stats screen is rebuilt: your record, your last ten matches, your fastest win on each map size, and how you\'ve done against each AI strength.', 'Modifiers that can\'t work together are greyed out, and they explain why.'] },
   { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
@@ -12849,7 +12892,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.3.14 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.3.16 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13763,7 +13806,7 @@ if (PERF) { window.__coach = () => coach ? { i: coach.i, n: coach.lesson.steps.l
 if (PERF) window.__cam = () => ({ z: cam.z, cu: cam.cu, cv: cam.cv, minimap: !$('mm').hidden });
 if (PERF) window.__scr = (x, y) => toScreen(x, y);
 if (PERF) window.__fit = () => ({ k: FIT_K, hold: statsHold });
-if (PERF) window.__bg = () => ({ miss: BGC.miss, bd: BD.miss, strips: BD.strip, drawn: lastDrawAt, dirty: drawDirty });
+if (PERF) window.__bg = () => ({ miss: BGC.miss, bd: BD.miss, zp: BD.zp, strips: BD.strip, drawn: lastDrawAt, dirty: drawDirty });
 if (PERF) { window.__own = (id, o) => { G.nodes[id].owner = o; }; window.__tick = d => { G.t += d; }; window.__orders = () => (G ? G._orders | 0 : 0); window.__nodes = () => G.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, o: n.owner })); window.__ring = () => ({ sel: selBase, valid: selValid(), ringNew, flashed: performance.now() - selFlash < 400, ghost: !!selGhost }); }
 if (PERF) window.__chip = () => ({ on: !!CH.nodes, busy: CH.nodes ? Object.values(CH.nodes.ch).filter(c => c.off > AC.currentTime).length : 0 });   // sound-test hook
 if (PERF) window.__hearth = () => ({ on: !!HE.nodes, v: HE.v, I: HE.I, Is: HE.Is, rr: HE.rr, phrases: HE.phrases, caps: HE.caps, losses: HE.losses, taps: HE.taps, rcaps: HE.rcaps, rskip: HE.rskip, snaps: HE.snaps, drop: HE.drop, gain: HE.nodes ? HE.nodes.out.gain.value : 0 });   // sound-test hook
@@ -13782,4 +13825,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.3.14, from source sha256 d5e5962cdb85bd8e -->
+<!-- Aiced build 50.3.16, from source sha256 74d1bbbd2ea7224a -->

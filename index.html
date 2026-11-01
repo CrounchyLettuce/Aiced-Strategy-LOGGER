@@ -60,15 +60,12 @@ body { position: relative; }
 #upg.ptsGlow { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue), 0 0 30px var(--blue-glow), 0 0 70px var(--blue-halo); transition: box-shadow .3s ease-out, border-color .3s ease-out; }
 #ptsFx { position: fixed; z-index: 2; pointer-events: none; }
 #mapWrap { position: absolute; left: 10px; bottom: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: none; }
-#hud:not(.rotv) #mapWrap { flex-direction: row-reverse; align-items: flex-end; }          /* landscape: the minimap opens beside the map button, not above it */
 #sendTri { position: absolute; right: 10px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 #sendTri button { pointer-events: auto; width: 52px; min-height: 52px; font-size: 15px; }
 #sendTri button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
 #mapWrap > * { pointer-events: auto; }
-#mm { display: block; border: 1px solid var(--faint); border-radius: 4px; background: rgba(0,0,0,.72); touch-action: none; }
-#mm[hidden] { display: none; }
 #bMap {
-  width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: 4px;
+  width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: 4px;          /* 50.4.0: 46 -> 42 (Henry: a little smaller) */
   background: rgba(0,0,0,.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 #bMap[aria-pressed="true"] { border-color: var(--blue); }
@@ -183,7 +180,6 @@ html[data-sym="on"] .moments i { width: 12px; height: 12px; }
 /* High contrast: brighter secondary text, stronger borders and more solid panels (the map's own lines and sizes change in the code) */
 html:root[data-colors="contrast"] { --dim: #c0c0c8; --faint: rgba(255,255,255,.36); --hair: rgba(255,255,255,.22); }
 html:root[data-colors="contrast"] .panel, html:root[data-colors="contrast"] .ctl, html:root[data-colors="contrast"] #bMap { background: rgba(0,0,0,.9); }
-html:root[data-colors="contrast"] #mm { background: rgba(0,0,0,.9); border-color: rgba(255,255,255,.5); }
 .opt > span { flex: 0 0 96px; font-size: 13px; color: var(--dim); }
 /* 49.8.10: the size row's caption. Where the label sits beside the buttons it goes under the label (the empty left column); where the label sits above them it goes on the right of the heading line. */
 .opt > span em { display: block; margin-top: 2px; font-style: normal; font-size: 10.5px; line-height: 1.2; opacity: .85; }
@@ -705,9 +701,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   </div>
   <div id="field">
     <div id="mapWrap">
-      <canvas id="mm" hidden aria-label="Minimap. Tap or drag to move the view."></canvas>
-      <button id="bMap" aria-pressed="false" aria-label="Map. Tap for the minimap, double-tap to see the whole battlefield." title="Tap: minimap · Double-tap: whole battlefield">
-        <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 5.3 7 3.6 13 5.6 18 3.9V14.7L13 16.4 7 14.4 2 16.1Z"/><path d="M7 3.6V14.4M13 5.6V16.4"/></svg>
+      <button id="bMap" aria-pressed="false" aria-label="Show the whole map. Tap again to go back." title="Show the whole map. Tap again to go back.">
+        <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 6.5V2h4.5M13.5 2H18v4.5M18 13.5V18h-4.5M6.5 18H2v-4.5"/><path d="M7.4 12.2 12.6 7.8"/><circle cx="6.6" cy="12.9" r="1.6" fill="currentColor" stroke="none"/><circle cx="13.4" cy="7.1" r="1.6" fill="currentColor" stroke="none"/></svg>
       </button>
     </div>
   </div>
@@ -748,7 +743,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.3.25 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.4.0 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -911,7 +906,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <h3 class="sub">Rules</h3>
     <ul class="how">
       <li><b>Goal.</b> Take every base.</li>
-      <li><b>Look around.</b> Pinch and drag to move. The map button opens a minimap, and a double-tap on it shows everything. Press and hold any base to see what it is.</li>
+      <li><b>Look around.</b> Pinch and drag to move. The map button shows the whole map, and a second tap takes you back to where you were. Press and hold any base to see what it is.</li>
       <li><b>Send troops.</b> Tap a base within your reach and troops from all your connected bases head there.</li>
       <li><b>Send amount.</b> The 25%, 50% and 100% buttons in the bottom right set how many go on every order. Set it to 50% and tap two targets far apart to fight on two fronts.</li>
       <li><b>Send from one base.</b> Tap one of your bases to select it. A ring fills around it to show how many will leave. Then tap where they should go. At 25%, a base with 80 troops will send 20.</li>
@@ -1162,8 +1157,7 @@ const PRACTICE = [
     steps: [
       { ph: 0, t: 'Nothing here attacks you, so take your time. Pinch with two fingers to zoom in (or scroll with a mouse).', k: 'zoom', cam: true },
       { ph: 0, t: 'Now drag the map with one finger to move around.', k: 'pan', cam: true },
-      { ph: 0, t: 'Tap the map button for a minimap. Tap or drag on the minimap to jump around.', k: 'mini', cam: true },
-      { ph: 0, t: 'Double-tap the map button to see the whole battlefield again.', k: 'whole', cam: true },
+      { ph: 0, t: 'Tap the map button to see the whole battlefield again.', k: 'whole', cam: true },
       { ph: 1, t: 'Tap the highlighted gray base. Your troops march out.', k: 'sent', hl: 'near' },
       { ph: 1, t: 'They fight the defenders, then wear the base down. Wait until it turns your color.', k: 'bases', v: 2, hl: 'near' },
       { ph: 1, t: 'Take two more gray bases. More bases means a bigger army limit.', k: 'bases', v: 4, hl: 'near' },
@@ -2808,7 +2802,7 @@ const speeds = () => watching ? [1, 2, 4] : [1, 2];
 let dpr = 1, V = { s: 1, ex: 0, ey: 0, rot: false };
 let F = { x: 0, y: 0, w: 1, h: 1 }, FI = { w: 1, h: 1 }, s0 = 1, rot = false, tall = false, cam = { z: 1, cu: W / 2, cv: H / 2 }, arrowHits = [];
 let drawDirty = true, lastDrawAt = 0;                   // F2: paused and the menu demo draw less often; drawDirty asks for a redraw at once
-let FIT_K = 1, statsHold = false;                      // FIT_K: how far the whole-battlefield view backs away to clear the HUD; statsHold: the stats panel is folded while the minimap is open
+let FIT_K = 1;                                         // FIT_K: how far the whole-battlefield view backs away to clear the HUD
 const zmax = () => 3 * Math.max(1, Math.max(W, H) / 1000);      // 50.1.2: the long side, so a tall map zooms like a wide one
 let mode = 'demo', speedMul = 1, last = performance.now(), acc = 0;
 let watching = false, watchRivals = true;   // watching: an AI-only match you spectate
@@ -3005,7 +2999,7 @@ function mapBox() {                                   // the outermost bases in 
   BB = { x0, x1, y0, y1 }; BBG = G; return BB;
 }
 function boxUV() { const b = mapBox(); return rot ? { u0: H - b.y1, u1: H - b.y0, v0: b.x0, v1: b.x1 } : { u0: b.x0, u1: b.x1, v0: b.y0, v1: b.y1 }; }
-function mapView() {                                  // the same box with a little room round it: what the minimap and the setup preview show (the full view uses MAP_MARGIN instead)
+function mapView() {                                  // the same box with a little room round it: what the setup preview shows (the full view uses MAP_MARGIN instead)
   const b = boxUV(), pad = 28 + 0.01 * Math.max(b.u1 - b.u0, b.v1 - b.v0);
   return { u0: b.u0 - pad, v0: b.v0 - pad, w: b.u1 - b.u0 + 2 * pad, h: b.v1 - b.v0 + 2 * pad };
 }
@@ -3122,43 +3116,17 @@ function layout() {
   refitHud();
   s0 = fitScale();
   updateView();
-  if (!$('mm').hidden) sizeMinimap();
 }
-// ---- minimap: hidden until the map button is tapped; tap or drag on it to move the view ----
-let mmCtx = null;
-function sizeMinimap() {
-  const c = $('mm'), mv = mapView(), ww = mv.w, wh = mv.h;
-  const k = Math.min(Math.min(200, F.w * 0.42 / hudZ) / ww, Math.min(150, F.h * 0.42 / hudZ) / wh);          // 50.2.3: in the HUD's own px (it is zoomed with the map button)
-  const w = Math.max(40, Math.round(ww * k)), h = Math.max(30, Math.round(wh * k)), d = Math.min(window.devicePixelRatio || 1, 2.5) * hudZ;
-  c.width = Math.round(w * d); c.height = Math.round(h * d); c.style.width = w + 'px'; c.style.height = h + 'px';
-  c._w = w; c._h = h; c._d = d; mmCtx = c.getContext('2d');
-}
-const rectsClash = (a, b) => { const p = a.getBoundingClientRect(), q = b.getBoundingClientRect(); return p.width > 0 && q.width > 0 && p.left < q.right + 6 && p.right > q.left - 6 && p.top < q.bottom + 6 && p.bottom > q.top - 6; };
-function setMinimap(on) {
-  $('mm').hidden = !on; $('bMap').setAttribute('aria-pressed', String(on));
-  if (on) { sizeMinimap(); if (!statsHold && (watching ? watchRivals : settings.rivals) && rectsClash($('mm'), $('stats'))) { statsHold = true; syncRivals(); } }      // fold the open stats panel for as long as the minimap is up (not saved)
-  else if (statsHold) { statsHold = false; syncRivals(); }
-}
-function paintMap(x, w, h, live, u) {                // the map as a diagram: terrain, lines and bases. `live` adds armies and your view box.
+function paintMap(x, w, h, live, u) {                // the map as a diagram: terrain, lines and bases (the setup preview; `live` is always false since the minimap went, 50.4.0)
   const mv = mapView(), k = Math.min(w / mv.w, h / mv.h);
   const P = (px, py) => rot ? [(H - py - mv.u0) * k, (px - mv.v0) * k] : [(px - mv.u0) * k, (py - mv.v0) * k];
-  const fogM = fogOn(), D = G.deco;
+  const D = G.deco;
   { const C = coastDeco(); if (C) { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(C)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } } }      // 50.1.5: a footprint's land
   if (D && D.kind === 'river') { x.strokeStyle = 'rgba(90,140,220,0.35)'; x.lineWidth = Math.max(2, D.hw * k); x.beginPath(); D.line.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.stroke(); }
   if (D && D.kind === 'islands') { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(D)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } }
-  x.strokeStyle = live ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.26)'; x.lineWidth = u; x.beginPath();
+  x.strokeStyle = 'rgba(255,255,255,0.26)'; x.lineWidth = u; x.beginPath();
   for (const [a, b] of G.edges) { const p = P(G.nodes[a].x, G.nodes[a].y), q = P(G.nodes[b].x, G.nodes[b].y); x.moveTo(p[0], p[1]); x.lineTo(q[0], q[1]); }
   x.stroke();
-  if (live) {
-    x.globalAlpha = 0.6;                              // armies as faint specks, so you can see where they are
-    for (let team = 0; team < 5; team++) {
-      if (!G.teams[team].alive) continue;
-      x.fillStyle = TEAM_COLORS[team]; x.beginPath();
-      for (const t of G.troops) if (t.team === team && (!fogM || team === PLAYER || seenXY(t.x, t.y))) { const p = P(t.x, t.y); x.rect(p[0] - 0.5, p[1] - 0.5, 1, 1); }
-      x.fill();
-    }
-    x.globalAlpha = 1;
-  }
   for (const n of G.nodes) {
     const p = P(n.x, n.y), sz = (n.owner >= 0 ? 4 : 3) * u;
     x.fillStyle = colorOf(n.owner);
@@ -3169,19 +3137,7 @@ function paintMap(x, w, h, live, u) {                // the map as a diagram: te
     if (n.kind) { x.strokeStyle = '#fff'; x.beginPath(); x.arc(p[0], p[1], 4.6 * u, 0, Math.PI * 2); x.stroke(); }   // specials wear a ring
     if (n.crown) { x.strokeStyle = '#ffcd30'; x.lineWidth = 1.5 * u; x.beginPath(); x.arc(p[0], p[1], 5.4 * u, 0, Math.PI * 2); x.stroke(); }
   }
-  if (!live) {
-    if (previewMode !== 'spec') { const n = G.nodes[G.homes[PLAYER]], p = P(n.x, n.y); x.strokeStyle = '#fff'; x.lineWidth = 1.6 * u; x.beginPath(); x.arc(p[0], p[1], 8 * u, 0, Math.PI * 2); x.stroke(); }   // that's you
-    return;
-  }
-  const s = V.s, u0 = cam.cu - F.w / (2 * s), v0 = cam.cv - F.h / (2 * s);
-  const rx0 = Math.max(0.6, (u0 - mv.u0) * k), ry0 = Math.max(0.6, (v0 - mv.v0) * k);              // your view, kept inside the minimap's edges
-  const rx1 = Math.min(w - 0.6, (u0 + F.w / s - mv.u0) * k), ry1 = Math.min(h - 0.6, (v0 + F.h / s - mv.v0) * k);
-  x.strokeStyle = '#fff'; x.lineWidth = 1.2; x.strokeRect(rx0, ry0, Math.max(2, rx1 - rx0), Math.max(2, ry1 - ry0));
-}
-function drawMinimap() {
-  const c = $('mm'); if (c.hidden || !G || !mmCtx) return;
-  mmCtx.setTransform(c._d, 0, 0, c._d, 0, 0); mmCtx.clearRect(0, 0, c._w, c._h);
-  paintMap(mmCtx, c._w, c._h, true, 1);
+  if (previewMode !== 'spec') { const n = G.nodes[G.homes[PLAYER]], p = P(n.x, n.y); x.strokeStyle = '#fff'; x.lineWidth = 1.6 * u; x.beginPath(); x.arc(p[0], p[1], 8 * u, 0, Math.PI * 2); x.stroke(); }   // that's you
 }
 // The setup screens' preview: a minimap card in the free space beside the panel (landscape) or above it (portrait).
 function placePreview() {
@@ -3434,10 +3390,6 @@ function dkEnd() {
 }
 document.addEventListener('pointerup', dkEnd); document.addEventListener('pointercancel', dkEnd);
 window.addEventListener('resize', () => { if (dkScr()) { dkApply(); placePreview(); } });
-function mmJump(e) {
-  const c = $('mm'), r = c.getBoundingClientRect(), mv = mapView(), k = Math.min(c._w / mv.w, c._h / mv.h);
-  cam.cu = (e.clientX - r.left) / hudZ / k + mv.u0; cam.cv = (e.clientY - r.top) / hudZ / k + mv.v0; fling.vx = fling.vy = 0; updateView();
-}
 // fling: a quick swipe keeps gliding and slows down, like any map app
 const fling = { vx: 0, vy: 0 }, panHist = [];
 function stepFling(dt) {
@@ -3458,7 +3410,7 @@ function updateView() {
   cam.z = Math.min(zmax(), Math.max(1, cam.z));
   const s = s0 * cam.z;
   // The centre of the camera may reach the outermost base on each side and go no further (also at the full view), so a base on the edge can be
-  // brought to the middle of the view, clear of the HUD. Double-tapping the map button puts the whole map back in the middle.
+  // brought to the middle of the view, clear of the HUD. The map button puts the whole map back in the middle.
   {
     const B = boxUV();
     cam.cu = Math.min(B.u1, Math.max(B.u0, cam.cu));
@@ -4261,7 +4213,7 @@ function drawArrows(now) {            // off-screen pointers: your bases under a
   // arrows ride the edge of the open play area between the HUD panels, so none hides under a panel
   const pad = 20, rb = el => { const r = el.getBoundingClientRect(); return r.width ? r : null; };
   const top = Math.max(F.y + pad, ...['stats', 'ctrl'].map(id => rb($(id))).filter(Boolean).map(r => r.bottom + 14));
-  const low = [rb($('upg')), rb($('bMap')), rb($('sendTri')), $('mm').hidden ? null : rb($('mm'))].filter(Boolean).map(r => r.top - 14);
+  const low = [rb($('upg')), rb($('bMap')), rb($('sendTri'))].filter(Boolean).map(r => r.top - 14);
   const bot = Math.min(F.y + F.h - pad, ...low);
   const x0 = F.x + pad, x1 = F.x + F.w - pad, y0 = Math.min(top, bot - 40), y1 = Math.max(bot, y0 + 40);
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
@@ -11841,7 +11793,7 @@ function hePreview() {                                   // a few taps, a crackl
 }
 
 function syncRivals() {
-  const open = (watching ? watchRivals : settings.rivals) && !statsHold;
+  const open = watching ? watchRivals : settings.rivals;
   $('rivals').hidden = !(watching && open);                     // the table of every color's upgrades is for watching AI matches only
   $('statsBtn').setAttribute('aria-expanded', String(open));
   $('statsBtn').classList.toggle('noexp', !watching && !hasRules);
@@ -12084,12 +12036,13 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.3.24', t: 'Build 50.3', b: ['Atlas + Drift reworked: Atlas is a surveyor\'s chart with its own pieces, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide reworked: a calmer, darker page that reads even zoomed out, and Tide rebuilt around a piano\'s sustain pedal. Neon\'s river is water now, with the city\'s light and the rain on it.', 'Zooming in and out is smoother on most looks, Leadlight, Black Iron, Ember and Pixel run smoother too, and Black Iron\'s dust stays put on the map while you zoom.', 'Special bases have new icons that stay upright and readable zoomed all the way out, and in Ember the team symbols are burned into each base so they read at any health.', 'All thirteen sounds are evened out: on a phone none plays much louder or quieter than the rest, endings included, and Cosmos and Hearth now carry on a phone speaker.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
-  { v: '50.2', t: 'Build 50.2', b: ['New maps: every map is its own landmass with a coastline, rivers, rings and islands, and every color starts with a fair share of land. The space around the land has its own look in each style.', 'The map no longer turns mid-match, and on the setup screen it stays put while you pull up the deck.', 'Two new style pairs: Black Iron + Hollow, and Leadlight + Bellows.', 'Smoother panning in most styles, fewer flashes, and Drift and Cosmos come through on phone speakers.', 'HUD size in Settings, a page counter in the Shop, and Reset all data on its own screen.'] },     // 50.1.1 to 50.2.15 (shipped labelled Build 50.3): DC's summary, Henry's OK Nov 1
-  { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string over a deep velvet case, it trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps, Tier 1 rebuilt: three new levels, Land Rush, Hot Seat and Border Dispute, each built around one idea.', 'Some challenge levels bring their own look and sound. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge now closes with a tap.'] },     // 50.1: DC's pitch, edited by Henry
-  { v: '50', t: 'Build 50', b: ['The Shop is open. Earn tokens by winning in Classic and by earning stars in Challenge Maps, then spend them on new looks and sounds.', 'Nine new style pairs, from a fire seen from afar to a sand garden with singing bowls. Classic and Simple stay free.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'The game rolls a new map every time you open it.', 'Two new modifiers: Head start and Bounty.', 'Menus share one look, and How to Play now lives in the Play menu. Its written rules are rewritten, finally explaining the percentage-selection-tool.', 'Setup is one screen now: a map you can pan and zoom, with a deck of options you pull up over it.', 'A new match summary with three tabs: Result, Moments and Stats, each showing a variety of details.', 'The Stats screen is rebuilt: your record, your last ten matches, your fastest win on each map size, and how you\'ve done against each AI strength.', 'Modifiers that can\'t work together are greyed out, and they explain why.'] },
-  { v: '49', t: 'Build 49', b: ['Deadly: a new strength above Brutal. Enemies play smarter, think harder, and will prioritize taking you out quickly. They respond quickly and intelligently to threats, and capitalize on your mistakes.', 'Unlocks: Challenge Mode is now locked-win a single match of Classic at any difficulty/map size to unlock it. Win a match on Large/Hard to unlock Brutal, and win a match on Large/Brutal to unlock Deadly. Win any match on Brutal/Deadly to unlock them in custom/Spectate modes', 'Reset Data: in "Settings", there is a "Reset All Data" button, tap it three times in quick succession to delete data, unlocked items will be reset. This cannot be undone. UI readability also improved', 'Ember & Hearth: a new style pair, bases burn like small fires, troops will crackle when fighting. A chord plays when you take a base, with a deeper tone chord playing when you lose one. (Check all the styles for updated visuals/sounds!)', 'Win/Loss Tunes: The end of a match ends less abruptly; a slight beat will begin playing as the final base is captured, peaks at the moment of capture, and fades afterwards while the summary card settles in.', 'UI Layout: New in-match UI, making the more important buttons sit near your thumbs. Percentage tool is bottom-right, minimap is bottom-left above skills. Fixes made for multi-tap support, overall latency improved.', 'Maps/Rivals: Map generation fixed, and shy enemies on "Huge" maps no longer stay at home base indefinitely', 'General Optimizations in-game and menus'] },
-  { v: '48', t: 'Build 48', b: ['Smarter rivals: Brutal rivals keep troops home when you march at them, answer small raids and strike any base you leave empty (Hard does a lighter version), and health makes bases tougher to break.', 'Easier to read: a bigger, clearer selection ring, a bright flash and a soft chime when you earn an upgrade point, and sharper frost in Rime.', 'Made for slower phones: the game checks your phone the first time it opens and starts on a lighter picture and sound. It also runs on iPhone and iPad, and Spectate shows how strong the AI is.', 'For testers: this What\'s new page and a Check for update button, and the sound now comes back by itself if your phone pauses it.'] }
+  { v: '50.4.0', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.'] },
+  { v: '50.3.26', t: 'Build 50.3', b: ['Atlas + Drift are reworked. Atlas is a surveyor\'s chart with pieces of its own, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide are reworked too: a calmer, darker page that reads even zoomed out, with Tide built around a piano\'s sustain pedal. Neon\'s river is water now.', 'Zooming is smoother on most looks, and Leadlight, Black Iron, Ember and Pixel run smoother on slower phones.', 'Special bases have new icons, so you can tell what each one does at a glance, upright and readable at any zoom. Ember\'s team symbols are burned in, so they show at any health.', 'All thirteen sounds are evened out, so on a phone none plays much louder or quieter than the rest, endings included.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
+  { v: '50.2', t: 'Build 50.2', b: ['Maps are landmasses now. Every map has its own coastline with rivers, rings and islands inside it, and every color starts with a fair share of the land.', 'The map no longer turns when your phone does, and on the setup screen it stays put while you pull up the deck.', 'Two new style pairs, Black Iron + Hollow and Leadlight + Bellows, and the space around the land has its own look in each style.', 'Panning is smoother in most styles, a long list of flashes is gone, and Drift and Cosmos come through on a phone speaker.', 'Smaller things: HUD size in Settings, a page counter in the Shop, and Reset all data on a screen of its own.'] },     // 50.1.1 to 50.2.15 (shipped labelled Build 50.3): DC's summary, Henry's OK Nov 1
+  { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string stretched over a deep velvet case. It trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps\' Tier 1 is rebuilt around three new levels, Land Rush, Hot Seat and Border Dispute. Each one is built around a single idea, so you learn one thing at a time.', 'Some challenge levels now bring their own look and sound, so each one feels like a place of its own. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge closes with a tap, so you can get straight to the map.'] },     // 50.1: DC's pitch, edited by Henry
+  { v: '50', t: 'Build 50', b: ['The Shop opens. Win in Classic and earn stars in Challenge Maps for tokens, then spend them on new looks and sounds. Classic + Simple stay free.', 'Nine style pairs to collect, from a fire seen from afar to a sand garden with singing bowls.', 'Save and quit. Leave a match whenever you like, and Resume match on the Play menu picks it up where you left it.', 'Setup is one screen: a map you can pan and zoom, with your options on a deck you pull up over it. Two new modifiers arrive, Head start and Bounty.', 'Every match ends on a three-tab summary: Result, Moments and Stats. How to Play moves into the Play menu, rewritten, and finally explains the percentage tool.'] },
+  { v: '49', t: 'Build 49', b: ['Deadly arrives, a new strength above Brutal. It grows faster, earns upgrades faster, and comes on strong from the start.', 'Some things are now earned in Classic. One win opens Challenge Maps. Beating Hard on a Large map unlocks Brutal, and beating Brutal there unlocks Deadly. One win on either opens it in Custom and Spectate.', 'A new style pair, Ember + Hearth. Bases burn like small fires, fights crackle, and every base you take or lose gets a chord of its own.', 'Matches no longer stop dead. A beat rises as the last base falls, then fades while the summary settles in.', 'The match screen puts the buttons you use most under your thumbs, and taps answer faster. Map generation is fixed, and shy rivals on Huge maps leave home.'] },
+  { v: '48', t: 'Build 48', b: ['Rivals play smarter. On Brutal they keep troops home when you march at them, answer small raids, and strike any base you leave empty. Hard plays a lighter version.', 'Health upgrades now make your bases tougher to break, and Spectate shows how strong each AI is.', 'The match is easier to read: a clearer selection ring, a bright flash and a soft chime when you earn an upgrade point, and sharper frost in Rime.', 'Slower phones get a gentler start: on first launch the game checks your phone and, if it needs to, starts on a lighter picture and sound. It also runs on iPhone and iPad.', 'For testers: this What\'s new page, a Check for update button, and sound that comes back after your phone pauses it.'] }
 ];
 const NEWS_SHOWN = 4; let newsAll = false;             // the newest four builds show; a button opens the older ones
 function renderNews() {
@@ -12432,7 +12385,7 @@ function rulesHtml() {
   return h;
 }
 function renderRules() {
-  const open = (watching ? watchRivals : settings.rivals) && !statsHold, show = hasRules && (open || performance.now() < peekUntil);
+  const open = watching ? watchRivals : settings.rivals, show = hasRules && (open || performance.now() < peekUntil);
   if ($('rulesBox').hidden === show) $('rulesBox').hidden = !show;
   if (!show) return;
   const h = rulesHtml(); if (h !== rulesCache) { rulesCache = h; $('rulesBox').innerHTML = h; }
@@ -12628,7 +12581,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours
   { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = G.noTurn || (sc && sc.face === 'wide') ? false : tall; }      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
-  setMinimap(false); fling.vx = fling.vy = 0;
+  mapBack(null); fling.vx = fling.vy = 0;
   G.autoplay = watching;
   hudEl.classList.toggle('noup', !!G.mods.noup); hudEl.classList.toggle('fog', !!G.mods.fog);
   $('kothRow').hidden = !G.mods.koth; $('objRow').hidden = !G.scenarioId; initFog();
@@ -13033,7 +12986,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.3.25 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.4.0 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13055,7 +13008,7 @@ function xlSnap() {
   const P = G.teams[PLAYER], tg = new Set();
   for (const t of G.troops) if (t.team === PLAYER && t.path.length) { const d = t.path[t.path.length - 1]; if (G.nodes[d].owner !== PLAYER) tg.add(d); }
   XL.log.snaps.push([G.step, +G.t.toFixed(1), G.teams.map(T => T.bases), G.teams.map(T => T.count), P.points, [P.lv.hp, P.lv.spd, P.lv.dmg],
-    +cam.z.toFixed(2), Math.round(cam.cu), Math.round(cam.cv), $('mm').hidden ? 0 : 1, selBase == null ? -1 : selBase, G.lock[PLAYER] == null ? -1 : G.lock[PLAYER],
+    +cam.z.toFixed(2), Math.round(cam.cu), Math.round(cam.cv), 0, selBase == null ? -1 : selBase, G.lock[PLAYER] == null ? -1 : G.lock[PLAYER],
     [...tg], speedMul, xlOwners(), G.teams.map(T => +T.hill.toFixed(1))]);
 }
 function xlTick() {
@@ -13210,19 +13163,19 @@ cv.addEventListener('wheel', e => {
   const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;       // Firefox sends lines, not pixels
   zoomAround(e.clientX, e.clientY, cam.z * Math.exp(-dy * 0.0015));
 }, { passive: false });
-let mapTapT = 0, mapWas = false;
-$('bMap').addEventListener('click', () => {           // tap: minimap on/off at once; a second tap inside 300 ms undoes that and shows the whole battlefield
-  const now = performance.now();
-  if (now - mapTapT < 300) { mapTapT = 0; setMinimap(mapWas); fling.vx = fling.vy = 0; resetCam(); updateView(); return; }
-  mapTapT = now; mapWas = !$('mm').hidden;
-  setMinimap(!mapWas);
+// 50.4.0: the map button (the minimap panel is gone). A tap shows the whole map and remembers where you were; a second tap goes back there, but only while
+// the map still sits at the whole view (pan or zoom first and the way back is dropped). A tap inside 350 ms of the last is ignored, so a double tap still lands
+// on the whole map instead of going out and straight back. While a way back waits, the button wears its blue border (aria-pressed).
+let mapTapT = 0, wholeBack = null;
+function atWhole() { const B = boxUV(); return cam.z <= 1.0001 && Math.abs(cam.cu - (B.u0 + B.u1) / 2) < 0.5 && Math.abs(cam.cv - (B.v0 + B.v1) / 2) < 0.5; }
+function mapBack(v) { wholeBack = v; const on = String(!!v); if ($('bMap').getAttribute('aria-pressed') !== on) $('bMap').setAttribute('aria-pressed', on); }
+$('bMap').addEventListener('click', () => {
+  const now = performance.now(); if (now - mapTapT < 350) return; mapTapT = now;
+  fling.vx = fling.vy = 0;
+  if (wholeBack && atWhole()) { cam = { z: wholeBack.z, cu: wholeBack.cu, cv: wholeBack.cv }; mapBack(null); }
+  else { mapBack(atWhole() ? null : { z: cam.z, cu: cam.cu, cv: cam.cv }); resetCam(); }
+  updateView();
 });
-let mmDrag = false;
-$('mm').addEventListener('pointerdown', e => { mmDrag = true; try { $('mm').setPointerCapture(e.pointerId); } catch (_) {} mmJump(e); });
-$('mm').addEventListener('pointermove', e => { if (mmDrag && (e.pointerType !== 'mouse' || e.buttons)) mmJump(e); else if (mmDrag) mmDrag = false; });
-$('mm').addEventListener('pointerup', () => { mmDrag = false; });
-$('mm').addEventListener('pointercancel', () => { mmDrag = false; });
-$('mm').addEventListener('lostpointercapture', () => { mmDrag = false; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
 
 document.querySelectorAll('.seg[data-mode]').forEach(seg => seg.addEventListener('click', e => {
@@ -13330,13 +13283,11 @@ $('bPause').addEventListener('click', pause);
 $('bSpeed').addEventListener('click', () => { if (mode !== 'play') return; const sp = speeds(); speedMul = sp[(sp.indexOf(speedMul) + 1) % sp.length]; xlEv('spd', speedMul); syncCtrl(); });
 $('statsBtn').addEventListener('click', () => {
   if (!watching && !hasRules) return;
-  if (statsHold) { setMinimap(false); layout(); return; }                   // the panel was folded for the minimap: tapping it puts the minimap away and the panel back
   const peeking = performance.now() < peekUntil; peekUntil = 0;             // 50.0.12: a tap ends a challenge's opening peek at its rules; if only the peek held the panel open, the tap just closes it
   if (peeking && !(watching ? watchRivals : settings.rivals)) { syncRivals(); layout(); return; }
   if (watching) watchRivals = !watchRivals;
   else { settings.rivals = !settings.rivals; save('ice-settings', settings); }
   syncRivals(); layout();
-  if (!$('mm').hidden && rectsClash($('mm'), $('stats'))) setMinimap(false);          // opening the panel over the minimap puts the minimap away
 });
 syncSeg(); syncGlobalSeg(); syncAllText(); renderMods(); renderSettingsHint(); renderSpecials();
 { const g = shopStarSync(); if (g && !shop.quiet) { pendingUnlocks.push(SHOP_TEXT.starsAtStart(g)); save('ice-pending', pendingUnlocks); } syncShopDot(); }
@@ -13429,7 +13380,6 @@ const lvSum = T => T.lv.hp + T.lv.spd + T.lv.dmg;
 const COACH_TESTS = {
   zoom: () => cam.z >= Math.min(coach.z0 + 0.3, zmax() - 0.02),
   pan: () => { const c = coach.c0, ww = viewSize()[0]; return !!c && Math.hypot(cam.cu - c.cu, cam.cv - c.cv) > ww * 0.06; },
-  mini: () => !$('mm').hidden,
   whole: () => cam.z <= 1.02,
   sent: () => G.troops.some(t => t.team === PLAYER && t.path.length > 0),
   bases: st => G.teams[PLAYER].bases >= st.v,
@@ -13951,12 +13901,12 @@ function frame(nowMs) {
   if (!gap || drawDirty || nowMs - lastDrawAt >= gap) {
     drawDirty = false; lastDrawAt = nowMs;
     const td0 = performance.now();
-    try { draw(nowMs / 1000); if (mode === 'play' || mode === 'paused') drawMinimap(); } finally { fogRestore(fsw); }
+    try { draw(nowMs / 1000); } finally { fogRestore(fsw); }
     if (mode === 'paused') pauseDrawMs += (performance.now() - td0 - pauseDrawMs) * 0.3;               // a smoothed cost of one paused draw
   } else fogRestore(fsw);
   perfTick(nowMs, tDraw - tSim, performance.now() - tDraw);
   if (!(PERF && window.__noWatch)) watchFrameRate(dt * 1000, nowMs);
-  if (mode === 'play' && nowMs - lastHud > 100) { lastHud = nowMs; hud(); }
+  if (mode === 'play' && nowMs - lastHud > 100) { lastHud = nowMs; hud(); if (wholeBack && !atWhole()) mapBack(null); }      // 50.4.0: the map moved off the whole view: the way back is dropped
   requestAnimationFrame(frame);
 }
 
@@ -13966,9 +13916,9 @@ if (PERF) window.__audio = () => ({ AC, master, lim, mg, mlp, bus, pbus });   //
 if (PERF) window.__dbg = () => ({ mode, pvOnly, stack: stack.slice(), backPos, draining, t: G ? G.t : 0, over: G ? G.over : null, parts: parts.length, fx: G ? G.fx.length : 0, pvOwners: pvOwners ? pvOwners.length : 0, hasG: !!G });
 if (PERF) { window.__chimes = () => PF.chimes.slice(); window.__aud = () => ({ ac: AC, lim, master }); window.__chipnew = () => ({ chipNew }); window.__award = n => { const P = G.teams[PLAYER]; for (let i = 0; i < n; i++) { P.earned++; P.points++; } }; window.__pf = () => ({ starts: PF.starts, strength: PF.strength, parts: PF.ps.length, fx: PF.fx.length, glow: $('upg').classList.contains('ptsGlow'), shown: !!PF.cv && PF.cv.style.display !== 'none', style: settings.visual }); }
 if (PERF) { window.__coach = () => coach ? { i: coach.i, n: coach.lesson.steps.length, id: coach.lesson.id } : null; window.__hud = hud; window.__info = showInfo; window.__coachAim = () => coach ? { hl: coach.hlId, ph: $('coachPh').textContent } : null; window.__txt = () => ({ DIFF_INFO, PERSONA_INFO, SHAPE_INFO, SETTINGS_INFO, SPECIAL_INFO }); window.__mods = () => MODS; window.__sel = () => selBase; window.__coachTo = n => { coach.i = n; coach.g0 = G.t; coachShow(); }; }       // test hooks
-if (PERF) window.__cam = () => ({ z: cam.z, cu: cam.cu, cv: cam.cv, minimap: !$('mm').hidden });
+if (PERF) window.__cam = () => ({ z: cam.z, cu: cam.cu, cv: cam.cv, whole: !!wholeBack });
 if (PERF) window.__scr = (x, y) => toScreen(x, y);
-if (PERF) window.__fit = () => ({ k: FIT_K, hold: statsHold });
+if (PERF) window.__fit = () => ({ k: FIT_K });
 if (PERF) window.__bg = () => ({ miss: BGC.miss, bd: BD.miss, zp: BD.zp, strips: BD.strip, drawn: lastDrawAt, dirty: drawDirty });
 if (PERF) { window.__own = (id, o) => { G.nodes[id].owner = o; }; window.__tick = d => { G.t += d; }; window.__orders = () => (G ? G._orders | 0 : 0); window.__nodes = () => G.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, o: n.owner })); window.__ring = () => ({ sel: selBase, valid: selValid(), ringNew, flashed: performance.now() - selFlash < 400, ghost: !!selGhost }); }
 if (PERF) window.__chip = () => ({ on: !!CH.nodes, busy: CH.nodes ? Object.values(CH.nodes.ch).filter(c => c.off > AC.currentTime).length : 0 });   // sound-test hook
@@ -13988,4 +13938,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.3.25, from source sha256 2d7f47c6d0d19d60 -->
+<!-- Aiced build 50.4.0, from source sha256 56f7bfa374df4544 -->

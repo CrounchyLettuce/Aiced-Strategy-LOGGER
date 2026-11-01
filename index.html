@@ -72,7 +72,7 @@ body { position: relative; }
 #bMap svg { width: 20px; height: 20px; }
 #bSound[aria-pressed="false"] { color: var(--dim); }
 /* 50.2.3: HUD size (Settings). One zoom, --hz on the page root, for every in-match HUD piece: each keeps its corner and grows out of it. 1 = today's HUD. */
-#stats, #ctrl, #upg, #mapWrap, #sendTri, #info, #toast { zoom: var(--hz, 1); }
+#stats, #ctrl, #upg, #mapWrap, #sendTri, #info, #toast, #coach { zoom: var(--hz, 1); }
 
 .army { display: flex; width: 100%; align-items: baseline; gap: 6px; font-size: 21px; font-weight: 600; line-height: 1; }
 .army svg { width: 12px; height: 12px; align-self: center; }
@@ -261,25 +261,29 @@ html:root[data-colors="contrast"] .panel, html:root[data-colors="contrast"] .ctl
 .qualnote { margin: 0; padding: 4px 0; font-size: 12px; color: var(--dim); }
 .ghost.nudge { border-color: var(--blue); }
 .screen h3.sub { margin: 4px 0 0; font-size: 13px; font-weight: 500; color: var(--dim); }
-#coach { top: calc(env(safe-area-inset-top, 0px) + 58px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(46vw, 380px); display: flex; gap: 10px; align-items: center; padding: 8px 10px; font-size: 13px; line-height: 1.35; z-index: 2; }
+/* 50.4.2: the guided match's card (spec 5.7): placed by placeCoach() (between the counter and the controls sideways, a band under them upright), zoomed
+   with the HUD, with an edge and a yellow side that ties it to the rings. Rings on bases (.cRing, two), arrows at the edge of the free area (.cArrow, two),
+   rings on HUD pieces (.coachhl). */
+#coach { position: absolute; left: 0; top: 0; width: 320px; display: flex; flex-direction: column; gap: 3px; padding: 7px 12px 10px; font-size: 13.5px; line-height: 1.4; z-index: 2;
+  background: rgba(12,14,20,.9); border: 1px solid rgba(255,255,255,.24); border-left: 3px solid #ffcd30; border-radius: 6px; box-shadow: 0 6px 22px rgba(0,0,0,.6);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); pointer-events: auto; }
 #coach[hidden] { display: none; }
-#coachBox { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#coachPh { font-style: normal; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
-body:has(#menu:not([hidden])) :is(#coach, #coachRing, #coachArrow) { visibility: hidden; pointer-events: none; }
-#coachRing, #coachArrow { position: fixed; left: 0; top: 0; z-index: 3; pointer-events: none; }
-#coachRing[hidden], #coachArrow[hidden] { display: none; }
-#coachRing i { display: block; width: 56px; height: 56px; border: 2px solid #ffcd30; border-radius: 50%; box-shadow: 0 0 12px rgba(255,205,48,.55); animation: coachPulse 1.3s ease-in-out infinite; }
-#coachArrow svg { display: block; width: 26px; height: 26px; fill: #ffcd30; filter: drop-shadow(0 0 5px rgba(255,205,48,.7)); animation: coachNudge 1s ease-in-out infinite; }
-.up.coachhl { border-color: #ffcd30; box-shadow: 0 0 0 2px rgba(255,205,48,.35); animation: coachGlow 1.3s ease-in-out infinite; }
+#coachHead { display: flex; align-items: center; gap: 6px; min-height: 26px; }
+#coachPh { flex: 1; min-width: 0; font-style: normal; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+#coachTxt { font-weight: 500; }
+#coach button { flex: none; min-height: 26px; padding: 0 9px; border: 1px solid var(--faint); border-radius: 3px; font-size: 11.5px; color: var(--dim); }
+#coach button[hidden] { display: none; }
+#coach.ok { border-color: rgba(62,207,142,.6); border-left-color: #3ecf8e; }
+body:has(#menu:not([hidden])) :is(#coach, .cRing, .cArrow) { visibility: hidden; pointer-events: none; }
+.cRing, .cArrow { position: fixed; left: 0; top: 0; z-index: 3; pointer-events: none; }
+.cRing[hidden], .cArrow[hidden] { display: none; }
+.cRing i { display: block; width: 56px; height: 56px; border: 2px solid #ffcd30; border-radius: 50%; box-shadow: 0 0 12px rgba(255,205,48,.55), inset 0 0 0 1px rgba(0,0,0,.5); animation: coachPulse 1.3s ease-in-out infinite; }
+.cArrow svg { display: block; width: 38px; height: 38px; fill: #ffcd30; stroke: rgba(0,0,0,.85); stroke-width: 1.6; stroke-linejoin: round; paint-order: stroke; filter: drop-shadow(0 0 6px rgba(255,205,48,.75)); animation: coachPoint .9s ease-in-out infinite; }
+.coachhl { outline: 2px solid #ffcd30; outline-offset: 2px; animation: coachGlow 1.3s ease-in-out infinite; }
 @keyframes coachPulse { 0%, 100% { transform: scale(.82); opacity: 1; } 50% { transform: scale(1.12); opacity: .55; } }
-@keyframes coachNudge { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
-@keyframes coachGlow { 0%, 100% { box-shadow: 0 0 0 2px rgba(255,205,48,.15); } 50% { box-shadow: 0 0 0 4px rgba(255,205,48,.55); } }
-#coach.ok { border-color: #3ecf8e; }
-#coach.low { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); }
-@media (orientation: landscape) and (max-height: 520px) { #coach.low { bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: auto; right: 72px; transform: none; } }
-@media (prefers-reduced-motion: reduce) { #coachRing i, #coachArrow svg, .up.coachhl { animation: none; } }
-#coach button { flex: none; min-height: 32px; padding: 0 10px; border: 1px solid var(--faint); border-radius: 3px; font-size: 12px; color: var(--dim); }
-@media (orientation: portrait) { #coach { top: calc(env(safe-area-inset-top, 0px) + 118px); max-width: calc(100vw - 20px); } }
+@keyframes coachPoint { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+@keyframes coachGlow { 0%, 100% { box-shadow: 0 0 0 2px rgba(255,205,48,.12); } 50% { box-shadow: 0 0 0 6px rgba(255,205,48,.5); } }
+@media (prefers-reduced-motion: reduce) { .cRing i, .cArrow svg, .coachhl { animation: none; } }
 #statsBody { display: flex; flex-direction: column; gap: 10px; }
 #statsBody h3 { margin: 6px 0 0; font-size: 13px; font-weight: 500; color: var(--dim); }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
@@ -720,7 +724,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <button class="ctl" data-send="0.5" aria-pressed="false" aria-label="Send 50% of your army">50%</button>
     <button class="ctl" data-send="1" aria-pressed="true" aria-label="Send 100% of your army">100%</button>
   </div>
-  <div id="coach" class="rail panel" hidden><span id="coachBox"><em id="coachPh"></em><span id="coachTxt"></span></span><button id="coachSkip" class="ghost" aria-label="Skip this step">Skip</button></div>
+  <div id="coach" hidden role="status" aria-live="polite"><div id="coachHead"><em id="coachPh"></em><button id="coachStep" class="ghost" hidden>Skip this step</button><button id="coachSkip" class="ghost">Skip lesson</button></div><span id="coachTxt"></span></div>
   <div id="upg" class="rail panel">
     <div class="xp" title="Kills fill this bar. Each full bar is one upgrade point."><div class="xpbar"><i id="xpfill"></i></div><span id="pts"></span></div>
     <button class="up" data-k="hp"><span class="nm">Health</span><span class="lv">0</span><span class="pips"></span></button>
@@ -729,8 +733,8 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   </div>
 </div>
 
-<div id="coachRing" hidden><i></i></div>
-<div id="coachArrow" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4l17 8-17 8 4-8z"/></svg></div>
+<div id="coachRing" class="cRing" hidden><i></i></div><div id="coachRing2" class="cRing" hidden><i></i></div>
+<div id="coachArrow" class="cArrow" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4l17 8-17 8 4-8z"/></svg></div><div id="coachArrow2" class="cArrow" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4l17 8-17 8 4-8z"/></svg></div>
 
 <div id="menu" class="overlay">
   <section class="screen" id="scrHome">
@@ -743,7 +747,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.4.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.4.2 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1149,34 +1153,43 @@ const SCENARIOS = [
     objective: { type: 'hold', n: 12, secs: 90, text: 'Hold 12 bases for 90 seconds' },
     stars: [{ k: 'win', t: 'Hold 12 bases for 90 seconds' }, { k: 'time', v: 420, t: 'Win in under 7:00' }, { k: 'bases', v: 16, t: 'Finish with 16 or more bases' }] }
 ];
-// ---- Practice lessons (How to play): tiny maps against a rival that never attacks. Steps are checked by the UI (coachTick). ----
+// ---- Practice lessons (How to play). 50.4.2: one lesson, the guided match, rebuilt (spec GUIDED_MATCH_SPEC_50.4.md, text GUIDED_MATCH_TEXT_FINAL.md).
+// Every step waits for the player to do something (ui.js: COACH_STEPS holds each step's gate, ring and skip rule). {R} is the rival's palette name
+// (TEAM_NAMES[1]: Red, or Orange in Color-safe and High contrast), {B} yours. ph: the phase (-1: C1, the unnumbered "Skill point" interrupt).
 const PRACTICE = [
-  { id: 'p-tour', name: 'Guided match', desc: 'One short match that teaches sending troops, upgrades, special bases and taking a rival base.',
-    size: 'small', teams: 2, seed: 5020, specials: true, specialKinds: ['forge', 'fortress'], playerTroops: 12,
-    done: 'Tap to send troops, spend points as you earn them, take special bases, and focus one base to capture it.',
+  { id: 'p-tour', name: 'Guided match', desc: 'A short match that walks you from your first base to your last.',
+    map: 'lesson', teams: 2, playerTroops: 12,
+    done: 'Capture every base. Follow the lines. Regroup, lock on, and split your army when it counts.',
+    // the lesson map's bases by role (spec section 4): the rival takes r1 and r2 once you hold the Forge, and nothing else
+    lesson: { roles: { home: 0, a1: 1, a2: 2, b1: 3, forge: 4, c1: 5, red: 6, r1: 7, r2: 8, d1: 9 }, takes: [7, 8], wake: 4, frac: 0.45 },
     steps: [
-      { ph: 0, t: 'Nothing here attacks you, so take your time. Pinch with two fingers to zoom in (or scroll with a mouse).', k: 'zoom', cam: true },
-      { ph: 0, t: 'Now drag the map with one finger to move around.', k: 'pan', cam: true },
-      { ph: 0, t: 'Tap the map button to see the whole battlefield again.', k: 'whole', cam: true },
-      { ph: 1, t: 'Tap the highlighted gray base. Your troops march out.', k: 'sent', hl: 'near' },
-      { ph: 1, t: 'They fight the defenders, then wear the base down. Wait until it turns your color.', k: 'bases', v: 2, hl: 'near' },
-      { ph: 1, t: 'Take two more gray bases. More bases means a bigger army limit.', k: 'bases', v: 4, hl: 'near' },
-      { ph: 2, t: 'You have skill points to spend. Tap Health, Speed or Damage (lower left) to spend one.', k: 'buy', hl: 'ui', give: 2 },
-      { ph: 2, t: 'Spend another one too. Knocking out troops fills the XP bar for more.', k: 'buy', hl: 'ui' },
-      { ph: 2, t: 'Health and Damage add 15% a level (Health also toughens your bases). Speed adds 10% movement and a little faster swings.', k: 'wait', v: 7 },
-      { ph: 3, t: 'Some bases carry a symbol. Press and hold the highlighted one to see what it is.', k: 'info', hl: 'forge' },
-      { ph: 3, t: 'A Forge builds troops 70% faster and raises your army limit. Take it.', k: 'forge', hl: 'forge' },
-      { ph: 4, t: 'The other color is out of reach: you can only attack a base that touches one of yours. Take the highlighted base, and keep going until you border it.', k: 'reach', hl: 'toward' },
-      { ph: 4, t: "Now the other color. Tap its highlighted base to attack. Double-tap to lock on, so every new troop heads there.", k: 'hit', hl: 'rival' },
-      { ph: 4, t: 'Beat its defenders, then wear the base down. The final blow takes it.', k: 'taken', hl: 'rival' }] }
+      { id: 'A1', ph: 0, t: "You're {B}, and your rival is {R}. To win, capture every base on the map. Tap the highlighted base to begin your first attack." },
+      { id: 'A2', ph: 0, t: 'Your troops travel along the lines between bases. To get a read on the map, pinch to zoom in on your attack.' },
+      { id: 'A3', ph: 0, t: "Press and hold the base under attack to see its health and defenders. The defenders fall first, then its health. At 0, you've captured it." },
+      { id: 'A4', ph: 0, t: 'That counter shows your troops and your maximum army size. Bases stop making troops at the maximum, so capture more to raise it.' },
+      { id: 'B1', ph: 1, t: 'Some bases carry a symbol and give a bonus to whoever holds them. Head over to the highlighted one, then press and hold it to read what it does.' },
+      { id: 'B2', ph: 1, t: 'A Forge makes troops faster, which makes it worth capturing. Tap it.' },
+      { id: 'B3', ph: 1, t: 'The Forge is out of reach. You can only attack a base joined by a line to one of yours. Capture the highlighted base first, then the Forge.' },
+      { id: 'B4', ph: 1, t: "{R} is on the move too. Rivals capture bases and grow their armies, just like you. {R} won't attack you here, so you can watch it work." },
+      { id: 'C1', ph: -1, t: "You've earned a skill point. Health makes your troops and bases tougher, Damage makes your troops hit harder, and Speed makes them faster. Tap one.",
+        tick: 'Defeating troops fills the XP bar. Each full bar earns another skill point.' },
+      { id: 'E1', ph: 2, t: 'You can only attack {R} once one of your bases touches its home. Capture the highlighted base to get there.' },
+      { id: 'E2', ph: 2, t: "{R}'s home is well defended, so gather your army first. Tap your highlighted base to select it, then tap it again to regroup there." },
+      { id: 'E3', ph: 2, t: "Now double-tap {R}'s home to lock on. Your troops attack, and every new troop follows them until it's captured." },
+      { id: 'E4', ph: 2, t: 'Locked on. Your army keeps coming until the base falls.' },
+      { id: 'E5', ph: 2, t: '{R} still holds two bases, in different directions. Tap 50%, then tap one and then the other to split your army between them.' },
+      { id: 'E5b', ph: 2, t: 'Each tap at 50% sends the closest half of your troops, so you can attack two bases at once.' },
+      { id: 'F1', ph: 3, t: "{R} is out, but the match isn't over. To win, every base has to be yours. Tap the highlighted button to see the whole map." },
+      { id: 'F1b', ph: 3, t: 'A few bases are still left. Capture them all, and the map is yours.' },      // Henry + WC, Nov 1 17:12: only while two or more are left
+      { id: 'F2', ph: 3, t: 'One base left. Capture it, and the map is yours.' }] }
 ];
-const PRACTICE_PHASES = ['Look around', 'Send troops', 'Upgrades', 'Special bases', 'Take a rival base'];
-const PRACTICE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6 };      // the rival builds a little and never attacks
+const PRACTICE_PHASES = ['Send troops', 'Reach', "Capture {R}'s base", 'Every base'], PRACTICE_SKILL = 'Skill point';
+const PRACTICE_AI = { interval: [1.2, 1.8], margin: 99, spawn: 0.5 };      // 50.4.2: the lesson's rival thinks often, but only lessonThink drives it
 function practiceOpts(id) {
   const c = PRACTICE.find(x => x.id === id); if (!c) return {};
-  // 50.1.14: the lesson keeps its old box map (the guided match is being rebuilt; Henry and DC)
-  return { practice: c.id, size: c.size, teams: c.teams, shape: 'continent', footprint: 'box', diff: 'easy', seed: c.seed, fair: true, mods: {}, specials: !!c.specials,
-    specialKinds: c.specialKinds, playerTroops: c.playerTroops, startPoints: c.startPoints, aiTune: PRACTICE_AI };
+  // 50.4.2: the hand-made lesson map; you are team 0 and the rival team 1, every time (fixed colours, spec 5.1)
+  return { practice: c.id, map: c.map, teams: c.teams, active: [0, 1], diff: 'easy', seed: 5042, fair: true, mods: {}, specials: false,
+    playerTroops: c.playerTroops, aiTune: PRACTICE_AI, lesson: c.lesson };
 }
 function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
@@ -1223,6 +1236,14 @@ const OPENING_DEFENDERS = 7; // every base next to a starting base gets the same
 //   optional: bridges [[a, b]...], shape, deco, specials { baseId: 'fortress'|'forge'|'beacon'|'relay' }, crown: baseId }
 // Draw them with tools/maps/mapmaker.html; validateStaticMap() lists whatever is wrong with one.
 const STATIC_MAPS = { 'bases-loaded': {"id": "bases-loaded", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [230, 210], [370, 130], [520, 100], [230, 490], [370, 570], [520, 600], [400, 350], [1190, 350], [1070, 210], [930, 130], [780, 100], [1070, 490], [930, 570], [780, 600], [900, 350]], "edges": [[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [5, 6], [0, 7], [7, 2], [7, 5], [8, 9], [9, 10], [10, 11], [8, 12], [12, 13], [13, 14], [8, 15], [15, 10], [15, 13], [3, 11], [6, 14]], "starts": [0, 8], "shape": "continent", "garrison": {"1": 6, "2": 6, "3": 12, "4": 6, "5": 6, "6": 12, "7": 6, "9": 6, "10": 6, "11": 12, "12": 6, "13": 6, "14": 12, "15": 6, "0": 10, "8": 10}, "owned": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "9": 1, "10": 1, "11": 1, "12": 1, "13": 1, "14": 1, "15": 1}}, 'crown-duel': {"id": "crown-duel", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [240, 195], [240, 505], [350, 350], [480, 235], [480, 465], [420, 85], [420, 615], [1190, 350], [1060, 195], [1060, 505], [950, 350], [820, 235], [820, 465], [880, 85], [880, 615], [650, 350], [650, 70], [650, 630]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [2, 5], [3, 4], [3, 5], [1, 6], [2, 7], [6, 4], [7, 5], [4, 16], [5, 16], [6, 17], [7, 18], [8, 9], [8, 10], [8, 11], [9, 11], [10, 11], [9, 12], [10, 13], [11, 12], [11, 13], [9, 14], [10, 15], [14, 12], [15, 13], [12, 16], [13, 16], [14, 17], [15, 18]], "starts": [0, 8], "shape": "continent", "crown": 16, "garrison": {"1": 7, "2": 7, "3": 7, "4": 11, "5": 11, "6": 12, "7": 12, "9": 7, "10": 7, "11": 7, "12": 6, "13": 6, "14": 12, "15": 12, "16": 14, "17": 14, "18": 14}, "owned": {"12": 1, "13": 1}}, alone: {"id": "alone", "w": 1300, "h": 700, "size": "small", "nodes": [[110, 350], [260, 220], [260, 480], [290, 350], [430, 130], [610, 95], [790, 130], [430, 570], [610, 605], [790, 570], [470, 350], [640, 290], [810, 350], [960, 190], [960, 350], [960, 510], [1100, 260], [1100, 440], [1210, 350], [640, 410]], "edges": [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [1, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 9], [3, 10], [10, 11], [11, 12], [6, 13], [9, 15], [12, 14], [13, 14], [14, 15], [13, 16], [14, 16], [14, 17], [15, 17], [16, 18], [17, 18], [10, 19], [19, 12]], "starts": [0, 18], "specials": {"5": "beacon", "8": "forge", "16": "fortress", "18": "fortress"}, "shape": "continent", "allowStartSpecials": true, "garrison": {"4": 12, "5": 14, "6": 18, "7": 12, "8": 14, "9": 18, "10": 12, "11": 14, "12": 22, "13": 24, "14": 24, "15": 24, "19": 14, "16": 20, "17": 12, "18": 24}, "owned": {"16": 1}}, surrounded: {"id": "surrounded", "w": 1308, "h": 734, "size": "medium", "nodes": [[654, 367], [95, 85], [250, 95], [420, 110], [105, 255], [300, 250], [505, 265], [1213, 85], [1058, 95], [888, 110], [1203, 255], [1008, 250], [803, 265], [95, 649], [250, 639], [420, 624], [105, 479], [300, 484], [505, 469], [1213, 649], [1058, 639], [888, 624], [1203, 479], [1008, 484], [803, 469], [654, 115], [654, 619]], "edges": [[1, 2], [2, 3], [1, 4], [2, 5], [4, 5], [5, 6], [3, 6], [6, 0], [3, 25], [6, 25], [7, 8], [8, 9], [7, 10], [8, 11], [10, 11], [11, 12], [9, 12], [12, 0], [9, 25], [12, 25], [13, 14], [14, 15], [13, 16], [14, 17], [16, 17], [17, 18], [15, 18], [18, 0], [15, 26], [18, 26], [19, 20], [20, 21], [19, 22], [20, 23], [22, 23], [23, 24], [21, 24], [24, 0], [21, 26], [24, 26], [4, 16], [10, 22]], "starts": [0, 1, 7, 19, 13]} };
+// 50.4.2: the guided match's map (spec section 4, sketch v2 less the spare a3; DC, Nov 1). Bases by role: 0 your home, 1 a1, 2 a2, 3 b1, 4 the Forge,
+// 5 c1, 6 the rival's home, 7 r1, 8 r2, 9 d1. The Forge is two lines from every base you hold after A4; d1 touches only the rival's home.
+STATIC_MAPS.lesson = { id: 'lesson', w: 1100, h: 780, size: 'small',
+  nodes: [[150, 400], [310, 270], [310, 540], [480, 190], [660, 200], [560, 420], [760, 430], [880, 270], [880, 600], [950, 440]],
+  edges: [[0, 1], [0, 2], [1, 3], [3, 4], [4, 5], [2, 5], [5, 6], [6, 7], [6, 8], [6, 9]],
+  starts: [0, 6], specials: { 4: 'forge' }, shape: 'continent',
+  garrison: { 1: 10, 2: 6, 3: 7, 4: 8, 5: 8, 6: 20, 7: 2, 8: 2, 9: 6 },
+  hp: { 7: 0.35, 8: 0.35 } };      // r1 and r2 are small bases (35% health), so the rival takes them at a pace you can watch
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1663,7 +1684,7 @@ function newGame(opts) {
   // which colors are in this match: you (team 0) plus a random pick of the others, or any colors when only AIs play
   const nTeams = Math.max(2, Math.min(5, opts.teams || (fixed ? fixed.starts.length : spec.teams)));
   const shuffled = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const active = opts.watch ? shuffled([0, 1, 2, 3, 4]).slice(0, nTeams).sort() : [0, ...shuffled([1, 2, 3, 4]).slice(0, nTeams - 1).sort()];
+  const active = opts.active ? opts.active.slice() : opts.watch ? shuffled([0, 1, 2, 3, 4]).slice(0, nTeams).sort() : [0, ...shuffled([1, 2, 3, 4]).slice(0, nTeams - 1).sort()];      // 50.4.2: the lesson fixes its colours
   let m;
   // the world can be reshaped to match the screen; the base count per area stays the same
   const shape = SHAPES.includes(opts.shape) ? opts.shape : 'continent';
@@ -1703,7 +1724,7 @@ function newGame(opts) {
     land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : null,      // 50.1.3: the land's outline. 50.1.5: ui.js draws it as its own scenery layer (coastDeco), under the shape's own
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
-    scenarioId: opts.scenarioId || null, practice: opts.practice || null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
+    scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
     diff: D, diffName: opts.diff || 'normal', sizeName: opts.size || (fixed && fixed.size) || 'medium', active,
@@ -1744,6 +1765,7 @@ function newGame(opts) {
     placeSpecials(nodes, m.starts, rng, mods.noup, opts.specialKinds, opts.fair);       // with no upgrades there's no point in a Beacon
     for (const n of nodes) if (n.kind === 'fortress') n.hp = n.maxHp = baseHP * SPECIALS.fortress.hp;
   }
+  if (fixed && fixed.hp) for (const [id, k] of Object.entries(fixed.hp)) { const n = nodes[+id]; n.hp = n.maxHp = Math.round(baseHP * k); }      // 50.4.2: a hand-made map can make a base smaller (the lesson's r1 and r2)
   if (mods.koth) {
     G.crown = fixed && fixed.crown != null ? (nodes[fixed.crown].crown = true, fixed.crown) : placeCrown(nodes, m.starts, opts.fair);
     if (G.crown < 0) mods.koth = false;                   // no room for one: play a normal match
@@ -2063,7 +2085,7 @@ function update(dt) {
     if (!T.alive) continue;
     T.aiT -= dt;
     if (T.aiT <= 0) {
-      aiThink(i);
+      if (G.lesson) lessonThink(i); else aiThink(i);
       const iv = T.diff.interval;
       T.aiT = iv[0] + G.rng() * (iv[1] - iv[0]);
     }
@@ -2393,6 +2415,24 @@ function bountyRanks() {
   return (G._br = { t: G.t, L, R: rest.length ? rest[0].i : -1 });
 }
 const bountyOnly = x => { const a = G.teams.map(() => false); if (x >= 0) a[x] = true; return a; };   // the colours this one may hit (neutral bases are always allowed)
+
+// 50.4.2: the guided match's rival (spec, Nov 1 00:21: "Red grows, but never attacks you"). Asleep until you hold the lesson's wake base (the Forge);
+// awake, it takes its marked bases (G.lesson.takes) in order, one at a time, with part of its army, and nothing else. It never sends a troop at a
+// base of yours and never takes a base you hold, so "nothing here attacks you" stays true. Only practiceOpts sets opts.lesson.
+function lessonThink(team) {
+  const L = G.lesson, T = G.teams[team], nodes = G.nodes;
+  if (!T.alive || !T.count) return;
+  aiSpend(team);
+  if (!L.awake) { if (nodes[L.wake].owner !== PLAYER) return; L.awake = true; L.wokeAt = G.t; }
+  for (const id of L.takes) {
+    const n = nodes[id];
+    if (n.owner === team || n.owner === PLAYER) continue;                         // taken already, or yours: never attacked
+    if (G.troops.some(t => t.team === team && (t.home === id || (t.path.length && t.path[t.path.length - 1] === id)))) return;     // on its way or fighting there: wait
+    if (!n.adj.some(v => nodes[v].owner === team)) continue;
+    command(team, id, L.frac, t => !t.path.length && nodes[t.home].owner === team);
+    return;
+  }
+}
 
 function aiThink(team) {
   const T = G.teams[team], D = T.diff, nodes = G.nodes, N = nodes.length, ti = team + 1;
@@ -3007,21 +3047,28 @@ function mapView() {                                  // the same box with a lit
 const MAP_MARGIN = 0.10;                              // share of the screen left empty on each side of the tight axis at the full view (the same on every map size)
 const fitScale = () => { const b = boxUV(), k = 1 - 2 * MAP_MARGIN; return Math.max(0.05, Math.min(FI.w * k / Math.max(1, b.u1 - b.u0), FI.h * k / Math.max(1, b.v1 - b.v0)) * FIT_K); };
 function refitHud() {                                   // the whole-battlefield view backs away, a step at a time, until no base sits under a HUD piece (zoomed in, nothing changes)
-  FIT_K = 1;
+  FIT_K = 1; wholeDY = 0;
   if (hudEl.hidden || !G || !G.nodes || !G.nodes.length) return;
   const rects = [];
   for (const id of ['statsBtn', 'ctrl', 'upg', 'bMap', 'sendTri']) { const r = $(id).getBoundingClientRect(); if (r.width > 0 && r.height > 0) rects.push(r); }
+  const card = coach ? placeCoach() : null; if (card) rects.push(card);      // 50.4.2: in the lesson the whole view keeps clear of the card's room too
   if (!rects.length) return;
   const b = boxUV(), s1 = fitScale(), cu = (b.u0 + b.u1) / 2, cv = (b.v0 + b.v1) / 2, cx = F.x + F.w / 2, cy = F.y + F.h / 2, pad = 14;
   const pts = G.nodes.map(n => rot ? [H - n.y, n.x] : [n.x, n.y]);
-  for (let k = 1; k >= 0.55; k -= 0.01) {
-    let ok = true;
+  const dys = coach ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120].map(d => d * hudZ).filter(d => d < F.h * 0.3) : [0];      // 50.4.2: the lesson may also move the whole view down, into the room under its card
+  // 50.4.2: with no clean view (sideways at HUD L or XL the card and the skill bar leave too little room), the lesson takes the view with the fewest
+  // bases under a HUD piece, then under the card's room; the camera nudge brings the ringed base out from under the card
+  let best = null;
+  for (let k = 1; k >= 0.55; k -= 0.01) for (const dy of dys) {
+    let hit = 0;
     for (const [u, v] of pts) {
-      const x = cx + (u - cu) * s1 * k, y = cy + (v - cv) * s1 * k;
-      if (rects.some(r => x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad)) { ok = false; break; }
+      const x = cx + (u - cu) * s1 * k, y = cy + dy + (v - cv) * s1 * k, r = rects.find(r => x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad);
+      if (r) { hit += r === card ? 1 : 100; if (!coach) break; }
     }
-    if (ok) { FIT_K = k; return; }
+    if (!hit) { FIT_K = k; wholeDY = dy; return; }
+    if (coach && (!best || hit < best[0])) best = [hit, k, dy];
   }
+  if (best) { FIT_K = best[1]; wholeDY = best[2]; return; }
   FIT_K = 0.55;
 }
 // 50.2.3: HUD size. Every in-match HUD piece wears `zoom: var(--hz)` (head.html), so it keeps its corner and grows out of it. A size too big for this screen
@@ -3115,9 +3162,11 @@ function layout() {
   applyHudSize();
   if (!hudEl.hidden) placeMapButton();
   const keep = G && (mode === 'play' || mode === 'paused') && cam.z > 1.0001 ? V.s : 0;      // 50.4.1 (ledger 24, Henry's pick A): a zoomed view keeps its real size through a HUD size change or a turn; the whole view re-fits
+  const lw = coach && !keep && atWhole();              // 50.4.2: the lesson's whole view stays the whole view (its shift may change)
   refitHud();
   s0 = fitScale();
   if (keep) cam.z = keep / s0;
+  if (lw) resetCam();
   updateView();
 }
 function paintMap(x, w, h, live, u) {                // the map as a diagram: terrain, lines and bases (the setup preview; `live` is always false since the minimap went, 50.4.0)
@@ -3407,7 +3456,8 @@ function placeMapButton() {                           // the map button (bottom 
   $('mapWrap').style.bottom = lift + 'px';
   $('sendTri').style.bottom = (tall ? lift : 8) + 'px';
 }
-function resetCam() { const B = boxUV(); cam = { z: 1, cu: (B.u0 + B.u1) / 2, cv: (B.v0 + B.v1) / 2 }; }
+let wholeDY = 0;                                      // 50.4.2: screen px the whole view sits below the middle; only the lesson sets it (refitHud), 0 everywhere else
+function resetCam() { const B = boxUV(); cam = { z: 1, cu: (B.u0 + B.u1) / 2, cv: (B.v0 + B.v1) / 2 - wholeDY / (s0 || 1) }; }
 function updateView() {
   s0 = fitScale();
   cam.z = Math.min(zmaxV(), Math.max(1, cam.z));
@@ -4586,6 +4636,7 @@ function draw(now) {
     for (const [a, b] of h.edges) { ctx.moveTo(nodes[a].x, nodes[a].y); ctx.lineTo(nodes[b].x, nodes[b].y); }
     ctx.stroke();
   }
+  if (coach && coach.route) drawCoachRoute(now);      // 50.4.2: the lesson's out-of-reach moment
 
   if (selCheck() && selValid()) {
     const sn = G.nodes[selBase];
@@ -9056,7 +9107,7 @@ function syncLook() {                                 // Colors and Team symbols
 function currentColorArgs() {                         // the color choice that is in force right now: the running match, or the setup behind the menu
   const live = mode === 'play' || mode === 'paused' || mode === 'ending' || mode === 'over';
   const key = live ? curModeKey : previewMode, watch = live ? watching : key === 'spec';
-  return [watch, live && (curScen || curPrac) ? settings.classic.color : key === 'spec' ? 'blue' : settings[key].color];
+  return [watch, live && curPrac ? COLOR_KEYS[0] : live && curScen ? settings.classic.color : key === 'spec' ? 'blue' : settings[key].color];
 }
 function applyLook() {                                // a Colors or Team symbols change takes effect at once, even in the middle of a match
   syncLook(); const [w, k] = currentColorArgs(); applyColors(w, k);
@@ -12039,7 +12090,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.4.1', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.'] },
+  { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
   { v: '50.3.26', t: 'Build 50.3', b: ['Atlas + Drift are reworked. Atlas is a surveyor\'s chart with pieces of its own, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide are reworked too: a calmer, darker page that reads even zoomed out, with Tide built around a piano\'s sustain pedal. Neon\'s river is water now.', 'Zooming is smoother on most looks, and Leadlight, Black Iron, Ember and Pixel run smoother on slower phones.', 'Special bases have new icons, so you can tell what each one does at a glance, upright and readable at any zoom. Ember\'s team symbols are burned in, so they show at any health.', 'All thirteen sounds are evened out, so on a phone none plays much louder or quieter than the rest, endings included.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
   { v: '50.2', t: 'Build 50.2', b: ['Maps are landmasses now. Every map has its own coastline with rivers, rings and islands inside it, and every color starts with a fair share of the land.', 'The map no longer turns when your phone does, and on the setup screen it stays put while you pull up the deck.', 'Two new style pairs, Black Iron + Hollow and Leadlight + Bellows, and the space around the land has its own look in each style.', 'Panning is smoother in most styles, a long list of flashes is gone, and Drift and Cosmos come through on a phone speaker.', 'Smaller things: HUD size in Settings, a page counter in the Shop, and Reset all data on a screen of its own.'] },     // 50.1.1 to 50.2.15 (shipped labelled Build 50.3): DC's summary, Henry's OK Nov 1
   { v: '50.1', t: 'Build 50.1', b: ['A new style pair, Velvet + Strings. Every road is a string stretched over a deep velvet case. It trembles when struck, and a small string section plays along with the fight.', 'Challenge Maps\' Tier 1 is rebuilt around three new levels, Land Rush, Hot Seat and Border Dispute. Each one is built around a single idea, so you learn one thing at a time.', 'Some challenge levels now bring their own look and sound, so each one feels like a place of its own. Border Dispute plays in Atlas + Drift.', 'The rules box at the start of a challenge closes with a tap, so you can get straight to the map.'] },     // 50.1: DC's pitch, edited by Henry
@@ -12574,15 +12625,15 @@ function startGame(watch, scen, modeKey, prac, resume) {
   hudEl.classList.toggle('watch', watching);
   $('bAgain').textContent = watching ? 'Watch again' : (curScen || curPrac) ? 'Retry' : 'Play again';
   clearEffects();
-  applyColors(watching, resume ? resume.meta.color : (scen || prac) ? settings.classic.color : cfg.color);
+  applyColors(watching, resume ? resume.meta.color : prac ? COLOR_KEYS[0] : scen ? settings.classic.color : cfg.color);      // 50.4.2: the lesson is always Blue against Red (spec 5.1)
   if (settings.send !== 1) { settings.send = 1; save('ice-settings', settings); }          // every match opens at 100% send
   syncCtrl(); syncRivals(); layout();
   if (resume) loadSnap(resume.snap);                   // a saved match: the same map and the same moment
   else if (curPrac) newGame(practiceOpts(curPrac));          // a practice lesson: tiny map, a rival that never attacks
   else if (curScen) newGame({ scenario: curScen });          // fixed map and rules: the same every attempt
   else { newGame(PERF && window.__fixedOnce ? Object.assign(optsFor(curModeKey), { fixedMap: window.__fixedOnce, teams: 0 }) : optsFor(curModeKey)); cfg.seed = rnd32(); save('ice-settings', settings); }   // play the previewed map, then roll the next one
-  { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours
-  { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = G.noTurn || (sc && sc.face === 'wide') ? false : tall; }      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
+  { const sc = !watching && !curPrac && G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; forceStyles(curPrac ? 'classic' : sc && sc.forcePair); }      // 50.0.13: a level's own pair, or yours. 50.4.2: the lesson wears Classic + Simple (spec 5.2)
+  { const sc = G.scenarioId ? SCENARIOS.find(x => x.id === G.scenarioId) : null; rot = G.noTurn || curPrac || (sc && sc.face === 'wide') ? false : tall; }      // 50.4.2: the lesson map faces one way      // 50.1.1: the map's way round is set once, here; a level may fix it (face: 'wide')
   for (let i = 0; i < 5; i++) for (const c of rivalCells[i]) c.style.display = G.teams[i].active ? '' : 'none';   // only colors in play
   mapBack(null); fling.vx = fling.vy = 0;
   G.autoplay = watching;
@@ -12596,7 +12647,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   if (!speeds().includes(speedMul)) speedMul = 1;
   mode = 'play'; acc = 0; hl = []; uiFx = []; hover = null; selBase = null; last = performance.now();
   syncCtrl(); resetCam(); layout();
-  if (!watching) {                                 // you start zoomed in on your home base
+  if (!watching && !curPrac) {                     // you start zoomed in on your home base (50.4.2: the lesson opens on the whole map, so you see both colours)
     const home = G.nodes[G.homes[PLAYER]];
     cam.z = Math.max(1, Math.min(FI.w, FI.h) / 520 / s0); centerOn(home.x, home.y);
     const cs = resume && resume.meta.cam; if (cs && cs.land === (innerWidth > innerHeight) && cs.z > 0) { cam.z = cs.z; cam.cu = cs.cu; cam.cv = cs.cv; }      // a saved match keeps your view, if the phone is held the same way
@@ -12842,10 +12893,10 @@ function showEnd() {
   nextScen = null; let challengeMoments = null;
   if (G.practice) {                                 // a lesson: a tick instead of stars or highlights
     const L = PRACTICE.find(x => x.id === G.practice);
-    practiceDone[L.id] = true; save('ice-practice', practiceDone); renderPractice();
-    t.innerHTML = `<span class="sw" style="background:#ffcd30"></span>Practice complete`;
+    if (G.result === 'win') { practiceDone[L.id] = true; save('ice-practice', practiceDone); renderPractice(); }
+    t.innerHTML = `<span class="sw" data-s="${TEAM_SLOT[PLAYER]}" style="background:${TEAM_COLORS[PLAYER]}"></span>Practice complete`;      // 50.4.2: your colour, not yellow (blind run 17)
     sub.textContent = `${L.name}, done in ${fmt(G.t)}.`;
-    challengeMoments = `<li><time class="st">&#10003;</time><i style="background:#ffcd30"></i><span>${L.done}</span></li>`;
+    challengeMoments = `<li><time class="st">&#10003;</time><i style="background:${TEAM_COLORS[PLAYER]}"></i><span>${L.done}</span></li>`;
   }
   $('endGoals').innerHTML = ''; $('endGoals').hidden = true;     // 50.0.3: a challenge shows its star goals on the Result page; every other card keeps it empty
   if (G.scenarioId) {                               // a challenge: stars instead of highlights
@@ -12964,7 +13015,7 @@ function positionInfo() {
 }
 function showInfo(n) {
   infoNode = n; renderInfo(); $('info').hidden = false; positionInfo();
-  clearTimeout(infoTimer); infoTimer = setTimeout(hideInfo, 4500);
+  clearTimeout(infoTimer); if (!coach) infoTimer = setTimeout(hideInfo, 4500);      // 50.4.2: in the lesson it stays until your next touch (spec 5.4)
 }
 function hideInfo() { infoNode = null; $('info').hidden = true; clearTimeout(infoTimer); }
 function refreshInfo() { if (infoNode) { renderInfo(); positionInfo(); } }
@@ -12989,7 +13040,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.4.1 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.4.2 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13062,7 +13113,7 @@ function handleTap(px, py) {
   }                                  // a base was selected: this tap sends from it (or, on the same base, regroups)
   else if (n.owner === PLAYER && !dbl && G.troops.some(t => atBase(t, n.id))) {
     selBase = n.id; selG = G; selT = G.t; selAt = nowMs; selFlash = nowMs; buzz('sel'); xlEv('sel', n.id);                                                                    // select: the next tap says where
-    if (!selHinted) { selHinted = true; toast('Selected. Tap where these troops should go. Tap here again to regroup.', TEAM_COLORS[PLAYER], PLAYER); }
+    if (!selHinted && !coach) { selHinted = true; toast('Selected. Tap where these troops should go. Tap here again to regroup.', TEAM_COLORS[PLAYER], PLAYER); }      // 50.4.2: not in the lesson (its cards say it); the first real match still shows it
     return;
   }
   if (dbl && lastFromSel === n.id) { lastFromSel = -1; setLock(PLAYER, n.id); return; }                         // double-tap after a send from a selection: just lock on
@@ -13070,13 +13121,14 @@ function handleTap(px, py) {
   const r = command(PLAYER, n.id, settings.send, from == null ? undefined : t => atBase(t, from));
   xlEv('o', from == null ? -1 : from, n.id, settings.send, dbl ? 1 : 0, r ? r.moved : -1, r ? r.cands : 0, r ? r.sent : 0, _pre);
   lastFromSel = r && from != null ? n.id : -1;
+  if (coach) coachSent(n, r);
   if (r) {
     G._orders = (G._orders | 0) + 1; buzz('tap'); orderTap(r.moved);
     uiFx.push({ k: 'go', x: n.x, y: n.y, b: now });
     if (r.edges.length) hl.push({ edges: r.edges, b: now });
     if (dbl) {
       setLock(PLAYER, n.id);
-      if (!lockHinted) { lockHinted = true; toast('Locked on. New troops will head there automatically.', TEAM_COLORS[PLAYER], PLAYER); }
+      if (!lockHinted && !coach) { lockHinted = true; toast('Locked on. New troops will head there automatically.', TEAM_COLORS[PLAYER], PLAYER); }
     } else if (G.lock[PLAYER] != null && G.lock[PLAYER] !== n.id) setLock(PLAYER, null); // new orders cancel the lock
   } else uiFx.push({ k: 'no', x: n.x, y: n.y, b: now });
 }
@@ -13170,9 +13222,10 @@ cv.addEventListener('wheel', e => {
 // the map still sits at the whole view (pan or zoom first and the way back is dropped). A tap inside 350 ms of the last is ignored, so a double tap still lands
 // on the whole map instead of going out and straight back. While a way back waits, the button wears its blue border (aria-pressed).
 let mapTapT = 0, wholeBack = null;
-function atWhole() { const B = boxUV(); return cam.z <= 1.0001 && Math.abs(cam.cu - (B.u0 + B.u1) / 2) < 0.5 && Math.abs(cam.cv - (B.v0 + B.v1) / 2) < 0.5; }
+function atWhole() { const B = boxUV(); return cam.z <= 1.0001 && Math.abs(cam.cu - (B.u0 + B.u1) / 2) < 0.5 && Math.abs(cam.cv - ((B.v0 + B.v1) / 2 - wholeDY / (s0 || 1))) < 0.5; }
 function mapBack(v) { wholeBack = v; const on = String(!!v); if ($('bMap').getAttribute('aria-pressed') !== on) $('bMap').setAttribute('aria-pressed', on); }
 $('bMap').addEventListener('click', () => {
+  if (coach) { coach.ev.map = true; coach.nudge = null; }      // 50.4.2: the lesson's F1; a tap stops a camera nudge
   const now = performance.now(); if (now - mapTapT < 350) return; mapTapT = now;
   fling.vx = fling.vy = 0;
   if (wholeBack && atWhole()) { cam = { z: wholeBack.vs / s0, cu: wholeBack.cu, cv: wholeBack.cv }; mapBack(null); }      // 50.4.1: the way back keeps its real size (V.s), whatever the HUD did meanwhile
@@ -13365,7 +13418,7 @@ if (IOS) {                                            // everything below runs o
 if (window.ResizeObserver) new ResizeObserver(layout).observe(document.body);
 else window.addEventListener('resize', layout);
 
-// ---- Practice: guided lessons with a coach banner. Own storage (ice-practice), no stars, never counted in your stats. ----
+// ---- Practice: the guided match, with a coach card (50.4.2: rebuilt, below). Own storage (ice-practice), no stars, never counted in your stats. ----
 const practiceDone = {};
 { const raw = load('ice-practice', {}); if (isObj(raw)) for (const p of PRACTICE) if (raw[p.id] === true) practiceDone[p.id] = true;
   if (['p-send', 'p-rival', 'p-up', 'p-spec'].every(k => raw[k] === true)) practiceDone['p-tour'] = true; }       // the four old lessons were all done: the tour counts as done
@@ -13380,96 +13433,266 @@ function renderPractice() {
   updateNewHere();
 }
 const lvSum = T => T.lv.hp + T.lv.spd + T.lv.dmg;
-const COACH_TESTS = {
-  zoom: () => cam.z >= Math.min(coach.z0 + 0.3, zmaxV() - 0.02),
-  pan: () => { const c = coach.c0, ww = viewSize()[0]; return !!c && Math.hypot(cam.cu - c.cu, cam.cv - c.cv) > ww * 0.06; },
-  whole: () => cam.z <= 1.02,
-  sent: () => G.troops.some(t => t.team === PLAYER && t.path.length > 0),
-  bases: st => G.teams[PLAYER].bases >= st.v,
-  buy: () => lvSum(G.teams[PLAYER]) >= coach.l0 + 1 || G.teams[PLAYER].points === 0,       // spent one point (or none left to spend)
-  reach: () => { const R = G.teams.find(T => T.active && T.i !== PLAYER); const n = R && G.nodes[G.homes[R.i]]; return !R || !n || R.bases < 1 || n.owner !== R.i || reachable(n); },
-  hit: () => { const R = G.teams.find(T => T.active && T.i !== PLAYER); const n = R && G.nodes[G.homes[R.i]]; return !R || !n || R.bases < 1 || n.owner !== R.i || n.hp < n.maxHp * 0.95; },
-  taken: () => { const R = G.teams.find(T => T.active && T.i !== PLAYER); return !R || G.nodes[G.homes[R.i]].owner === PLAYER; },
-  wait: st => G.t - coach.g0 >= st.v,
-  info: () => !!infoNode,
-  forge: () => G.nodes.some(n => n.kind === 'forge' && n.owner === PLAYER)
-};
-// what the ring points at for the current step: the nearest gray base to your home, the Forge, or the rival's home
-function coachTarget(kind) {
-  if (kind === 'forge') { const n = G.nodes.find(x => x.kind === 'forge'); return n ? n.id : null; }
-  if (kind === 'rival') { const R = G.teams.find(T => T.active && T.i !== PLAYER); return R ? G.homes[R.i] : null; }
-  if (kind === 'toward') {                            // the gray base you can already reach that is closest to the rival
-    const R = G.teams.find(T => T.active && T.i !== PLAYER); if (!R) return null;
-    const goal = G.homes[R.i], dist = G.nodes.map(() => Infinity); dist[goal] = 0;
-    const q = [goal]; for (let a = 0; a < q.length; a++) for (const v of G.nodes[q[a]].adj) if (dist[v] === Infinity) { dist[v] = dist[q[a]] + 1; q.push(v); }
-    let best = null;
-    for (const n of G.nodes) if (n.owner < 0 && reachable(n) && (best == null || dist[n.id] < dist[best] || (dist[n.id] === dist[best] && n.id < best))) best = n.id;
-    return best;
-  }
-  if (kind !== 'near') return null;
-  const dist = G.nodes.map(() => Infinity), h = G.homes[PLAYER]; dist[h] = 0;
-  const q = [h]; for (let a = 0; a < q.length; a++) for (const v of G.nodes[q[a]].adj) if (dist[v] === Infinity) { dist[v] = dist[q[a]] + 1; q.push(v); }
-  let best = null;
-  for (const n of G.nodes) if (n.owner < 0 && !n.kind && (best == null || dist[n.id] < dist[best] || (dist[n.id] === dist[best] && n.id < best))) best = n.id;
+// ---- 50.4.2: the guided match (spec GUIDED_MATCH_SPEC_50.4.md, sections 3 to 6; the text is in core.js PRACTICE, word for word from WC's final file). ----
+// Every step waits for the player to do something; nothing moves on by a timer. A card stays up at least long enough to read (1.5 s plus a quarter
+// second a word) before it changes, even when its action is done early, then shows its tick for 1.5 s (spec 5.3). A step may be skipped when its
+// premise is already false (skip), wait without a card until it can be true (pre), or run without a card (quiet). C1, the skill point, is an interrupt:
+// it runs at the first step boundary after A3 at which you have a point, and if none has landed by the time the outline reaches it, one is given.
+// The rings point at bases and HUD pieces; a base off screen gets an arrow at the edge of the free area, never under a HUD piece or the card.
+const lessonText = s => s.replace(/\{R\}/g, TEAM_NAMES[1]).replace(/\{B\}/g, TEAM_NAMES[0]);      // the rival's palette name (Red, or Orange in Color-safe and High contrast), never typed in
+const coachK = () => (PERF && window.__coachK) || 1;                   // tests only (?perf): every lesson time scaled down
+const readMs = s => (1500 + 250 * s.split(/\s+/).filter(Boolean).length) * coachK();
+const COACH_TICK_MS = 1500, COACH_STUCK_MS = 45000;                     // the tick's time on screen; "Skip this step" after 45 s on one step (spec 5.8)
+const LN = () => coach.lesson.lesson.roles;                              // the lesson map's bases by role (core.js PRACTICE)
+const lnOwn = id => G.nodes[id].owner;
+const redOut = () => !G.teams[1].alive;
+const redHolds = () => G.nodes.filter(n => n.owner === 1).map(n => n.id);
+const openCount = () => G.nodes.filter(n => n.owner === NEUTRAL).length;
+function lnUnder(n) {                                 // your troops are on their way to, or fighting at, a base that isn't yours
+  if (n.owner === PLAYER) return false;
+  for (const t of G.troops) if (t.team === PLAYER && (t.path.length ? t.path[t.path.length - 1] === n.id : t.home === n.id)) return true;
+  return false;
+}
+function lnHops() {                                    // lines from the nearest base of yours, to every base
+  const d = G.nodes.map(() => Infinity), q = [];
+  for (const n of G.nodes) if (n.owner === PLAYER) { d[n.id] = 0; q.push(n.id); }
+  for (let a = 0; a < q.length; a++) for (const v of G.nodes[q[a]].adj) if (d[v] === Infinity) { d[v] = d[q[a]] + 1; q.push(v); }
+  return d;
+}
+function lnOpen(filter, prefer) {                      // the unclaimed base fewest lines from yours (a preferred one first, if it is still unclaimed)
+  for (const id of prefer || []) if (lnOwn(id) === NEUTRAL) return id;
+  const d = lnHops(); let best = null;
+  for (const n of G.nodes) if (n.owner === NEUTRAL && (!filter || filter(n)) && (best == null || d[n.id] < d[best])) best = n.id;
   return best;
 }
-function coachShow() {
-  const st = coach.lesson.steps[coach.i];
-  setText($('coachPh'), `${st.ph + 1} of ${PRACTICE_PHASES.length} \u00b7 ${PRACTICE_PHASES[st.ph]}`); setText($('coachTxt'), st.t); $('coach').hidden = false;
-  coach.l0 = lvSum(G.teams[PLAYER]); coach.c0 = { cu: cam.cu, cv: cam.cv }; coach.shownAt = performance.now(); coach.armed = false; coach.doneAt = 0; $('coach').classList.remove('ok');
-  if (st.give && !coach.gave[coach.i]) { coach.gave[coach.i] = true; G.teams[PLAYER].points += st.give; }
-  for (const b of upBtns) b.classList.toggle('coachhl', st.hl === 'ui');
-  coachAim();
+function lnAttack() {                                  // the base your first attack is on: a1, or whichever unclaimed base you are attacking, or the next one to take
+  const a1 = LN().a1;
+  if (lnOwn(a1) === NEUTRAL && lnUnder(G.nodes[a1])) return a1;
+  const n = G.nodes.find(x => x.owner === NEUTRAL && lnUnder(x));
+  return n ? n.id : lnOpen(x => !x.kind, [a1]);
 }
-function coachAim() { const st = coach && coach.lesson.steps[coach.i]; coach.hlId = st && st.hl ? coachTarget(st.hl) : null; }
+function lnRoute(target) {                             // the fewest lines from a base of yours to `target`, as a list of bases (yours first)
+  const par = new Map([[target, -1]]), q = [target];
+  for (let a = 0; a < q.length; a++) {
+    const u = q[a];
+    if (G.nodes[u].owner === PLAYER) { const r = []; for (let c = u; c !== -1; c = par.get(c)) r.push(c); return r; }
+    for (const v of G.nodes[u].adj) if (!par.has(v)) { par.set(v, u); q.push(v); }
+  }
+  return null;
+}
+const lnMid = () => { const R = coach.route; if (!R) return null; for (let k = 1; k < R.length - 1; k++) if (lnOwn(R[k]) !== PLAYER) return R[k]; return R[R.length - 1]; };
+const lnForge = () => lnOwn(LN().forge) === PLAYER;
+const lnTouch = () => G.nodes[LN().red].adj.some(v => lnOwn(v) === PLAYER);          // a base of yours touches the rival's home
+const lnRedHome = () => lnOwn(LN().red) === 1;
+const COACH_STEPS = {
+  A1: { ring: () => [lnOpen(null, [LN().a1])], gate: () => G.teams[PLAYER].bases > 1 || G.troops.some(t => t.team === PLAYER && t.path.length && lnOwn(t.path[t.path.length - 1]) === NEUTRAL) },
+  A2: { cam: true, ring: () => [lnAttack()], gate: () => cam.z >= Math.min(coach.z0 + 0.3, zmaxV() - 0.02) },
+  A3: { ring: () => [lnAttack()], gate: () => !!infoNode && infoNode.owner === NEUTRAL && lnUnder(infoNode) },
+  A4: { start: () => { coach.need = Math.max(3, G.teams[PLAYER].bases + 1); }, ring: () => [lnOpen(n => !n.kind, [LN().a2]), 'stats'], gate: () => G.teams[PLAYER].bases >= coach.need },
+  B1: { skip: lnForge, ring: () => [LN().forge], gate: () => !!infoNode && infoNode.id === LN().forge },
+  B2: { skip: lnForge, ring: () => [coach.route ? lnMid() : LN().forge], gate: () => coach.ev.forgeTap || lnForge() },
+  B3: { skip: lnForge, quiet: () => !coach.route, ring: () => [coach.route && !reachable(G.nodes[LN().forge]) ? lnMid() : LN().forge], gate: lnForge },
+  B4: { skip: () => redOut() || !lnForge(), pre: () => G.lesson.awake, ring: () => [[LN().r1, LN().r2].find(id => lnOwn(id) === NEUTRAL) ?? LN().r1], gate: () => redOut() || lnOwn(LN().r1) !== NEUTRAL },
+  C1: { ring: () => ['up', 'xp'], gate: () => lvSum(G.teams[PLAYER]) > coach.l0 },
+  E1: { skip: () => !lnRedHome() || lnTouch(), ring: () => [lnOpen(n => n.adj.includes(LN().red), [LN().c1])], gate: () => !lnRedHome() || lnTouch() },
+  E2: { skip: () => !lnRedHome(), ring: () => { const c = G.nodes[LN().red].adj.filter(v => lnOwn(v) === PLAYER); return [c.includes(LN().c1) ? LN().c1 : c[0]]; }, gate: () => coach.ev.regroup || !lnRedHome() },
+  E3: { skip: () => !lnRedHome(), ring: () => [LN().red], gate: () => G.lock[PLAYER] === LN().red || !lnRedHome() },
+  E4: { skip: () => !lnRedHome(), ring: () => [LN().red], gate: () => !lnRedHome() },
+  E5: { skip: () => redOut() || redHolds().length < 2, start: () => { coach.didE5 = true; }, ring: () => settings.send !== 0.5 ? ['send50'] : redHolds().filter(id => !coach.ev.half.has(id)),
+        gate: () => redOut() || redHolds().every(id => coach.ev.half.has(id)) },
+  E5b: { skip: () => redOut() || !coach.didE5, ring: redHolds, gate: redOut },
+  F1: { pre: redOut, qring: redHolds, ring: () => ['map'], gate: () => coach.ev.map },
+  F1b: { skip: () => openCount() <= 1, ring: () => [lnOpen()], gate: () => openCount() <= 1 },
+  F2: { skip: () => openCount() === 0, ring: () => [lnOpen()], gate: () => false }          // no tick: the game's own win ends the lesson (spec 5.11)
+};
+const coachIdx = id => coach.lesson.steps.findIndex(s => s.id === id);
+const C1_AFTER = ['A3', 'A4', 'B1', 'B3', 'B4'];      // where the skill point may cut in: not during the first attack (A1, A2), and not between the out-of-reach tap and its rule (B2, B3)
 function startCoach() {
-  coach = curPrac ? { lesson: PRACTICE.find(x => x.id === curPrac), i: 0, g0: 0, l0: 0, hlId: null, gave: {} } : null;
-  $('coach').hidden = !coach; $('coach').classList.remove('low'); $('coachRing').hidden = $('coachArrow').hidden = true;
-  if (coach) coachShow(); else for (const b of upBtns) b.classList.remove('coachhl');
+  coachEnd();
+  if (!curPrac) return;
+  coach = { lesson: PRACTICE.find(x => x.id === curPrac), i: -1, ev: { half: new Set() }, c1Done: false, ret: null, route: null, nodes: [], ringKey: null, resKey: '', resH: 0, nudge: null };
+  coachGo(0);
 }
-function coachEnd() { coach = null; $('coach').hidden = true; $('coach').classList.remove('low'); $('coachRing').hidden = $('coachArrow').hidden = true; for (const b of upBtns) b.classList.remove('coachhl'); }
-function coachNext() {
-  if (!coach) return;
-  coach.i++; coach.g0 = G.t;
-  if (coach.i >= coach.lesson.steps.length) { coachEnd(); G.over = true; G.result = 'win'; G.endReason = 'practice'; showEnd(); return; }
-  coachShow();
+function coachGo(i) {                                  // the next step from index i: C1 if it is still owed (a point is given if none has landed), or the first whose premise holds
+  const L = coach.lesson.steps;
+  for (; i < L.length; i++) {
+    const id = L[i].id;
+    if (id === 'C1') { if (coach.c1Done) continue; if (G.teams[PLAYER].points < 1) G.teams[PLAYER].points = 1; break; }
+    const S = COACH_STEPS[id]; if (S.skip && S.skip()) continue;
+    break;
+  }
+  if (i >= L.length) { coach.i = L.length; coachHide(); return; }
+  coachBegin(i);
+}
+function coachBegin(i) {
+  const st = coach.lesson.steps[i], S = COACH_STEPS[st.id];
+  Object.assign(coach, { i, ev: { half: new Set() }, met: 0, doneAt: 0, armed: false, z0: cam.z, l0: lvSum(G.teams[PLAYER]), shownAt: 0, quiet: false, nudged: false });
+  if (S.start) S.start();
+  coach.waiting = !!(S.pre && !S.pre());
+  if (!coach.waiting) coachOpen();
+  else coachHide();
+  coach.ringKey = null; coachAim();
+}
+function coachOpen() {                                 // the step's card, or no card for a quiet step
+  const st = coach.lesson.steps[coach.i], S = COACH_STEPS[st.id];
+  coach.waiting = false;
+  if (S.quiet && S.quiet()) { coach.quiet = true; coachHide(); return; }
+  const txt = lessonText(st.t);
+  setText($('coachPh'), st.ph < 0 ? PRACTICE_SKILL : `${st.ph + 1} of ${PRACTICE_PHASES.length} · ${lessonText(PRACTICE_PHASES[st.ph])}`);
+  setText($('coachTxt'), txt); $('coach').classList.remove('ok'); $('coachStep').hidden = true; $('coach').hidden = false;
+  coach.shownAt = performance.now(); coach.readMs = readMs(txt); coach.nudged = false; coach.obs = null;      // a new card: measure it afresh
+  placeCoach();
+}
+function coachHide() { if (!$('coach').hidden) $('coach').hidden = true; if (coach) coach.obs = null; }
+function coachAfter() {                                // a step is over (its tick shown, or quietly): C1 if a point is waiting, else the next step
+  const st = coach.lesson.steps[coach.i];
+  if (st.id === 'C1') { coach.c1Done = true; const r = coach.ret; coach.ret = null; coachGo(r != null ? r : coach.i + 1); return; }
+  if (!coach.c1Done && G.teams[PLAYER].points > 0 && C1_AFTER.includes(st.id)) { coach.ret = coach.i + 1; coachBegin(coachIdx('C1')); return; }
+  coachGo(coach.i + 1);
 }
 function coachTick() {
-  if (!coach || !G || mode !== 'play' || G.over) return;
+  if (!coach || !G) return;
+  if (G.over) { coachHide(); coachRingsOff(); return; }
+  if (mode !== 'play') return;
+  const st = coach.lesson.steps[coach.i]; if (!st) return;
+  const S = COACH_STEPS[st.id], now = performance.now();
+  if (coach.waiting) { if (!S.pre()) { coachAim(); return; } coachOpen(); }
   coachAim();
-  const st = coach.lesson.steps[coach.i], now = performance.now();
-  if (coach.doneAt) { if (now - coach.doneAt > 900) coachNext(); return; }       // "Got it." stays up for a moment before the next step
-  if (st.cam) {                                       // camera steps count only what you do after a pause, once your fingers are up and the map has stopped drifting
-    if (!coach.armed) { if (now - coach.shownAt > 1500 && ptrs.size === 0 && Math.hypot(fling.vx, fling.vy) < 0.02) { coach.armed = true; coach.c0 = { cu: cam.cu, cv: cam.cv }; coach.z0 = cam.z; } return; }
-    if (COACH_TESTS[st.k](st)) { coach.doneAt = now; setText($('coachTxt'), 'Got it.'); $('coach').classList.add('ok'); }
+  if (coach.doneAt) { if (now - coach.doneAt >= coach.tickMs) coachAfter(); return; }
+  if (coach.quiet) { if (S.gate()) coachAfter(); return; }
+  if (S.cam && !coach.armed) {                       // a camera step counts only what you do once the card has been up a moment, your fingers are up and the map has stopped drifting
+    if (now - coach.shownAt > 1500 * coachK() && ptrs.size === 0 && Math.hypot(fling.vx, fling.vy) < 0.02) { coach.armed = true; coach.z0 = cam.z; }
+  } else if (!coach.met && S.gate()) coach.met = now;
+  if (coach.met && now - coach.shownAt >= coach.readMs) {
+    const tk = st.tick ? lessonText(st.tick) : 'Got it.';
+    coach.doneAt = now; coach.tickMs = st.tick ? readMs(tk) : COACH_TICK_MS * coachK();
+    setText($('coachTxt'), tk); $('coach').classList.add('ok'); $('coachStep').hidden = true; coach.obs = null; coachAim();
     return;
   }
-  if (COACH_TESTS[st.k](st)) coachNext();
+  if (now - coach.shownAt > COACH_STUCK_MS * coachK() && $('coachStep').hidden) $('coachStep').hidden = false;      // an escape hatch for a gate that can't be met; it never moves on by itself
 }
-// the ring follows its base while you pan and zoom; off screen it becomes an arrow on the edge of the map pointing the way
-function coachRing() {
-  const r = $('coachRing'), a = $('coachArrow'), n = coach && G && mode === 'play' && coach.hlId != null ? G.nodes[coach.hlId] : null;
-  if (!n) { if (!r.hidden) r.hidden = true; if (!a.hidden) a.hidden = true; return; }
-  const p = toScreen(n.x, n.y), pad = 22;
-  if (p.x >= F.x + pad && p.x <= F.x + F.w - pad && p.y >= F.y + pad && p.y <= F.y + F.h - pad) {
-    if (r.hidden) r.hidden = false; if (!a.hidden) a.hidden = true;
-    r.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
-  } else {
-    if (!r.hidden) r.hidden = true; if (a.hidden) a.hidden = false;
-    const cx = F.x + F.w / 2, cy = F.y + F.h / 2, ang = Math.atan2(p.y - cy, p.x - cx);
-    const k = Math.min((F.w / 2 - 34) / (Math.abs(Math.cos(ang)) || 1e-6), (F.h / 2 - 34) / (Math.abs(Math.sin(ang)) || 1e-6));
-    a.style.transform = `translate(${cx + Math.cos(ang) * k}px, ${cy + Math.sin(ang) * k}px) translate(-50%, -50%) rotate(${ang}rad)`;
+// what is ringed: a list of base ids and HUD keys (spec 5.6)
+const COACH_HUD = { stats: () => [$('stats')], send50: () => [$('sendTri').querySelector('[data-send="0.5"]')], up: () => upBtns, xp: () => [$('upg').querySelector('.xp')], map: () => [$('bMap')] };
+function coachAim() {
+  let list = [];
+  if (coach && G && !G.over) {
+    const st = coach.lesson.steps[coach.i], S = COACH_STEPS[st.id];
+    if (!coach.doneAt) list = coach.waiting ? (S.qring ? S.qring() : []) : S.ring();
+    else list = coach.route ? [lnMid()] : st.id === 'C1' ? ['xp'] : [];          // during a tick: the base in between, once the way is lit (B2: the gap first, the rule second); C1's tick line is about the XP bar
   }
-  coachDodge(p);
+  list = list.filter(x => x != null);
+  const key = list.join(',');
+  if (coach && key === coach.ringKey) return;
+  if (coach) { coach.ringKey = key; coach.nodes = list.filter(x => typeof x === 'number').slice(0, 2); coach.nudged = false; }
+  const on = new Set(list.filter(x => typeof x === 'string'));
+  for (const k in COACH_HUD) for (const el of COACH_HUD[k]()) if (el) el.classList.toggle('coachhl', on.has(k));
 }
-// if the highlighted base is hiding under the instruction banner, the banner hops to the other side of the screen (checked a few times a second)
-let coachDodgeAt = 0;
-function coachDodge(p) {
-  const now = performance.now(); if (now - coachDodgeAt < 250) return; coachDodgeAt = now;
-  const el = $('coach'), b = el.getBoundingClientRect(), m = 34;
-  if (p.x > b.left - m && p.x < b.right + m && p.y > b.top - m && p.y < b.bottom + m && now - (coach.hopped || 0) > 1500) { el.classList.toggle('low'); coach.hopped = now; }
+function coachRingsOff() {
+  for (const k in COACH_HUD) for (const el of COACH_HUD[k]()) if (el) el.classList.remove('coachhl');
+  for (const el of document.querySelectorAll('.cRing, .cArrow')) if (!el.hidden) el.hidden = true;
+  if (coach) { coach.nodes = []; coach.ringKey = ''; }
 }
-$('coachSkip').addEventListener('click', () => coachNext());
+function coachEnd() {
+  coach = null; coachHide(); coachRingsOff();
+  $('toast').style.removeProperty('top'); $('coach').style.removeProperty('zoom');
+}
+// The card: one home per orientation, never over a HUD piece, zoomed with the HUD (spec 5.7). Sideways, between the counter and the controls (at most
+// 560 px wide at the HUD size in use); if a big HUD leaves that gap under 300 px at its size, the card there grows only as far as the gap allows (never
+// below HUD size S). Upright (or a gap too small even for that), a band right under the counter and the controls, full width.
+function coachBox() {
+  const z = hudZ, s = $('stats').getBoundingClientRect(), c = $('ctrl').getBoundingClientRect(), gl = s.right + 8 * z, gr = c.left - 8 * z, gap = gr - gl;
+  if (F.w > F.h) { const cz = Math.min(z, gap / 300); if (cz >= 0.85) { const w = Math.min(gap, 560 * cz); return { left: gl + (gap - w) / 2, top: Math.min(s.top, c.top), width: w, z: cz }; } }
+  return { left: F.x + 10 * z, top: Math.max(s.bottom, c.bottom) + 8 * z, width: F.w - 20 * z, z };
+}
+function placeCoach() {                                // places the card, and measures the room it can take (its tallest step) for the whole view's fit
+  if (!coach) return null;
+  const el = $('coach'), b = coachBox(), z = b.z;
+  el.style.zoom = String(z); el.style.left = b.left / z + 'px'; el.style.top = b.top / z + 'px'; el.style.width = b.width / z + 'px';
+  const key = [Math.round(b.width), z, TEAM_NAMES[1]].join('|');
+  if (key !== coach.resKey) {
+    const hid = el.hidden, ph = $('coachPh').textContent, tx = $('coachTxt').textContent, sb = $('coachStep').hidden;
+    el.hidden = false; $('coachStep').hidden = false; let h = 0;
+    for (const st of coach.lesson.steps) for (const t of [st.t, st.tick]) if (t) { setText($('coachTxt'), lessonText(t)); h = Math.max(h, el.getBoundingClientRect().height); }
+    setText($('coachPh'), ph); setText($('coachTxt'), tx); $('coachStep').hidden = sb; el.hidden = hid;
+    coach.resKey = key; coach.resH = h;
+  }
+  $('toast').style.setProperty('top', (b.top + coach.resH + 8 * hudZ) / hudZ + 'px', 'important');      // the game's own toasts sit under the card
+  return { left: b.left, top: b.top, right: b.left + b.width, bottom: b.top + coach.resH };
+}
+function coachObstacles() {                            // the HUD pieces and the card, as screen rectangles (measured at most five times a second)
+  const now = performance.now();
+  if (coach.obs && now - coach.obsAt < 200) return coach.obs;
+  const rs = [];
+  for (const id of ['stats', 'ctrl', 'upg', 'mapWrap', 'sendTri', 'coach']) { const e = $(id); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); if (r.width > 0 && r.height > 0) rs.push(r); }
+  coach.obs = rs; coach.obsAt = now; return rs;
+}
+// every frame: the rings follow their bases; a base off screen gets an arrow at the edge of the free area pointing the way (spec 5.6b: bigger, moving, never under a HUD piece)
+function coachRing() {
+  const live = coach && G && mode === 'play' && !G.over, ids = live ? coach.nodes : [];
+  const rings = document.querySelectorAll('.cRing'), arrows = document.querySelectorAll('.cArrow');
+  const obs = ids.length ? coachObstacles() : [], R = 24, cx = F.x + F.w / 2, cy = F.y + F.h / 2;
+  for (let j = 0; j < 2; j++) {
+    const r = rings[j], a = arrows[j], n = ids[j] != null ? G.nodes[ids[j]] : null;
+    if (!n) { if (!r.hidden) r.hidden = true; if (!a.hidden) a.hidden = true; continue; }
+    const p = toScreen(n.x, n.y), pad = 22;
+    if (p.x >= F.x + pad && p.x <= F.x + F.w - pad && p.y >= F.y + pad && p.y <= F.y + F.h - pad) {
+      if (r.hidden) r.hidden = false; if (!a.hidden) a.hidden = true;
+      r.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
+    } else {
+      if (!r.hidden) r.hidden = true; if (a.hidden) a.hidden = false;
+      const ang = Math.atan2(p.y - cy, p.x - cx), co = Math.cos(ang), si = Math.sin(ang);
+      let k = Math.min((F.w / 2 - R - 6) / (Math.abs(co) || 1e-6), (F.h / 2 - R - 6) / (Math.abs(si) || 1e-6));
+      for (; k > 0; k -= 4) { const x = cx + co * k, y = cy + si * k; if (!obs.some(o => x > o.left - R && x < o.right + R && y > o.top - R && y < o.bottom + R)) break; }      // slide in toward the middle until clear of every HUD piece and the card
+      a.style.transform = `translate(${cx + co * Math.max(0, k)}px, ${cy + si * Math.max(0, k)}px) translate(-50%, -50%) rotate(${ang}rad)`;
+    }
+  }
+  if (live) coachNudge();
+}
+// a ringed base under the card or a HUD piece: the camera slides it clear, once per new ring (spec 5.7: the card doesn't hop; the map moves)
+function coachNudge() {
+  const now = performance.now(), N = coach.nudge;
+  if (N) {
+    if (ptrs.size) { coach.nudge = null; return; }                     // your fingers win
+    const t = Math.min(1, (now - N.t0) / 450), e = t * t * (3 - 2 * t);
+    cam.cv = N.cv0 + (N.cv1 - N.cv0) * e; updateView(); if (t >= 1) coach.nudge = null;
+    return;
+  }
+  if (coach.nudged || ptrs.size || $('coach').hidden || !coach.nodes.length) return;
+  coach.nudged = true;
+  const obs = coachObstacles();
+  for (const id of coach.nodes) {
+    const n = G.nodes[id], p = toScreen(n.x, n.y);
+    if (p.x < F.x || p.x > F.x + F.w || p.y < F.y || p.y > F.y + F.h) continue;                // off screen: the arrow points the way
+    for (const o of obs) if (p.x > o.left - 16 && p.x < o.right + 16 && p.y > o.top - 16 && p.y < o.bottom + 16) {
+      const dy = (o.top + o.bottom) / 2 < F.y + F.h / 2 ? o.bottom + 44 - p.y : o.top - 44 - p.y;  // a piece up top pushes the base down; one below pushes it up
+      coach.nudge = { cv0: cam.cv, cv1: cam.cv - dy / V.s, t0: now }; return;
+    }
+  }
+}
+// the lesson's out-of-reach moment (spec 5.12, Henry's design, Oct 31): yellow marks flank each line of the way to the Forge, on both sides, so the
+// real dashed line still shows between them. Drawn on the map (the lesson always wears Classic) until the Forge is in reach.
+function drawCoachRoute(now) {
+  const Rt = coach.route, nodes = G.nodes;
+  if (reachable(nodes[Rt[Rt.length - 1]])) { coach.route = null; return; }
+  const k = 1 / V.s, off = 6.5 * k, inset = 15 * k;
+  ctx.save(); ctx.setLineDash([]); ctx.lineCap = 'round';
+  ctx.strokeStyle = hexA('#ffcd30', 0.62 + 0.3 * Math.sin(now * 4.2)); ctx.lineWidth = 2.6 * k; ctx.beginPath();
+  for (let i = 0; i + 1 < Rt.length; i++) {
+    const p = nodes[Rt[i]], q = nodes[Rt[i + 1]], L = Math.hypot(q.x - p.x, q.y - p.y) || 1, ux = (q.x - p.x) / L, uy = (q.y - p.y) / L;
+    for (const sg of [1, -1]) { ctx.moveTo(p.x + ux * inset - uy * off * sg, p.y + uy * inset + ux * off * sg); ctx.lineTo(q.x - ux * inset - uy * off * sg, q.y - uy * inset + ux * off * sg); }
+  }
+  ctx.stroke(); ctx.restore();
+}
+// what a tap did, for the steps that wait on one: the Forge tapped (B2; out of reach, it lights the way), a regroup (E2), a 50% order on the rival (E5)
+function coachSent(n, r) {
+  const st = coach.lesson.steps[coach.i]; if (!st) return;
+  if (n.id === LN().forge && n.owner !== PLAYER && st.id === 'B2') { coach.ev.forgeTap = true; if (!r && !coach.route) { coach.route = lnRoute(n.id); coach.ringKey = null; } }
+  if (r && n.owner === PLAYER) coach.ev.regroup = true;
+  if (r && settings.send === 0.5 && n.owner === 1) coach.ev.half.add(n.id);
+}
+document.addEventListener('pointerdown', e => { if (coach && infoNode && e.target !== cv) hideInfo(); }, true);      // in the lesson the hold card stays until your next touch, anywhere (spec 5.4)
+$('coachSkip').addEventListener('click', () => { if (coach) leaveToMenu(); });      // Skip lesson: back to How to play, not marked Completed, no end card (spec 5.8)
+$('coachStep').addEventListener('click', () => { if (coach && coach.i < coach.lesson.steps.length) { coach.doneAt = 0; coachAfter(); } });
 $('practiceList').addEventListener('click', e => { const b = e.target.closest('.chcard'); if (b) startGame(false, null, null, b.dataset.p); });
 $('mHelp').addEventListener('click', () => { helpSeen = true; save('ice-seen', { help: true }); renderPractice(); });
 $('newHere').addEventListener('click', () => { go('scrPlay'); $('mHelp').click(); });       // the line itself opens How to play (now under Play)       // the line itself opens How to play
@@ -13918,7 +14141,7 @@ syncLook(); syncSeg(); syncCtrl(); syncSound(); syncRivals(); renderRecord(); st
 if (PERF) window.__audio = () => ({ AC, master, lim, mg, mlp, bus, pbus });   // lets the ?perf mode measure output levels
 if (PERF) window.__dbg = () => ({ mode, pvOnly, stack: stack.slice(), backPos, draining, t: G ? G.t : 0, over: G ? G.over : null, parts: parts.length, fx: G ? G.fx.length : 0, pvOwners: pvOwners ? pvOwners.length : 0, hasG: !!G });
 if (PERF) { window.__chimes = () => PF.chimes.slice(); window.__aud = () => ({ ac: AC, lim, master }); window.__chipnew = () => ({ chipNew }); window.__award = n => { const P = G.teams[PLAYER]; for (let i = 0; i < n; i++) { P.earned++; P.points++; } }; window.__pf = () => ({ starts: PF.starts, strength: PF.strength, parts: PF.ps.length, fx: PF.fx.length, glow: $('upg').classList.contains('ptsGlow'), shown: !!PF.cv && PF.cv.style.display !== 'none', style: settings.visual }); }
-if (PERF) { window.__coach = () => coach ? { i: coach.i, n: coach.lesson.steps.length, id: coach.lesson.id } : null; window.__hud = hud; window.__info = showInfo; window.__coachAim = () => coach ? { hl: coach.hlId, ph: $('coachPh').textContent } : null; window.__txt = () => ({ DIFF_INFO, PERSONA_INFO, SHAPE_INFO, SETTINGS_INFO, SPECIAL_INFO }); window.__mods = () => MODS; window.__sel = () => selBase; window.__coachTo = n => { coach.i = n; coach.g0 = G.t; coachShow(); }; }       // test hooks
+if (PERF) { window.__coach = () => coach ? { i: coach.i, n: coach.lesson.steps.length, id: coach.lesson.id, step: (coach.lesson.steps[coach.i] || {}).id || null, shown: !$('coach').hidden, waiting: !!coach.waiting, quiet: !!coach.quiet, done: !!coach.doneAt, met: !!coach.met, c1: coach.c1Done, nodes: coach.nodes.slice(), route: coach.route && coach.route.slice(), ph: $('coachPh').textContent, txt: $('coachTxt').textContent, hud: [...document.querySelectorAll('.coachhl')].map(e => e.id || (e.dataset.send ? 'send' + e.dataset.send : e.dataset.k || e.className.split(' ')[0])) } : null; window.__hud = hud; window.__info = showInfo; window.__coachAim = () => coach ? { hl: coach.nodes[0] ?? null, ph: $('coachPh').textContent } : null; window.__txt = () => ({ DIFF_INFO, PERSONA_INFO, SHAPE_INFO, SETTINGS_INFO, SPECIAL_INFO }); window.__mods = () => MODS; window.__sel = () => selBase; window.__coachTo = id => { coach.ret = null; coachBegin(typeof id === 'number' ? id : coachIdx(id)); }; }       // test hooks
 if (PERF) window.__cam = () => ({ z: cam.z, cu: cam.cu, cv: cam.cv, whole: !!wholeBack });
 if (PERF) window.__scr = (x, y) => toScreen(x, y);
 if (PERF) window.__fit = () => ({ k: FIT_K });
@@ -13941,4 +14164,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.4.1, from source sha256 930c096bd31aa1ad -->
+<!-- Aiced build 50.4.2, from source sha256 e4c8e2b77f9fa229 -->

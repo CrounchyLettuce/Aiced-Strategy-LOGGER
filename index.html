@@ -63,6 +63,7 @@ body { position: relative; }
 #sendTri { position: absolute; right: 10px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 #sendTri button { pointer-events: auto; width: 52px; min-height: 52px; font-size: 15px; }
 #sendTri button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+#hud.onearmy #sendTri button[aria-disabled="true"] { opacity: .35; }   /* 50.5.0: One Army, every order is the whole army */
 #mapWrap > * { pointer-events: auto; }
 #bMap {
   width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: 4px;          /* 50.4.0: 46 -> 42 (Henry: a little smaller) */
@@ -748,7 +749,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.4.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1102,6 +1103,7 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 // forges (hold every Forge for secs), survive (secs). Star goals are checked once you've won.
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
 const CROWN_AI = { smart: 0, spawn: 0.3, margin: 2.6, interval: [6, 9], crownMargin: 1.0, crownFrac: 1 };         // T1_M2's rival (50.0.7, draft 3 "take the crown back"): starts next to the crown and goes for it at once (crownMargin, crownFrac), slow to build and patient about everything else so a newcomer can still catch up
+const ONEARMY_AI = { smart: 1, spawn: 0.22, margin: 2.6, interval: [6, 9], stay: { 7: 25, 8: 25 }, away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 } };      // T2_M1's rival (50.5.0, One Army): Border Dispute's patient rival; its two walls each keep 25 at home (stay), and it goes where your army is not (away) (50.5.1)
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
@@ -1117,6 +1119,12 @@ const SCENARIOS = [
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 270, t: 'Win in under 4:30' }, { k: 'time', v: 55, t: 'Win in under 0:55' }] },   // 50.0.12: stars from Henry's runs (0:50 to 0:56 at his best; 3:19 and 3:57 handicapped); star 3 was 0:52 in 50.0.11
   // 50.0.10: the old Tier 1 maps First blood and Crown rush are retired (Henry, Oct 27); their entries are kept in src5009\core.js
+  // 50.5.0: Tier 2 opens with One Army (AC's plan, Henry Nov 1). Name, desc and rule are DC placeholders until WC. Stars are placeholders until Henry's runs.
+  { id: 'one-army', tier: 2, name: 'One Army', desc: 'One army, and nowhere to hide it.',
+    size: 'small', teams: 2, shape: 'continent', map: 'one-army', face: 'wide', diff: 'easy', seed: 9101, fair: true, mods: {}, specials: true, aiTune: ONEARMY_AI, oneArmy: true,
+    rule: 'Every order sends your whole army, and every base it leaves stands empty.',
+    objective: { type: 'conquest', text: 'Take every base' },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 300, t: 'Win in under 5:00' }, { k: 'noloss', t: 'Win without losing a base' }] },
   { id: 'iron-wall', tier: 2, name: 'Iron wall', desc: 'Islands, bridges and two rivals. Build a territory and hold it.',
     size: 'medium', teams: 3, shape: 'islands', diff: 'hard', seed: 7065, fair: true, mods: {}, specials: true, aiTune: { margin: 1.4, spawn: 1.02, playerBias: 0.25 },
     objective: { type: 'hold', n: 12, secs: 120, text: 'Hold 12 bases for 2 minutes' },
@@ -1198,7 +1206,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1254,6 +1262,16 @@ STATIC_MAPS["alone"].outline = [[1267,350],[1258,381],[1235,410],[1206,436],[117
 STATIC_MAPS["crown-duel"].outline = [[1248,350],[1240,381],[1221,410],[1197,437],[1173,461],[1153,485],[1135,508],[1118,529],[1097,549],[1071,565],[1046,578],[1021,591],[998,603],[978,616],[960,629],[943,643],[926,656],[907,667],[884,672],[861,674],[838,675],[816,676],[796,679],[778,683],[760,687],[742,693],[724,699],[706,706],[688,712],[669,718],[650,723],[630,727],[610,730],[590,731],[569,730],[549,728],[528,725],[508,720],[488,715],[468,707],[449,699],[430,689],[411,679],[393,667],[375,655],[357,643],[338,631],[318,619],[297,607],[275,594],[252,580],[228,565],[203,549],[181,530],[159,510],[137,487],[115,464],[94,438],[75,410],[60,381],[53,350],[56,319],[66,289],[81,260],[99,233],[120,208],[142,185],[166,164],[191,146],[217,129],[243,115],[268,102],[292,90],[315,79],[335,67],[354,54],[373,42],[393,33],[416,28],[441,28],[465,29],[487,30],[508,30],[527,29],[545,27],[563,24],[580,21],[597,17],[615,13],[632,8],[650,5],[668,1],[687,-2],[706,-5],[726,-8],[747,-11],[768,-14],[791,-17],[814,-19],[839,-21],[864,-21],[889,-18],[913,-13],[937,-4],[959,7],[979,21],[999,36],[1017,53],[1035,70],[1053,88],[1071,107],[1089,126],[1107,147],[1125,168],[1143,190],[1162,213],[1182,237],[1203,262],[1225,290],[1242,319]];
 STATIC_MAPS["bases-loaded"].outline = [[1249,350],[1249,381],[1243,412],[1232,442],[1216,470],[1196,496],[1175,520],[1151,543],[1127,563],[1103,581],[1077,597],[1052,611],[1026,623],[1000,633],[974,641],[948,648],[922,652],[896,654],[872,656],[849,656],[827,657],[806,657],[787,657],[767,655],[748,653],[731,651],[714,650],[697,649],[681,649],[666,650],[650,652],[634,654],[618,656],[601,658],[584,660],[567,661],[549,661],[531,660],[513,658],[495,655],[476,651],[458,646],[438,641],[418,637],[396,632],[373,627],[349,621],[325,613],[299,605],[273,595],[246,583],[219,569],[193,553],[168,535],[145,514],[123,491],[103,466],[84,440],[68,411],[56,381],[53,350],[59,319],[75,290],[95,262],[117,237],[139,213],[162,191],[184,171],[207,153],[230,136],[253,121],[275,106],[296,93],[317,81],[338,69],[357,57],[377,47],[396,36],[415,27],[434,18],[454,10],[474,4],[494,-1],[514,-3],[535,-3],[556,-1],[576,3],[596,8],[615,15],[633,22],[650,29],[667,35],[683,40],[699,43],[715,45],[732,46],[749,44],[768,43],[787,43],[805,46],[822,51],[840,57],[860,61],[881,65],[904,68],[928,72],[951,79],[974,88],[996,99],[1018,111],[1041,124],[1066,138],[1091,154],[1117,171],[1143,190],[1169,211],[1192,235],[1213,261],[1231,289],[1243,319]];
 STATIC_MAPS["lesson"].outline = [[1020,395],[1026,420],[1029,445],[1028,471],[1024,496],[1016,520],[1007,543],[996,566],[984,588],[971,610],[956,629],[936,646],[908,655],[869,654],[822,640],[773,618],[728,593],[689,566],[657,542],[632,521],[613,504],[599,492],[589,483],[582,479],[577,477],[572,477],[568,478],[563,479],[559,480],[555,481],[550,483],[545,486],[540,489],[535,493],[528,496],[522,500],[515,504],[507,507],[498,511],[489,515],[478,519],[466,525],[450,533],[430,544],[404,558],[371,574],[334,590],[299,598],[272,597],[251,589],[235,577],[218,564],[200,551],[181,536],[162,521],[144,504],[127,485],[113,464],[101,442],[93,419],[93,395],[100,371],[115,349],[133,329],[153,311],[173,294],[192,279],[210,264],[227,251],[244,239],[260,228],[276,217],[291,207],[305,197],[319,187],[331,176],[344,166],[356,155],[367,144],[380,133],[392,122],[406,112],[420,104],[436,98],[452,94],[469,93],[486,95],[503,100],[520,106],[535,114],[550,121],[564,128],[577,135],[591,139],[604,142],[618,141],[634,138],[651,133],[669,129],[686,127],[702,132],[714,143],[720,162],[720,185],[717,209],[716,229],[720,242],[735,245],[763,240],[805,230],[856,218],[905,214],[941,221],[962,237],[971,258],[975,281],[981,303],[989,325],[1000,348],[1011,371]];
+// 50.5.0: Tier 2's first level, One Army (AC's sketch T2_M4). Bases by role: 0 your home, 1-2 your lobe, 3 the lobe's door, 4-6 the corridor (the narrows),
+// 7-8 the rival's walls (25 each; ONEARMY_AI.stay keeps 25 home), 9 its middle base, 10 its home, 11 the way into the Forge pocket, 12 the Forge,
+// 13-17 the side lane from the rival's lower wall round to your lobe (13 starts red; 50.5.1: it joined the middle base before, so going round skipped the walls). The lake between the corridor and the lane is the Ring shape's middle (deco).
+STATIC_MAPS['one-army'] = { id: 'one-army', w: 1380, h: 700, size: 'small',
+  nodes: [[100, 290], [240, 215], [240, 370], [380, 290], [520, 290], [670, 290], [820, 290], [960, 245], [960, 345], [1110, 290], [1280, 290], [550, 145], [700, 125], [1100, 540], [900, 600], [700, 620], [500, 590], [340, 515]],
+  edges: [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [6, 8], [7, 8], [7, 9], [8, 9], [9, 10], [4, 11], [11, 12], [2, 17], [17, 16], [16, 15], [15, 14], [14, 13], [13, 8]],
+  starts: [0, 10], specials: { 12: 'forge' }, shape: 'continent', deco: { kind: 'ring', cx: 685, cy: 450, rx: 275, ry: 80 },
+  garrison: { 0: 10, 1: 6, 2: 6, 3: 8, 4: 9, 5: 10, 6: 12, 7: 25, 8: 25, 9: 8, 10: 10, 11: 10, 12: 16, 13: 8, 14: 9, 15: 9, 16: 9, 17: 8 },
+  owned: { 7: 1, 8: 1, 9: 1, 13: 1 } };
+STATIC_MAPS['one-army'].outline = [[1277,372],[1244,402],[1218,428],[1200,453],[1187,478],[1177,503],[1169,528],[1159,553],[1145,575],[1123,593],[1096,607],[1068,618],[1040,627],[1013,634],[988,641],[965,647],[943,653],[921,658],[901,663],[881,667],[863,671],[844,675],[826,679],[809,683],[792,687],[775,690],[758,694],[741,698],[724,701],[707,703],[690,704],[673,705],[655,704],[638,703],[620,702],[602,699],[585,696],[567,692],[550,687],[532,682],[516,675],[499,667],[483,658],[467,648],[451,638],[435,627],[418,617],[400,607],[380,598],[358,588],[335,577],[312,565],[293,549],[277,531],[263,511],[248,491],[231,470],[210,449],[183,426],[149,401],[109,372],[70,340],[43,304],[37,269],[50,237],[78,209],[116,186],[161,169],[214,161],[277,162],[338,169],[385,174],[417,174],[437,168],[448,155],[455,137],[461,118],[467,97],[476,78],[488,61],[502,46],[518,35],[536,27],[555,22],[575,19],[595,18],[615,19],[635,23],[654,28],[672,34],[690,40],[707,46],[723,56],[738,71],[749,94],[755,129],[757,165],[758,195],[760,215],[764,228],[770,233],[780,234],[792,232],[808,227],[827,221],[849,213],[875,206],[904,199],[937,193],[972,189],[1009,189],[1049,190],[1094,193],[1144,198],[1200,207],[1258,220],[1309,241],[1336,270],[1336,305],[1311,340]];
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1734,6 +1752,7 @@ function newGame(opts) {
     land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : fixed && Array.isArray(fixed.outline) && fixed.outline.length > 2 ? { kind: 'blob', outline: fixed.outline.map(q => [q[0], q[1]]) } : null,      // 50.1.3: the land's outline. 50.1.5: ui.js draws it as its own scenery layer (coastDeco), under the shape's own. 50.4.5: a hand-made map's own outline (the Tier 1 maps, the lesson)
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
+    oneArmy: !!opts.oneArmy,      // 50.5.0: One Army's rule; ui.js sends the whole army on every order and greys 25% and 50%
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
@@ -2354,9 +2373,11 @@ function followPath(rt, s, target) {
 }
 
 function command(team, target, frac, filter, maxCost = Infinity) {
-  const nodes = G.nodes, rt = routeTable(team, target), cands = [];
+  const nodes = G.nodes, rt = routeTable(team, target), cands = [], stay = (team !== PLAYER || G.autoplay) && G.teams[team].diff.stay || null, kept = {};      // 50.5.0: a challenge rival's held bases (stay) keep their troops; 50.5.1: up to a count per base
   for (const t of G.troops) {
-    if (t.team !== team || (filter && !filter(t))) continue;
+    if (t.team !== team) continue;
+    if (stay && !t.path.length && stay[t.home] && (kept[t.home] = (kept[t.home] || 0) + 1) <= stay[t.home]) continue;     // the oldest troops at a held base stay home (troops are kept oldest first)
+    if (filter && !filter(t)) continue;
     let best = Infinity, path = null;
     if (t.path.length) {
       const p = t.path[0], h = t.home;
@@ -2453,9 +2474,10 @@ function aiThink(team) {
   if (G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
   if (!G._ai || G._ai.N !== N) G._ai = { N, pres: new Float64Array(N * 6), mine: new Float64Array(N), committed: new Float64Array(N) };
   const P6 = G._ai.pres.fill(0), mine = G._ai.mine.fill(0), committed = G._ai.committed.fill(0);
-  const pr2 = (C.presenceR * 1.2) ** 2;
+  const pr2 = (C.presenceR * 1.2) ** 2, keptAt = {};
   for (const t of G.troops) {
     const st = S.st[t.team + 1];
+    if (t.team === team && D.stay && !t.path.length && D.stay[t.home] && (keptAt[t.home] = (keptAt[t.home] || 0) + 1) <= D.stay[t.home]) continue;      // 50.5.0: a held base's troops are not part of the army it plans with (50.5.1: only the ones it keeps)
     if (t.team === team) {
       mine[t.path.length ? t.path[0] : t.home] += st;
       committed[finalDest(t)] += st;
@@ -2656,13 +2678,24 @@ function aiThink(team) {
     const full = T.count >= capOf(team) * ((D.dly && D.dly.bold) || 0.9);
     const margin = (full ? Math.max(1.05, D.margin * 0.8) : D.margin) * (T.style.margin || 1) * (lastStand ? 1.25 : 1), frac = full || lastStand ? 0.95 : D.frac;
     let armyAll4 = 0; for (let i = 0; i < N; i++) armyAll4 += mine[i];
+    const AW = D.away; let awayHop = null;              // 50.5.1 (One Army's rival only): find the other side's army, the base most of its strength stands at or walks to,
+    if (AW) {                                           // and count the steps from it to every base; a target far from it is hit sooner and harder
+      const at = new Float64Array(N); let a = -1, ab = 0;
+      for (const t of G.troops) if (t.team !== team && t.team >= 0) at[t.path.length ? finalDest(t) : t.home] += S.st[t.team + 1];
+      for (let i = 0; i < N; i++) if (at[i] > ab) { ab = at[i]; a = i; }
+      if (a >= 0 && ab >= AW.min) {
+        awayHop = new Int32Array(N).fill(99); awayHop[a] = 0; const q = [a];
+        for (let i = 0; i < q.length; i++) for (const u of nodes[q[i]].adj) if (awayHop[u] === 99) { awayHop[u] = awayHop[q[i]] + 1; q.push(u); }
+      }
+    }
     for (const v of front) {
       const o = nodes[v].owner;
       if (bAllow && o >= 0 && !bAllow[o]) continue;   // BOUNTY: only the allowed colours (and neutrals) are targets
       if (v === T.avoid && G.t < T.avoidUntil) continue;  // just got bounced off this one
       const def = enemyAt(v), rt = routeTable(team, v);
-      const cB = nodes[v].crown && D.crownMargin, cf = cB ? (D.crownFrac || frac) : frac;   // 50.0.7: a challenge rival can be bolder about the crown alone (crownMargin, crownFrac); no other rival has them
-      let need = Math.max(5, def * (cB ? D.crownMargin : margin) + 1.2) / cf, fr = cf;
+      const far = awayHop && awayHop[v] >= AW.hops;
+      const cB = nodes[v].crown && D.crownMargin, cf = cB ? (D.crownFrac || frac) : far ? AW.frac : frac;   // 50.0.7: a challenge rival can be bolder about the crown alone (crownMargin, crownFrac); no other rival has them
+      let need = Math.max(5, def * (cB ? D.crownMargin : far ? AW.margin : margin) + 1.2) / cf, fr = cf;
       const fl = (T.fail && T.fail.v === v && G.t - T.fail.t < 150) ? T.fail.n : 0;   // failed attacks on this very base: ask for x1.5 more each time
       if (fl) need *= Math.pow(1.5, fl);
       let R = gatherRadius(rt, need);
@@ -2678,6 +2711,7 @@ function aiThink(team) {
       if (nodes[v].kind) sc += ((T.style.pref || {})[nodes[v].kind] || 0.6) * 0.8;   // each personality has its favorites
       if (nodes[v].crown) sc += 1.0 + 2.2 * (o >= 0 && o !== team ? G.teams[o].hill / kothGoal(o) : 0);   // and everyone chases whoever is close to winning
       if (hopCrown && hopCrown[v] >= 0) sc += 1.6 * Math.max(0, 1 - hopCrown[v] / 7);                         // and heads for it: bases on the way count extra
+      if (far) sc += AW.bonus;
       if (o === NEUTRAL) sc += 0.6;
       else {
         if (bPrey >= 0 && o === bPrey) sc += 2.0;   // BOUNTY: the crown (or its challenger) is the prize
@@ -2720,6 +2754,7 @@ function aiThink(team) {
   if (sm && G.t >= C.settle && !lastStand) {
     const idleAt = new Float64Array(N);
     for (const t of G.troops) if (t.team === team && !t.path.length) idleAt[t.home] += S.st[ti];
+    if (D.stay) for (const k in D.stay) idleAt[k] = Math.max(0, idleAt[k] - D.stay[k] * S.st[ti]);      // 50.5.1: a held base's kept troops are not free to raid
     let shots = 0;
     const SL = D.dly && D.dly.sliver;                   // DEADLY: a few more raids, never more than a share of the army, only from quiet bases
     let armyAll = 0; if (SL) for (let i = 0; i < N; i++) armyAll += mine[i];
@@ -2755,6 +2790,7 @@ function aiThink(team) {
   }
   let idleStr = 0;
   for (const t of G.troops) if (idle(t)) idleStr += S.st[ti];
+  if (D.stay) for (const k in D.stay) if (nodes[k].owner === team) idleStr -= Math.min(D.stay[k], nodes[k].pres[ti]) * S.st[ti];      // 50.5.1: nor for the second front
   if (idleStr < (sm ? 12 : 22)) return;
   let pick = null;
   for (const n of nodes) {
@@ -12649,6 +12685,7 @@ function startGame(watch, scen, modeKey, prac, resume) {
   mapBack(null); fling.vx = fling.vy = 0;
   G.autoplay = watching;
   hudEl.classList.toggle('noup', !!G.mods.noup); hudEl.classList.toggle('fog', !!G.mods.fog);
+  hudEl.classList.toggle('onearmy', !!G.oneArmy); document.querySelectorAll('#sendTri button').forEach(b => { if (G.oneArmy && b.dataset.send !== '1') b.setAttribute('aria-disabled', 'true'); else b.removeAttribute('aria-disabled'); });      // 50.5.0: One Army greys 25% and 50%
   $('kothRow').hidden = !G.mods.koth; $('objRow').hidden = !G.scenarioId; initFog();
   { const strength = !curPrac && !curScen && G.diffName ? (DIFF_LABEL[G.diffName] || '') : ''; $('diffTag').textContent = strength; }      // how strong the rivals are, in one word
   startCoach();
@@ -13065,7 +13102,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.4.5 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.5.1 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13134,11 +13171,11 @@ function handleTap(px, py) {
   let from = null;
   if (selValid()) {
     if (n.id === selBase && nowMs - selAt < 450) { selFlash = nowMs; xlEv('bnc', n.id); return; }                              // a second tap right after selecting is a bounce, not a regroup
-    if (n.id !== selBase) from = selBase; selBase = null;
+    if (n.id !== selBase && !G.oneArmy) from = selBase; selBase = null;      // 50.5.0: in One Army a selected base sends the whole army, not just its own troops
   }                                  // a base was selected: this tap sends from it (or, on the same base, regroups)
   else if (n.owner === PLAYER && !dbl && G.troops.some(t => atBase(t, n.id))) {
     selBase = n.id; selG = G; selT = G.t; selAt = nowMs; selFlash = nowMs; buzz('sel'); xlEv('sel', n.id);                                                                    // select: the next tap says where
-    if (!selHinted && !coach) { selHinted = true; toast('Selected. Tap where these troops should go. Tap here again to regroup.', TEAM_COLORS[PLAYER], PLAYER); }      // 50.4.2: not in the lesson (its cards say it); the first real match still shows it
+    if (!selHinted && !coach && !G.oneArmy) { selHinted = true; toast('Selected. Tap where these troops should go. Tap here again to regroup.', TEAM_COLORS[PLAYER], PLAYER); }      // 50.4.2: not in the lesson (its cards say it); the first real match still shows it
     return;
   }
   if (dbl && lastFromSel === n.id) { lastFromSel = -1; setLock(PLAYER, n.id); return; }                         // double-tap after a send from a selection: just lock on
@@ -13391,7 +13428,8 @@ $('vol').addEventListener('input', () => {
   settingsKey = 'volume'; renderSettingsHint();
 });
 $('bSound').addEventListener('click', () => { settings.sound = !settings.sound; save('ice-settings', settings); audioOn(); syncSound(); });
-function setSend(f) { if (mode !== 'play' || !SENDS.includes(f)) return; settings.send = f; save('ice-settings', settings); xlEv('pct', f); syncCtrl(); }
+function setSend(f) { if (mode !== 'play' || !SENDS.includes(f)) return; if (G && G.oneArmy && f !== 1) { toast('One Army: every order sends your whole army.', TEAM_COLORS[PLAYER], PLAYER); return; }      // 50.5.0: One Army sends 100% only (toast: DC placeholder for WC)
+  settings.send = f; save('ice-settings', settings); xlEv('pct', f); syncCtrl(); }
 document.querySelectorAll('#sendTri button').forEach(b => b.addEventListener('click', () => setSend(+b.dataset.send)));
 
 window.addEventListener('keydown', e => {
@@ -14232,4 +14270,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.4.5, from source sha256 de10c4d6c5cff182 -->
+<!-- Aiced build 50.5.1, from source sha256 959af9bf20a441d6 -->

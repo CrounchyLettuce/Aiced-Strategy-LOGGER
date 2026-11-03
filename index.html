@@ -749,7 +749,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1104,6 +1104,7 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
 const CROWN_AI = { smart: 0, spawn: 0.3, margin: 2.6, interval: [6, 9], crownMargin: 1.0, crownFrac: 1 };         // T1_M2's rival (50.0.7, draft 3 "take the crown back"): starts next to the crown and goes for it at once (crownMargin, crownFrac), slow to build and patient about everything else so a newcomer can still catch up
 const ONEARMY_AI = { smart: 1, spawn: 0.22, margin: 2.6, interval: [6, 9], stay: { 7: 25, 8: 25 }, away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 } };      // T2_M1's rival (50.5.0, One Army): Border Dispute's patient rival; its two walls each keep 25 at home (stay), and it goes where your army is not (away) (50.5.1)
+const TRUCE_AI = { smart: 1, spawn: 0.5, margin: 2.6, interval: [6, 9], truce: { margin: 1.3, frac: 0.85, interval: [2, 3.5] } };      // T2_M2's rivals (50.5.5, Truce): quick to grab neutral bases in the truce (truce: the margin and share they use then), and after it they hunt the leader (G.truce.hunt)
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
@@ -1124,7 +1125,13 @@ const SCENARIOS = [
     size: 'small', teams: 2, shape: 'continent', map: 'one-army', face: 'wide', diff: 'easy', seed: 9101, fair: true, mods: {}, specials: true, aiTune: ONEARMY_AI, oneArmy: true,
     rule: 'Every order sends your whole army, and every base it leaves stands empty.',
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 300, t: 'Win in under 5:00' }, { k: 'noloss', t: 'Win without losing a base' }] },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 390, t: 'Win in under 6:30' }, { k: 'noloss', t: 'Win without losing a base' }] },      // 50.5.4: 6:30, AC's call from Henry's restricted runs (4:45, 6:12)
+  // 50.5.5: Tier 2's second level, Truce (AC's plan, Henry Nov 1; three points settled Nov 3). Name, desc, rule and star 3's line are DC placeholders until WC. Stars are placeholders until Henry's runs.
+  { id: 'truce', tier: 2, name: 'Truce', desc: 'Grab what you can. The war starts when the land runs out.',
+    size: 'medium', teams: 3, active: [0, 1, 3], shape: 'islands', map: 'truce', face: 'wide', diff: 'easy', seed: 9102, fair: true, mods: {}, specials: true, aiTune: TRUCE_AI, truce: { hunt: 15 },
+    rule: 'Nobody can attack a coloured base while a neutral base is left. Take the last one and the war begins, and the rivals go after whoever is biggest.',
+    objective: { type: 'conquest', text: 'Take every base' },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 480, t: 'Win in under 8:00' }, { k: 'truceko', v: 60, t: 'Knock out a rival within 1:00 of the truce ending' }] },
   { id: 'iron-wall', tier: 2, name: 'Iron wall', desc: 'Islands, bridges and two rivals. Build a territory and hold it.',
     size: 'medium', teams: 3, shape: 'islands', diff: 'hard', seed: 7065, fair: true, mods: {}, specials: true, aiTune: { margin: 1.4, spawn: 1.02, playerBias: 0.25 },
     objective: { type: 'hold', n: 12, secs: 120, text: 'Hold 12 bases for 2 minutes' },
@@ -1206,7 +1213,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1217,6 +1224,7 @@ function starMet(g) {
     case 'nostat': return P.lv[g.v] === 0;
     case 'bases': return P.bases >= g.v;
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive);
+    case 'truceko': return !!G.truce && G.truce.end != null && G.log.some(e => e.k === 'out' && e.b !== PLAYER && e.a === PLAYER && e.t <= G.truce.end + g.v);   // 50.5.5: you took a rival's last base within v s of the truce ending
     case 'hillcap': return G.teams.every(T => T.i === PLAYER || !T.active || T.hill < g.v);   // 50.0.7: no rival banked this much crown time
   }
   return false;
@@ -1264,14 +1272,26 @@ STATIC_MAPS["bases-loaded"].outline = [[1249,350],[1249,381],[1243,412],[1232,44
 STATIC_MAPS["lesson"].outline = [[1020,395],[1026,420],[1029,445],[1028,471],[1024,496],[1016,520],[1007,543],[996,566],[984,588],[971,610],[956,629],[936,646],[908,655],[869,654],[822,640],[773,618],[728,593],[689,566],[657,542],[632,521],[613,504],[599,492],[589,483],[582,479],[577,477],[572,477],[568,478],[563,479],[559,480],[555,481],[550,483],[545,486],[540,489],[535,493],[528,496],[522,500],[515,504],[507,507],[498,511],[489,515],[478,519],[466,525],[450,533],[430,544],[404,558],[371,574],[334,590],[299,598],[272,597],[251,589],[235,577],[218,564],[200,551],[181,536],[162,521],[144,504],[127,485],[113,464],[101,442],[93,419],[93,395],[100,371],[115,349],[133,329],[153,311],[173,294],[192,279],[210,264],[227,251],[244,239],[260,228],[276,217],[291,207],[305,197],[319,187],[331,176],[344,166],[356,155],[367,144],[380,133],[392,122],[406,112],[420,104],[436,98],[452,94],[469,93],[486,95],[503,100],[520,106],[535,114],[550,121],[564,128],[577,135],[591,139],[604,142],[618,141],[634,138],[651,133],[669,129],[686,127],[702,132],[714,143],[720,162],[720,185],[717,209],[716,229],[720,242],[735,245],[763,240],[805,230],[856,218],[905,214],[941,221],[962,237],[971,258],[975,281],[981,303],[989,325],[1000,348],[1011,371]];
 // 50.5.0: Tier 2's first level, One Army (AC's sketch T2_M4). Bases by role: 0 your home, 1-2 your lobe, 3 the lobe's door, 4-6 the corridor (the narrows),
 // 7-8 the rival's walls (25 each; ONEARMY_AI.stay keeps 25 home), 9 its middle base, 10 its home, 11 the way into the Forge pocket, 12 the Forge,
-// 13-17 the side lane from the rival's lower wall round to your lobe (13 starts red; 50.5.1: it joined the middle base before, so going round skipped the walls). The lake between the corridor and the lane is the Ring shape's middle (deco).
+// 13-17 the side lane from the rival's lower wall round to your lobe (13 starts red; 50.5.1: it joined the middle base before, so going round skipped the walls).
+// 50.5.4: the land hugs the roads (60 clear of every road and base; tools coast5054\hug2.py), so the corridor and the lane read as narrows. The lake between the corridor and the lane is the Ring shape's middle (deco).
 STATIC_MAPS['one-army'] = { id: 'one-army', w: 1380, h: 700, size: 'small',
   nodes: [[100, 290], [240, 215], [240, 370], [380, 290], [520, 290], [670, 290], [820, 290], [960, 245], [960, 345], [1110, 290], [1280, 290], [550, 145], [700, 125], [1100, 540], [900, 600], [700, 620], [500, 590], [340, 515]],
   edges: [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [6, 8], [7, 8], [7, 9], [8, 9], [9, 10], [4, 11], [11, 12], [2, 17], [17, 16], [16, 15], [15, 14], [14, 13], [13, 8]],
-  starts: [0, 10], specials: { 12: 'forge' }, shape: 'continent', deco: { kind: 'ring', cx: 685, cy: 450, rx: 275, ry: 80 },
+  starts: [0, 10], specials: { 12: 'forge' }, shape: 'continent', deco: { kind: 'ring', cx: 680, cy: 450, rx: 265, ry: 100 },
   garrison: { 0: 10, 1: 6, 2: 6, 3: 8, 4: 9, 5: 10, 6: 12, 7: 25, 8: 25, 9: 8, 10: 10, 11: 10, 12: 16, 13: 8, 14: 9, 15: 9, 16: 9, 17: 8 },
   owned: { 7: 1, 8: 1, 9: 1, 13: 1 } };
-STATIC_MAPS['one-army'].outline = [[1277,372],[1244,402],[1218,428],[1200,453],[1187,478],[1177,503],[1169,528],[1159,553],[1145,575],[1123,593],[1096,607],[1068,618],[1040,627],[1013,634],[988,641],[965,647],[943,653],[921,658],[901,663],[881,667],[863,671],[844,675],[826,679],[809,683],[792,687],[775,690],[758,694],[741,698],[724,701],[707,703],[690,704],[673,705],[655,704],[638,703],[620,702],[602,699],[585,696],[567,692],[550,687],[532,682],[516,675],[499,667],[483,658],[467,648],[451,638],[435,627],[418,617],[400,607],[380,598],[358,588],[335,577],[312,565],[293,549],[277,531],[263,511],[248,491],[231,470],[210,449],[183,426],[149,401],[109,372],[70,340],[43,304],[37,269],[50,237],[78,209],[116,186],[161,169],[214,161],[277,162],[338,169],[385,174],[417,174],[437,168],[448,155],[455,137],[461,118],[467,97],[476,78],[488,61],[502,46],[518,35],[536,27],[555,22],[575,19],[595,18],[615,19],[635,23],[654,28],[672,34],[690,40],[707,46],[723,56],[738,71],[749,94],[755,129],[757,165],[758,195],[760,215],[764,228],[770,233],[780,234],[792,232],[808,227],[827,221],[849,213],[875,206],[904,199],[937,193],[972,189],[1009,189],[1049,190],[1094,193],[1144,198],[1200,207],[1258,220],[1309,241],[1336,270],[1336,305],[1311,340]];
+STATIC_MAPS['one-army'].outline = [[62,368],[43,355],[28,339],[17,319],[13,297],[15,274],[21,253],[33,234],[50,219],[70,209],[92,203],[114,204],[137,202],[157,191],[177,181],[197,170],[216,158],[238,153],[260,158],[280,168],[300,179],[320,190],[340,200],[360,211],[380,222],[401,229],[424,229],[446,228],[465,217],[477,198],[482,176],[486,153],[490,131],[499,110],[515,94],[535,85],[558,83],[580,80],[603,77],[625,74],[645,65],[665,53],[687,47],[709,46],[731,52],[750,63],[765,80],[775,100],[779,122],[777,145],[770,166],[767,188],[775,209],[792,223],[814,227],[836,222],[857,215],[879,208],[900,199],[918,186],[938,175],[960,171],[982,175],[1003,185],[1021,198],[1042,206],[1063,213],[1085,215],[1108,212],[1130,216],[1151,223],[1173,230],[1196,229],[1217,224],[1237,214],[1258,205],[1281,202],[1303,206],[1323,215],[1342,228],[1355,246],[1364,267],[1367,289],[1365,312],[1356,332],[1343,350],[1325,364],[1305,374],[1283,377],[1260,375],[1239,368],[1219,356],[1198,351],[1175,350],[1153,355],[1133,364],[1112,373],[1097,389],[1092,411],[1098,432],[1111,451],[1124,470],[1137,488],[1151,506],[1160,527],[1161,549],[1154,570],[1139,587],[1120,599],[1098,603],[1076,610],[1054,617],[1033,624],[1011,630],[989,637],[968,644],[946,650],[924,657],[902,662],[880,664],[857,666],[834,668],[812,670],[789,672],[767,674],[744,676],[722,679],[699,681],[677,678],[654,675],[632,671],[610,668],[587,665],[565,661],[542,658],[520,655],[497,652],[476,646],[455,636],[435,627],[414,617],[394,607],[373,597],[353,588],[333,578],[311,570],[294,556],[282,537],[269,518],[256,499],[243,481],[230,462],[217,444],[204,425],[187,410],[168,399],[148,387],[128,378],[105,377],[83,376]];
+// 50.5.5: Tier 2's second level, Truce (AC's sketch T2_M5). Bases by role: 0 your home, 1-3 your pocket, 4 Red's home, 5-7 its pocket, 8 Yellow's home,
+// 9-11 its pocket; 12, 13, 14 the narrows from each pocket to the plain (yours, Red's, Yellow's); 15 the Fortress in the middle of the plain, 16-20 the plain;
+// 21-22 the outer road from your pocket to Red's, 23-24 from Yellow's to Red's, 25-27 from yours to Yellow's. The land is four islands with their own
+// hulls (deco.hulls; tools m5\isl.py): the pockets, narrows and plain as one, and each outer road, joined to the pockets by a bridge at both ends.
+STATIC_MAPS.truce = { id: 'truce', w: 1500, h: 940, size: 'medium',
+  nodes: [[230, 740], [340, 650], [200, 610], [390, 785], [750, 110], [645, 190], [855, 190], [750, 255], [1270, 740], [1160, 650], [1300, 610], [1110, 785], [490, 610], [750, 360], [1010, 610], [750, 530], [630, 470], [870, 470], [630, 610], [870, 610], [750, 680], [300, 420], [470, 265], [1200, 420], [1030, 265], [750, 860], [565, 850], [935, 850]],
+  edges: [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [4, 5], [4, 6], [5, 7], [6, 7], [8, 9], [8, 10], [8, 11], [9, 10], [9, 11], [1, 12], [12, 18], [12, 16], [7, 13], [13, 16], [13, 17], [9, 14], [14, 19], [14, 17], [15, 16], [15, 17], [15, 18], [15, 19], [18, 20], [19, 20], [16, 18], [17, 19], [2, 21], [21, 22], [22, 5], [10, 23], [23, 24], [24, 6], [3, 26], [26, 25], [25, 27], [27, 11]],
+  bridges: [[2, 21], [22, 5], [10, 23], [24, 6], [3, 26], [27, 11]],
+  starts: [0, 4, 8], specials: { 15: 'fortress' }, shape: 'islands',
+  garrison: { 0: 10, 4: 10, 8: 10, 1: 6, 2: 6, 3: 6, 5: 6, 6: 6, 7: 6, 9: 6, 10: 6, 11: 6, 12: 9, 13: 9, 14: 9, 15: 22, 16: 10, 17: 10, 18: 8, 19: 8, 20: 10, 21: 10, 22: 10, 23: 10, 24: 10, 25: 12, 26: 10, 27: 10 } };
+STATIC_MAPS.truce.deco = { kind: 'islands', groups: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 3], hulls: [[[138,614],[141,592],[151,573],[167,558],[187,549],[209,549],[230,556],[251,562],[272,568],[293,574],[315,580],[336,586],[358,583],[379,577],[400,572],[422,566],[443,560],[463,552],[479,536],[495,521],[510,505],[526,489],[541,474],[557,458],[573,442],[587,426],[604,412],[621,397],[637,382],[653,367],[669,352],[684,336],[690,315],[686,294],[672,277],[653,266],[634,254],[615,244],[598,230],[587,211],[583,189],[587,168],[598,149],[616,135],[634,123],[651,110],[666,94],[675,73],[687,55],[703,40],[723,30],[745,26],[767,28],[787,35],[806,47],[820,64],[830,84],[840,103],[858,116],[875,130],[894,142],[908,158],[916,179],[916,201],[909,221],[894,238],[875,249],[856,260],[837,272],[820,285],[810,305],[811,326],[823,345],[839,360],[855,375],[871,390],[888,405],[905,419],[921,434],[935,450],[951,466],[967,482],[982,497],[998,513],[1013,529],[1029,544],[1047,557],[1068,563],[1089,569],[1111,575],[1132,580],[1153,586],[1175,583],[1196,577],[1217,571],[1239,565],[1260,559],[1281,551],[1302,548],[1324,553],[1342,565],[1355,582],[1362,603],[1360,625],[1353,646],[1348,668],[1344,689],[1349,711],[1354,732],[1353,754],[1346,775],[1335,794],[1318,809],[1299,819],[1277,824],[1255,823],[1234,817],[1212,819],[1191,825],[1170,831],[1148,837],[1128,844],[1106,847],[1085,842],[1067,829],[1054,811],[1048,790],[1050,768],[1060,748],[1067,727],[1066,706],[1054,688],[1034,678],[1012,673],[991,670],[968,670],[946,670],[924,670],[902,670],[881,674],[861,684],[842,696],[823,707],[804,718],[786,730],[766,740],[744,742],[723,736],[705,723],[686,712],[667,701],[648,690],[629,679],[609,670],[586,670],[564,670],[542,670],[520,670],[498,671],[477,676],[455,682],[439,696],[432,717],[437,738],[446,758],[452,779],[450,801],[440,821],[425,836],[405,845],[383,847],[362,840],[341,833],[319,827],[298,821],[277,816],[255,820],[233,824],[212,822],[191,814],[173,802],[159,785],[150,765],[146,743],[148,721],[155,700],[154,678],[149,657],[143,635]],[[290,348],[306,333],[322,319],[337,305],[353,290],[369,276],[384,262],[400,248],[416,233],[430,218],[448,207],[469,203],[490,206],[509,217],[523,232],[531,252],[531,273],[525,293],[512,310],[496,323],[480,337],[464,352],[448,366],[433,380],[417,395],[401,409],[386,423],[370,437],[354,452],[340,467],[322,478],[301,482],[280,479],[261,468],[247,453],[239,433],[239,412],[245,392],[258,375],[274,362]],[[982,304],[972,286],[968,265],[972,244],[982,226],[998,212],[1018,204],[1039,204],[1059,210],[1076,223],[1090,239],[1106,253],[1122,267],[1137,282],[1153,296],[1169,310],[1184,325],[1200,339],[1216,353],[1232,367],[1248,381],[1258,399],[1262,420],[1258,441],[1248,459],[1232,473],[1212,481],[1191,481],[1171,475],[1154,462],[1140,446],[1124,432],[1108,418],[1093,403],[1077,389],[1061,375],[1046,360],[1030,346],[1014,332],[998,318]],[[552,911],[531,902],[515,887],[505,867],[503,845],[509,824],[521,806],[540,793],[561,788],[583,791],[605,792],[627,793],[649,794],[672,796],[694,797],[716,798],[738,799],[760,799],[782,798],[804,797],[827,796],[849,795],[871,793],[893,792],[915,791],[937,788],[959,793],[977,805],[991,822],[997,844],[995,866],[986,886],[970,901],[950,910],[928,912],[906,912],[884,913],[861,914],[839,915],[817,916],[795,918],[773,919],[751,922],[729,919],[707,918],[685,917],[662,915],[640,914],[618,913],[596,912],[574,911]]] };
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1752,6 +1772,7 @@ function newGame(opts) {
     land: fp && fp.outline ? { kind: fp.kind, outline: fp.outline } : fixed && Array.isArray(fixed.outline) && fixed.outline.length > 2 ? { kind: 'blob', outline: fixed.outline.map(q => [q[0], q[1]]) } : null,      // 50.1.3: the land's outline. 50.1.5: ui.js draws it as its own scenery layer (coastDeco), under the shape's own. 50.4.5: a hand-made map's own outline (the Tier 1 maps, the lesson)
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
+    truce: opts.truce ? { end: null, hunt: opts.truce.hunt || 15 } : null,      // 50.5.5: Truce's rule; truceOn() while a neutral base is left, then end is when the last one fell; for hunt s after it each rival favours the prey it picked then
     oneArmy: !!opts.oneArmy,      // 50.5.0: One Army's rule; ui.js sends the whole army on every order and greys 25% and 50%
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
@@ -1961,6 +1982,33 @@ function statArrays() {
 // C.cell-sized squares (a counting sort into reusable typed arrays, so nothing is allocated per call),
 // then each troop only checks the 5x5 cells around it.
 const GRID = { w: 0, h: 0, count: new Int32Array(0), start: new Int32Array(0), order: new Int32Array(0), cellOf: new Int32Array(0) };
+const truceOn = () => !!(G.truce && G.truce.end == null);      // 50.5.5: Truce: no colour may hurt another while a neutral base is left
+function truceStep() {                                // the truce ends for good when the last neutral base falls; until then nobody waits on a base another colour took first
+  if (!truceOn()) return;
+  let neu = false; for (const n of G.nodes) if (n.owner === NEUTRAL) { neu = true; break; }
+  if (!neu) { G.truce.end = G.t; return; }
+  const nodes = G.nodes, rts = {};
+  for (const t of G.troops) {                          // troops going to (or standing on) a base that another colour took first turn back to their own side,
+    if (t.team < 0) continue;                          // so no army sits on a base it may not touch and strikes the moment the truce ends
+    const d = finalDest(t), o = nodes[d].owner; if (o < 0 || o === t.team) continue;
+    if (G.lock[t.team] === d) G.lock[t.team] = null;
+    if (t.path.length && nodes[t.home].owner === t.team) { t.path = [t.home]; t.tgt = null; continue; }      // on the road: back to the base it left
+    const k = t.team + ':' + d, p = rts[k] !== undefined ? rts[k] : (rts[k] = truceWayHome(t.team, d));      // standing there: the shortest way to its nearest own base
+    if (p) { t.path = p.slice(); t.tgt = null; }
+  }
+}
+function truceWayHome(team, from) {                    // through any colour's base (nobody fights in a truce), round neutral ones if it can; null if the colour holds none
+  const nodes = G.nodes, N = nodes.length, dist = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), done = new Uint8Array(N);
+  dist[from] = 0;
+  for (;;) {
+    let u = -1, bd = Infinity;
+    for (let i = 0; i < N; i++) if (!done[i] && dist[i] < bd) { bd = dist[i]; u = i; }
+    if (u < 0) return null;
+    if (u !== from && nodes[u].owner === team) { const p = []; for (let c = u; c !== from; c = prev[c]) p.unshift(c); return p; }
+    done[u] = 1;
+    for (const v of nodes[u].adj) { const nd = dist[u] + Math.hypot(nodes[u].x - nodes[v].x, nodes[u].y - nodes[v].y) + (nodes[v].owner === NEUTRAL ? 5000 : 0); if (nd < dist[v]) { dist[v] = nd; prev[v] = u; } }      // round a neutral base if it can (its garrison would fight)
+  }
+}
 function retarget() {
   const troops = G.troops, n = troops.length, cs = C.cell;
   const gw = Math.ceil(W / cs) + 2, gh = Math.ceil(H / cs) + 2, cells = gw * gh;
@@ -1977,7 +2025,7 @@ function retarget() {
   for (let c = 0; c < cells; c++) start[c + 1] = start[c] + count[c];
   for (let c = 0; c < cells; c++) count[c] = start[c];          // reuse count as a write cursor
   for (let i = 0; i < n; i++) order[count[cellOf[i]]++] = i;
-  const e2 = C.engage * C.engage;
+  const e2 = C.engage * C.engage, tr = truceOn();
   for (let i = 0; i < n; i++) {
     const t = troops[i], team = t.team, tx = t.x, ty = t.y, c = cellOf[i];
     const cx = c % gw, cy = (c / gw) | 0;
@@ -1986,7 +2034,7 @@ function retarget() {
     for (let gy = y0; gy <= y1; gy++) {
       const row = gy * gw;
       for (let k = start[row + x0], end = start[row + x1 + 1]; k < end; k++) {   // cells in a row are contiguous
-        const o = troops[order[k]]; if (o.team === team) continue;
+        const o = troops[order[k]]; if (o.team === team || (tr && o.team >= 0 && team >= 0)) continue;      // 50.5.5: in a truce two colours never fight
         const dx = o.x - tx, dy = o.y - ty, d = dx * dx + dy * dy;
         if (d < bd) { bd = d; best = o; }
       }
@@ -1999,7 +2047,7 @@ function update(dt) {
   if (!G || G.over) return;
   G.t += dt; G.step++;
   const S = statArrays(), nodes = G.nodes, troops = G.troops;
-  const R2 = C.range * C.range, E2 = (C.engage * 1.6) ** 2, L2 = (C.leash + 12) ** 2, B2 = C.baseRange ** 2;
+  const R2 = C.range * C.range, E2 = (C.engage * 1.6) ** 2, L2 = (C.leash + 12) ** 2, B2 = C.baseRange ** 2, tr = truceOn();
   if (G.step % 3 === 1) retarget();
 
   for (let i = 0; i < troops.length; i++) {
@@ -2028,10 +2076,10 @@ function update(dt) {
     if (!engaged) {
       let hit = null;
       const h = nodes[t.home];
-      if (h.owner !== t.team && h.pres[h.owner + 1] === 0 && (h.x - t.x) ** 2 + (h.y - t.y) ** 2 <= B2) hit = h;
+      if (h.owner !== t.team && (!tr || h.owner < 0) && h.pres[h.owner + 1] === 0 && (h.x - t.x) ** 2 + (h.y - t.y) ** 2 <= B2) hit = h;      // 50.5.5: a coloured base is never hit in a truce
       else if (t.path.length) {
         const q = nodes[t.path[0]];
-        if (q.owner !== t.team && q.pres[q.owner + 1] === 0 && (q.x - t.x) ** 2 + (q.y - t.y) ** 2 <= B2) hit = q;
+        if (q.owner !== t.team && (!tr || q.owner < 0) && q.pres[q.owner + 1] === 0 && (q.x - t.x) ** 2 + (q.y - t.y) ** 2 <= B2) hit = q;
       }
       if (hit) {
         t.aim = hit;
@@ -2104,6 +2152,7 @@ function update(dt) {
 
   presenceStep(dt);
   recount();
+  truceStep();
   spawnStep(dt);
   kothStep(dt);
   objStep(dt);
@@ -2115,7 +2164,7 @@ function update(dt) {
     T.aiT -= dt;
     if (T.aiT <= 0) {
       if (G.lesson) lessonThink(i); else aiThink(i);
-      const iv = T.diff.interval;
+      const iv = (T.diff.truce && truceOn() && T.diff.truce.interval) || T.diff.interval;      // 50.5.5: Truce's rivals think faster while the truce lasts
       T.aiT = iv[0] + G.rng() * (iv[1] - iv[0]);
     }
   }
@@ -2194,6 +2243,7 @@ function spawnStep(dt) {
 // lock-on: fresh troops head straight for the locked base
 function setLock(team, nodeId) { G.lock[team] = nodeId; /* LOGGER BUILD */ if (team === PLAYER && window.__xlLock) window.__xlLock(nodeId == null ? -1 : nodeId); }
 function sendTo(t, target) {
+  if (truceOn() && G.nodes[target].owner >= 0 && G.nodes[target].owner !== t.team) return;      // 50.5.5: lock-on never sends at a colour in a truce
   let c = G._rtCache;
   if (!c || c.team !== t.team || c.target !== target || c.step !== G.step) {
     c = G._rtCache = { team: t.team, target, step: G.step, rt: routeTable(t.team, target) };
@@ -2373,6 +2423,7 @@ function followPath(rt, s, target) {
 }
 
 function command(team, target, frac, filter, maxCost = Infinity) {
+  if (truceOn() && G.nodes[target].owner >= 0 && G.nodes[target].owner !== team) return null;      // 50.5.5: no orders at a colour in a truce
   const nodes = G.nodes, rt = routeTable(team, target), cands = [], stay = (team !== PLAYER || G.autoplay) && G.teams[team].diff.stay || null, kept = {};      // 50.5.0: a challenge rival's held bases (stay) keep their troops; 50.5.1: up to a count per base
   for (const t of G.troops) {
     if (t.team !== team) continue;
@@ -2471,7 +2522,13 @@ function aiThink(team) {
   aiSpend(team);
   const sm = D.smart || 0, S = statArrays();
   let bAllow = null, bPrey = -1, bLead = -1;           // BOUNTY (49.1.1): everyone hunts the crown holder; the crown holder hunts the runner-up
-  if (G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
+  const TRc = G.truce, tNeu = !!TRc && TRc.end == null;      // 50.5.5: Truce: neutral bases only while it lasts; after it, Bounty's hunt for the leader
+  if (tNeu) { bAllow = bountyOnly(-1); bPrey = -1; }
+  else if (TRc && G.t - TRc.end < TRc.hunt) {         // Henry, Nov 3: no lasting Bounty (it stalls). Each rival picks its prey once, when the truce ends (the leader, or the runner-up
+    if (T.huntOf == null) { const BR = bountyRanks(); T.huntOf = BR.L !== team ? BR.L : BR.R; }      // if it leads itself), and only favours it for TRc.hunt seconds: no lock, no flip-flop
+    if (T.huntOf >= 0 && G.teams[T.huntOf].alive) bPrey = T.huntOf;
+  }
+  if (!tNeu && G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
   if (!G._ai || G._ai.N !== N) G._ai = { N, pres: new Float64Array(N * 6), mine: new Float64Array(N), committed: new Float64Array(N) };
   const P6 = G._ai.pres.fill(0), mine = G._ai.mine.fill(0), committed = G._ai.committed.fill(0);
   const pr2 = (C.presenceR * 1.2) ** 2, keptAt = {};
@@ -2495,7 +2552,7 @@ function aiThink(team) {
   // smart rivals keep a garrison at the base that enemy troops are walking up to, so an attack elsewhere does not strip it.
   // Only moving enemy troops count, only against the nearest of our bases, and the reserve is picked once so every command agrees on it.
   const held = sm ? new Set() : null;
-  if (sm) {
+  if (sm && !tNeu) {
     const R2 = 300 * 300, keepLeft = new Float64Array(N);
     for (const t of G.troops) {
       if (t.team === team || t.team < 0 || !t.path.length) continue;
@@ -2663,7 +2720,7 @@ function aiThink(team) {
     const front = new Set();
     for (const n of nodes) if (n.owner === team || mine[n.id] > 0)
       for (const v of n.adj) if (nodes[v].owner !== team) front.add(v);
-    if (bAllow) {                                       // BOUNTY: what is really in reach decides who this colour may hit
+    if (bAllow && !tNeu) {                              // BOUNTY: what is really in reach decides who this colour may hit (not in a truce: neutral bases only)
       const near = new Set(); let neu = false;
       for (const v of front) { const o = nodes[v].owner; if (o < 0) neu = true; else near.add(o); }
       if (!(bPrey >= 0 && near.has(bPrey))) {           // the preferred target is out of reach
@@ -2676,7 +2733,8 @@ function aiThink(team) {
     }
     const MS = (D.dly && D.dly.mass && G.t < D.dly.mass.until) ? D.dly.mass : null;   // DEADLY: early on, nearby rivals are the preferred target
     const full = T.count >= capOf(team) * ((D.dly && D.dly.bold) || 0.9);
-    const margin = (full ? Math.max(1.05, D.margin * 0.8) : D.margin) * (T.style.margin || 1) * (lastStand ? 1.25 : 1), frac = full || lastStand ? 0.95 : D.frac;
+    const TM = tNeu && D.truce;                         // 50.5.5: Truce's rivals grab neutral bases with their own margin and share while it lasts
+    const margin = TM ? TM.margin : (full ? Math.max(1.05, D.margin * 0.8) : D.margin) * (T.style.margin || 1) * (lastStand ? 1.25 : 1), frac = TM ? TM.frac : full || lastStand ? 0.95 : D.frac;
     let armyAll4 = 0; for (let i = 0; i < N; i++) armyAll4 += mine[i];
     const AW = D.away; let awayHop = null;              // 50.5.1 (One Army's rival only): find the other side's army, the base most of its strength stands at or walks to,
     if (AW) {                                           // and count the steps from it to every base; a target far from it is hit sooner and harder
@@ -2861,7 +2919,7 @@ const SHOP_TEXT = {
     ink: 'Ink bleeding into warm paper. Muffled piano keys, and a slow tide beneath them.',     // 49.6: placeholder words for Henry and WC
     /*STYLE:P3*/
     chamber: 'Strings drawn tight over velvet. Somewhere, a cello is still warming up.',     // SC pitch; final words by Henry and WC
-    blackiron: 'Every base pulls. You can see it in the iron, and hear it in the air.',     // SC pitch; final words by Henry and WC
+    blackiron: 'Iron filings on a dark desk, drawn to every base. A hollow house, and glass voices in the walls.',     // Henry + WC, Nov 1 2026 (50.5.2)
     leadlight: 'A chapel window at dusk. Down below, a little organ fights for breath.',     // SC pitch; final words by Henry and WC
     sand: 'A pale sand garden, raked and empty. Singing bowls and wooden notes.' }     // 49.7: placeholder words for Henry and WC     // 49.5: placeholder words for Henry and WC
 };
@@ -3934,6 +3992,7 @@ function coastDeco() {
 }
 function islandHulls(D = decoCur || G.deco) {         // a soft outline around each island's bases, computed once per map
   if (D._hulls) return D._hulls;
+  if (D.hulls) return (D._hulls = D.hulls);      // 50.5.5: a hand-made map's own islands (Truce)
   if (D.land && G.land) return (D._hulls = [G.land.outline]);      // a footprint's land: its own coast, not a hull round the bases
   const groups = {};
   G.nodes.forEach((n, i) => { const g = D.groups[i]; (groups[g] || (groups[g] = [])).push([n.x, n.y]); });
@@ -8935,6 +8994,10 @@ function hud() {
       if (you || lost || watching) toast(`${you ? 'You' : TEAM_NAMES[f.c]} took ${lost ? 'your' : 'the'} ${SPECIALS[f.kind].name}`, TEAM_COLORS[f.c], f.c);
     }
   }
+  if (G.truce && G.truce.end != null && !G.truce.told) {      // 50.5.5: the truce is over: seen (banner, toast, shake) and heard (truceCue). Words: DC placeholders for WC
+    G.truce.told = true;
+    if (G.t - G.truce.end < 3) { banner('THE TRUCE IS OVER', '#ffcd30'); toast('The truce is over. Every base is fair game.', '#ffcd30'); shake(8); truceCue(); }
+  }
   if (G.scenarioId) {                               // the challenge's goal and how far along you are
     const o = G.obj, P = G.teams[PLAYER]; let lbl = o.text, txt = fmt(G.t), fr = 0;
     if (o.type === 'conquest') { lbl = 'Take every base'; txt = `${P.bases} / ${G.nodes.length} bases · ${fmt(G.t)}`; fr = P.bases / G.nodes.length; }
@@ -8944,6 +9007,10 @@ function hud() {
       let held = 0, tot = 0; for (const n of G.nodes) if (n.kind === 'forge') { tot++; if (n.owner === PLAYER) held++; }
       lbl = 'Hold every Forge'; txt = `${held}/${tot} forges · ${Math.floor(G.os.forges)}/${o.secs} s`; fr = Math.max(held / Math.max(1, tot) * 0.5, G.os.forges / o.secs);
     } else if (o.type === 'crown') { lbl = 'King of the hill'; txt = fmt(G.t); }
+    if (G.truce) {                                  // 50.5.5: Truce: the neutral bases left, then the minute to knock out a rival (DC placeholders for WC)
+      if (G.truce.end == null) { let nl = 0; for (const q of G.nodes) if (q.owner === NEUTRAL) nl++; lbl = 'Truce'; txt = `${nl} neutral ${nl === 1 ? 'base' : 'bases'} left · ${fmt(G.t)}`; }
+      else if (G.t - G.truce.end < 60) { lbl = 'War'; txt = `${Math.ceil(60 - (G.t - G.truce.end))} s to knock out a rival · ${fmt(G.t)}`; }
+    }
     setText($('objLbl'), lbl); setText($('objTxt'), txt); setStyle($('objFill'), 'width', Math.min(100, fr * 100).toFixed(1) + '%');
   }
   if (G.mods.koth && G.crown >= 0) {
@@ -9183,6 +9250,10 @@ function spNote(t, midi, dur, peak, pan) {            // one round sine note wit
 function spTake(t, pan) { [60, 67, 72].forEach((m, i) => spNote(t + i * 0.09, m, 0.2, 0.07, pan)); }
 function spLose(t, pan) { [67, 60, 55].forEach((m, i) => spNote(t + i * 0.12, m, 0.24, 0.075, pan)); spNote(t, 45, 0.45, 0.085, pan * 0.5); }
 function spRival(t, pan) { const c = AC.currentTime; SP.rc = SP.rc.filter(x => c - x < 2); if (SP.rc.length >= 3) return; SP.rc.push(c); spNote(t, 55, 0.3, 0.032, pan); }
+function truceCue() {                                  // 50.5.5: the truce is over: a rising call, the same in every look for now (a placeholder until SC gives each look its own)
+  if (!AC || !settings.sound || !audible() || AC.state !== 'running') return;
+  const t = AC.currentTime + 0.05; [55, 62, 67, 74].forEach((m, i) => spNote(t + i * 0.16, m, 0.9 + i * 0.15, 0.065, 0));
+}
 function spKnock(t) { [62, 57, 53, 46].forEach((m, i) => spNote(t + i * 0.22, m, 0.55, 0.06, 0)); }
 function simpleFx() {                                  // captures and knockouts, once each
   if (!AC || !settings.sound || !audible() || AC.state !== 'running') return;
@@ -13095,6 +13166,7 @@ function selCheck() {                              // a selection ends when its 
   return false;
 }
 
+let truceTold = -99;
 
 // ---- XL: test-only match logger (LOGGER BUILD, never ships) ----
 const XL = { log: null, g: null, lastSnap: 0, saved: 0 };
@@ -13102,7 +13174,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.5.1 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.5.5 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13136,7 +13208,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)) };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]) };
   xlSave();
 }
 function xlPre(n, from) {
@@ -13179,6 +13251,11 @@ function handleTap(px, py) {
     return;
   }
   if (dbl && lastFromSel === n.id) { lastFromSel = -1; setLock(PLAYER, n.id); return; }                         // double-tap after a send from a selection: just lock on
+  if (truceOn() && n.owner >= 0 && n.owner !== PLAYER) {      // 50.5.5: Truce: a colour cannot be attacked yet (toast: DC placeholder for WC)
+    uiFx.push({ k: 'no', x: n.x, y: n.y, b: now }); lastFromSel = -1;
+    if (now - truceTold > 4) { truceTold = now; const nl = G.nodes.filter(q => q.owner === NEUTRAL).length; toast(`Truce: no attacks on a colour while ${nl} neutral ${nl === 1 ? 'base is' : 'bases are'} left.`, '#ffcd30'); }
+    return;
+  }
   const _pre = xlPre(n, from);
   const r = command(PLAYER, n.id, settings.send, from == null ? undefined : t => atBase(t, from));
   xlEv('o', from == null ? -1 : from, n.id, settings.send, dbl ? 1 : 0, r ? r.moved : -1, r ? r.cands : 0, r ? r.sent : 0, _pre);
@@ -14270,4 +14347,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.5.1, from source sha256 959af9bf20a441d6 -->
+<!-- Aiced build 50.5.5, from source sha256 f36efa5e9510715e -->

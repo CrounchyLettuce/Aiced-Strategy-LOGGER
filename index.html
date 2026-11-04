@@ -749,7 +749,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.5 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.11 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1104,7 +1104,10 @@ const SPECIAL_KINDS = Object.keys(SPECIALS);
 const ALONE_AI = { interval: [9999, 9999], margin: 99, spawn: 0.6, firstThink: 9999 };         // T1_M1's own rival: builds a little, never attacks (a copy, so the tutorial can change)
 const CROWN_AI = { smart: 0, spawn: 0.3, margin: 2.6, interval: [6, 9], crownMargin: 1.0, crownFrac: 1 };         // T1_M2's rival (50.0.7, draft 3 "take the crown back"): starts next to the crown and goes for it at once (crownMargin, crownFrac), slow to build and patient about everything else so a newcomer can still catch up
 const ONEARMY_AI = { smart: 1, spawn: 0.22, margin: 2.6, interval: [6, 9], stay: { 7: 25, 8: 25 }, away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 } };      // T2_M1's rival (50.5.0, One Army): Border Dispute's patient rival; its two walls each keep 25 at home (stay), and it goes where your army is not (away) (50.5.1)
-const TRUCE_AI = { smart: 1, spawn: 0.5, margin: 2.6, interval: [6, 9], truce: { margin: 1.3, frac: 0.85, interval: [2, 3.5] } };      // T2_M2's rivals (50.5.5, Truce): quick to grab neutral bases in the truce (truce: the margin and share they use then), and after it they hunt the leader (G.truce.hunt)
+const TRUCE_AI = { smart: 1, spawn: 0.5, margin: 2.6, interval: [6, 9], truce: { spawn: 1, margin: 1.15, frac: 0.85, interval: [1, 1.8] } };      // T2_M2's rivals (50.5.5, Truce): quick to grab neutral bases in the truce (truce: the build rate, margin, share and think time they use then), and after it they hunt the leader (G.truce.hunt). 50.5.6: in the truce they build at a fair rate and grab faster (Henry's runs: he held 12-14 of 28 at its end)
+const MANHUNT_RED = { smart: 1, spawn: 1, margin: 1.6, frac: 0.75, interval: [2, 3.5], firstThink: 20, stay: { 4: 15 } };      // T2_M3's near rival (50.5.9, Manhunt; AC's spec): a fat home that keeps 15. 50.5.10 (Henry's runs; AC + DC sims): AC's hunting numbers, first think at 0:20. 50.5.11: margin 1.6, so it does not throw its army away before 1:00
+const MANHUNT_YELLOW = { smart: 1, spawn: 1, margin: 1.4, frac: 0.85, interval: [2, 3.5], away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 },      // T2_M3's far rival: awake, it goes where your army isn't (One Army's away; 50.5.11: AC's spec numbers again, it hunts once it wakes);
+  sleep: { spawn: 1.2, margin: 1.15, frac: 0.85, interval: [1, 1.8] } };      // asleep (G.hunt), it grabs the neutral bases in its zone only, with Truce's grab numbers (50.5.10: builds at 1.2 asleep, so an early wake is no gift)
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
@@ -1120,26 +1123,26 @@ const SCENARIOS = [
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 270, t: 'Win in under 4:30' }, { k: 'time', v: 55, t: 'Win in under 0:55' }] },   // 50.0.12: stars from Henry's runs (0:50 to 0:56 at his best; 3:19 and 3:57 handicapped); star 3 was 0:52 in 50.0.11
   // 50.0.10: the old Tier 1 maps First blood and Crown rush are retired (Henry, Oct 27); their entries are kept in src5009\core.js
-  // 50.5.0: Tier 2 opens with One Army (AC's plan, Henry Nov 1). Name, desc and rule are DC placeholders until WC. Stars are placeholders until Henry's runs.
-  { id: 'one-army', tier: 2, name: 'One Army', desc: 'One army, and nowhere to hide it.',
+  // 50.5.0: Tier 2 opens with One Army (AC's plan, Henry Nov 1). 50.5.8: desc and rule are WC's final text (Henry, Nov 4).
+  { id: 'one-army', tier: 2, name: 'One Army', desc: 'All your eggs, one basket.',
     size: 'small', teams: 2, shape: 'continent', map: 'one-army', face: 'wide', diff: 'easy', seed: 9101, fair: true, mods: {}, specials: true, aiTune: ONEARMY_AI, oneArmy: true,
-    rule: 'Every order sends your whole army, and every base it leaves stands empty.',
+    rule: 'Every order sends your full army, leaving all other bases empty. The rival watches for gaps, so time your attacks.',
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 390, t: 'Win in under 6:30' }, { k: 'noloss', t: 'Win without losing a base' }] },      // 50.5.4: 6:30, AC's call from Henry's restricted runs (4:45, 6:12)
-  // 50.5.5: Tier 2's second level, Truce (AC's plan, Henry Nov 1; three points settled Nov 3). Name, desc, rule and star 3's line are DC placeholders until WC. Stars are placeholders until Henry's runs.
-  { id: 'truce', tier: 2, name: 'Truce', desc: 'Grab what you can. The war starts when the land runs out.',
+  // 50.5.5: Tier 2's second level, Truce (AC's plan, Henry Nov 1; three points settled Nov 3). 50.5.7: stars from Henry's runs. 50.5.8: desc and rule are WC's final text (Henry, Nov 4).
+  { id: 'truce', tier: 2, name: 'Truce', desc: 'Peace, until the land runs out.',
     size: 'medium', teams: 3, active: [0, 1, 3], shape: 'islands', map: 'truce', face: 'wide', diff: 'easy', seed: 9102, fair: true, mods: {}, specials: true, aiTune: TRUCE_AI, truce: { hunt: 15 },
-    rule: 'Nobody can attack a coloured base while a neutral base is left. Take the last one and the war begins, and the rivals go after whoever is biggest.',
+    rule: 'Colored bases are safe while a neutral base is left. The last one to fall starts the war.',
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 480, t: 'Win in under 8:00' }, { k: 'truceko', v: 60, t: 'Knock out a rival within 1:00 of the truce ending' }] },
-  { id: 'iron-wall', tier: 2, name: 'Iron wall', desc: 'Islands, bridges and two rivals. Build a territory and hold it.',
-    size: 'medium', teams: 3, shape: 'islands', diff: 'hard', seed: 7065, fair: true, mods: {}, specials: true, aiTune: { margin: 1.4, spawn: 1.02, playerBias: 0.25 },
-    objective: { type: 'hold', n: 12, secs: 120, text: 'Hold 12 bases for 2 minutes' },
-    stars: [{ k: 'win', t: 'Hold 12 bases for 2 minutes' }, { k: 'time', v: 480, t: 'Win in under 8:00' }, { k: 'bases', v: 16, t: 'Finish with 16 or more bases' }] },
-  { id: 'glass-cannon', tier: 2, name: 'Glass cannon', desc: 'Troops and bases have half health, and the rivals are skilled.',
-    size: 'small', teams: 3, shape: 'continent', diff: 'hard', seed: 4404, fair: true, mods: { glass: true }, specials: false, aiTune: { spawn: 0.96, margin: 1.45 },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 390, t: 'Win in under 6:30' }, { k: 'truceko', v: 60, t: 'Knock out a rival within 1:00 of the truce ending' }] },      // 50.5.7: 6:30 from Henry's normal runs on 50.5.6 (4:07-6:00) and his call
+  // 50.5.9: Tier 2's final level, Manhunt (AC's spec, Henry Nov 1 and Nov 4). Name, desc, rule and star 2 are DC placeholders until WC and Henry's runs.
+  // Iron wall and Glass cannon (Tier 2 since 49.x) retired here (Henry, Nov 4): written into the challenge toolbox's section 7.
+  { id: 'manhunt', tier: 2, name: 'Manhunt', desc: 'Two hunters, one prey.',
+    size: 'medium', teams: 3, active: [0, 1, 3], shape: 'islands', map: 'manhunt', face: 'wide', diff: 'easy', seed: 9103, fair: true, mods: {}, specials: true, forcePair: 'blackiron',
+    aiTune: {}, teamTune: { 1: MANHUNT_RED, 3: MANHUNT_YELLOW }, pact: true, hunt: { near: 1, far: 3, nearHome: 4, low: 1, zone: [15, 16, 17, 18, 19, 20, 21, 22, 23], quiet: [15], clock: 180 },
+    rule: 'Both rivals hunt only you. Yellow sleeps behind its fence until you cross it, Red nearly falls, or it simply wakes.',
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'nostat', v: 'hp', t: 'Win without buying Health' }, { k: 'time', v: 150, t: 'Win in under 2:30' }] },
+    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 480, t: 'Win in under 8:00' }, { k: 'nohome', t: 'Win without ever losing your home base' }] },
   { id: 'forge-wars', tier: 3, name: 'Forge wars', desc: 'Three Forges and three skilled rivals. Hold every Forge at once.',
     size: 'medium', teams: 4, shape: 'river', diff: 'hard', seed: 7234, fair: true, mods: {}, specials: true, specialKinds: ['forge', 'forge', 'forge'], aiTune: { spawn: 0.93, margin: 1.45, playerBias: 0.15 },
     objective: { type: 'forges', secs: 15, text: 'Hold every Forge for 15 seconds' },
@@ -1213,7 +1216,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active, teamTune: c.teamTune, pact: c.pact, hunt: c.hunt };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1221,6 +1224,7 @@ function starMet(g) {
     case 'win': return true;
     case 'time': return G.t <= g.v;
     case 'noloss': return G.playerLosses === 0;
+    case 'nohome': return G.homeLost == null;      // 50.5.9: your home base never fell (Manhunt)
     case 'nostat': return P.lv[g.v] === 0;
     case 'bases': return P.bases >= g.v;
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive);
@@ -1292,6 +1296,14 @@ STATIC_MAPS.truce = { id: 'truce', w: 1500, h: 940, size: 'medium',
   starts: [0, 4, 8], specials: { 15: 'fortress' }, shape: 'islands',
   garrison: { 0: 10, 4: 10, 8: 10, 1: 6, 2: 6, 3: 6, 5: 6, 6: 6, 7: 6, 9: 6, 10: 6, 11: 6, 12: 9, 13: 9, 14: 9, 15: 22, 16: 10, 17: 10, 18: 8, 19: 8, 20: 10, 21: 10, 22: 10, 23: 10, 24: 10, 25: 12, 26: 10, 27: 10 } };
 STATIC_MAPS.truce.deco = { kind: 'islands', groups: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 3], hulls: [[[138,614],[141,592],[151,573],[167,558],[187,549],[209,549],[230,556],[251,562],[272,568],[293,574],[315,580],[336,586],[358,583],[379,577],[400,572],[422,566],[443,560],[463,552],[479,536],[495,521],[510,505],[526,489],[541,474],[557,458],[573,442],[587,426],[604,412],[621,397],[637,382],[653,367],[669,352],[684,336],[690,315],[686,294],[672,277],[653,266],[634,254],[615,244],[598,230],[587,211],[583,189],[587,168],[598,149],[616,135],[634,123],[651,110],[666,94],[675,73],[687,55],[703,40],[723,30],[745,26],[767,28],[787,35],[806,47],[820,64],[830,84],[840,103],[858,116],[875,130],[894,142],[908,158],[916,179],[916,201],[909,221],[894,238],[875,249],[856,260],[837,272],[820,285],[810,305],[811,326],[823,345],[839,360],[855,375],[871,390],[888,405],[905,419],[921,434],[935,450],[951,466],[967,482],[982,497],[998,513],[1013,529],[1029,544],[1047,557],[1068,563],[1089,569],[1111,575],[1132,580],[1153,586],[1175,583],[1196,577],[1217,571],[1239,565],[1260,559],[1281,551],[1302,548],[1324,553],[1342,565],[1355,582],[1362,603],[1360,625],[1353,646],[1348,668],[1344,689],[1349,711],[1354,732],[1353,754],[1346,775],[1335,794],[1318,809],[1299,819],[1277,824],[1255,823],[1234,817],[1212,819],[1191,825],[1170,831],[1148,837],[1128,844],[1106,847],[1085,842],[1067,829],[1054,811],[1048,790],[1050,768],[1060,748],[1067,727],[1066,706],[1054,688],[1034,678],[1012,673],[991,670],[968,670],[946,670],[924,670],[902,670],[881,674],[861,684],[842,696],[823,707],[804,718],[786,730],[766,740],[744,742],[723,736],[705,723],[686,712],[667,701],[648,690],[629,679],[609,670],[586,670],[564,670],[542,670],[520,670],[498,671],[477,676],[455,682],[439,696],[432,717],[437,738],[446,758],[452,779],[450,801],[440,821],[425,836],[405,845],[383,847],[362,840],[341,833],[319,827],[298,821],[277,816],[255,820],[233,824],[212,822],[191,814],[173,802],[159,785],[150,765],[146,743],[148,721],[155,700],[154,678],[149,657],[143,635]],[[290,348],[306,333],[322,319],[337,305],[353,290],[369,276],[384,262],[400,248],[416,233],[430,218],[448,207],[469,203],[490,206],[509,217],[523,232],[531,252],[531,273],[525,293],[512,310],[496,323],[480,337],[464,352],[448,366],[433,380],[417,395],[401,409],[386,423],[370,437],[354,452],[340,467],[322,478],[301,482],[280,479],[261,468],[247,453],[239,433],[239,412],[245,392],[258,375],[274,362]],[[982,304],[972,286],[968,265],[972,244],[982,226],[998,212],[1018,204],[1039,204],[1059,210],[1076,223],[1090,239],[1106,253],[1122,267],[1137,282],[1153,296],[1169,310],[1184,325],[1200,339],[1216,353],[1232,367],[1248,381],[1258,399],[1262,420],[1258,441],[1248,459],[1232,473],[1212,481],[1191,481],[1171,475],[1154,462],[1140,446],[1124,432],[1108,418],[1093,403],[1077,389],[1061,375],[1046,360],[1030,346],[1014,332],[998,318]],[[552,911],[531,902],[515,887],[505,867],[503,845],[509,824],[521,806],[540,793],[561,788],[583,791],[605,792],[627,793],[649,794],[672,796],[694,797],[716,798],[738,799],[760,799],[782,798],[804,797],[827,796],[849,795],[871,793],[893,792],[915,791],[937,788],[959,793],[977,805],[991,822],[997,844],[995,866],[986,886],[970,901],[950,910],[928,912],[906,912],[884,913],[861,914],[839,915],[817,916],[795,918],[773,919],[751,922],[729,919],[707,918],[685,917],[662,915],[640,914],[618,913],[596,912],[574,911]]] };
+STATIC_MAPS.manhunt = { id: 'manhunt', w: 1500, h: 940, size: 'medium',
+  nodes: [[800, 830], [690, 750], [910, 750], [800, 680], [250, 430], [380, 340], [380, 520], [220, 600], [200, 270], [540, 650], [540, 410], [680, 500], [870, 470], [770, 360], [960, 600], [1070, 430], [1190, 350], [1330, 230], [1200, 180], [1440, 330], [1330, 440], [1450, 140], [1090, 230], [1410, 700], [1160, 860]],
+  edges: [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [4, 5], [4, 6], [5, 6], [4, 7], [4, 8], [5, 8], [6, 7], [6, 9], [9, 1], [5, 10], [10, 11], [10, 13], [11, 3], [11, 12], [11, 13], [12, 13], [12, 14], [14, 2], [12, 15], [15, 16], [16, 17], [16, 18], [16, 22], [17, 18], [17, 19], [17, 21], [19, 20], [20, 16], [18, 22], [19, 21], [20, 23], [23, 24], [24, 2]],
+  bridges: [[20, 23], [24, 2]],
+  starts: [0, 4, 17], specials: { 14: 'beacon', 15: 'fortress', 21: 'forge' }, owned: { 5: 1, 6: 1, 18: 2 }, shape: 'islands', allowStartSpecials: true,      // 50.5.10: Yellow starts on 18 too, and Red on 32 troops (under its limit of 38)
+  garrison: { 0: 10, 1: 6, 2: 6, 3: 6, 4: 20, 5: 6, 6: 6, 7: 6, 8: 6, 9: 9, 10: 9, 11: 10, 12: 10, 13: 10, 14: 14, 15: 22, 16: 8, 17: 10, 18: 8, 19: 6, 20: 8, 21: 14, 22: 8, 23: 10, 24: 10 } };
+STATIC_MAPS.manhunt.deco = { kind: 'islands', groups: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], hulls: [[[138,294],[156,322],[166,361],[149,400],[145,420],[145,440],[151,466],[157,480],[171,499],[176,513],[169,555],[156,582],[154,608],[158,624],[174,648],[186,657],[202,664],[212,666],[238,664],[257,655],[276,637],[355,597],[366,594],[382,597],[470,668],[476,674],[485,691],[499,705],[516,714],[541,720],[619,772],[634,796],[648,809],[663,817],[689,825],[700,839],[704,859],[714,882],[727,899],[738,909],[748,916],[771,926],[790,930],[810,930],[829,926],[852,916],[869,903],[886,882],[895,862],[903,833],[917,822],[937,817],[952,809],[966,796],[974,784],[982,757],[980,723],[999,665],[1023,636],[1031,614],[1032,593],[1027,573],[1019,558],[1008,545],[1005,537],[1007,519],[1018,507],[1034,503],[1062,510],[1078,510],[1106,502],[1121,492],[1132,481],[1140,470],[1147,452],[1155,443],[1175,429],[1185,425],[1196,425],[1206,429],[1265,467],[1275,481],[1289,495],[1301,502],[1322,508],[1348,506],[1371,495],[1387,478],[1398,454],[1457,395],[1474,387],[1488,376],[1502,354],[1506,338],[1506,322],[1500,301],[1505,196],[1522,162],[1525,148],[1525,132],[1519,110],[1508,92],[1486,74],[1458,65],[1442,65],[1428,68],[1402,82],[1384,104],[1377,120],[1370,127],[1359,132],[1320,130],[1301,134],[1280,143],[1270,144],[1252,138],[1234,123],[1218,116],[1192,114],[1176,118],[1163,125],[1144,142],[1101,162],[1072,166],[1056,173],[1042,184],[1028,206],[1024,222],[1024,238],[1028,254],[1042,276],[1067,293],[1079,307],[1084,323],[1079,339],[1069,348],[1050,352],[1030,360],[999,385],[906,404],[895,403],[884,398],[846,358],[834,326],[826,314],[806,297],[788,290],[777,288],[756,289],[734,297],[717,311],[709,314],[568,345],[530,342],[455,310],[445,302],[428,282],[410,271],[388,265],[352,267],[256,230],[234,213],[208,204],[192,204],[176,208],[154,222],[143,236],[136,252],[134,278]],[[1159,791],[1136,798],[1112,814],[1098,836],[1094,852],[1094,868],[1103,894],[1119,912],[1142,924],[1168,926],[1194,917],[1206,908],[1223,888],[1409,769],[1434,762],[1456,748],[1467,734],[1474,718],[1476,692],[1472,676],[1458,654],[1434,638],[1418,634],[1402,634],[1386,638],[1364,652],[1347,672]]], lakes: [[[449,491],[447,478],[451,466],[462,456],[470,453],[481,453],[489,456],[499,465],[501,465],[502,467],[511,472],[522,476],[542,480],[606,521],[616,532],[617,536],[624,546],[634,556],[658,571],[687,615],[690,624],[690,632],[684,646],[680,650],[670,655],[654,655],[605,624],[601,620],[595,609],[581,595],[579,595],[578,593],[569,588],[547,581],[461,511],[454,504]]] };
+STATIC_MAPS.manhunt.fence = [[[1123,341],[1123,363],[1130,382],[1142,398],[1158,410],[1171,415],[1182,411],[1196,411],[1212,417],[1274,456],[1286,472],[1307,489],[1323,494],[1344,492],[1363,483],[1375,470],[1388,444],[1448,384],[1477,366],[1489,348],[1492,324],[1486,300],[1491,194],[1509,157],[1511,147],[1511,134],[1506,116],[1497,101],[1479,87],[1456,79],[1443,79],[1433,81],[1411,93],[1396,111],[1387,130],[1342,163],[1323,162],[1300,169],[1246,151],[1227,135],[1215,130],[1193,128],[1171,137],[1151,154],[1107,175],[1076,180],[1063,185],[1053,194],[1041,212],[1038,224],[1041,248],[1052,266],[1078,284]],[[1342,693],[1345,720],[1353,738],[1367,753],[1390,765],[1404,756],[1428,749],[1446,737],[1460,715],[1462,693],[1459,682],[1448,664],[1428,651],[1416,648],[1392,651],[1373,663],[1357,682]]];
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1766,6 +1778,7 @@ function newGame(opts) {
     spawnT: rng() * C.spawnEvery, pres: new Int32Array(6) }));
   for (const [a, b] of m.edges) { nodes[a].adj.push(b); nodes[b].adj.push(a); }
   const D = Object.assign({}, DIFF[opts.diff] || DIFF.normal, opts.aiTune || {});     // aiTune: a challenge can nudge its rivals' numbers
+  const TD = i => opts.teamTune && opts.teamTune[i] ? Object.assign({}, D, opts.teamTune[i]) : D;      // 50.5.9: and give one rival numbers of its own (Manhunt)
   G = {
     t: 0, step: 0, nodes, edges: m.edges, troops: [], nextId: 1, rng, seed,
     shape: m.shape || 'continent', deco: m.deco || null, noTurn: opts.aspect > 0 || !!(fp && fp.outline),      // 50.1.2: a New-Gen map is never turned to fit the screen
@@ -1774,6 +1787,9 @@ function newGame(opts) {
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
     truce: opts.truce ? { end: null, hunt: opts.truce.hunt || 15 } : null,      // 50.5.5: Truce's rule; truceOn() while a neutral base is left, then end is when the last one fell; for hunt s after it each rival favours the prey it picked then
     oneArmy: !!opts.oneArmy,      // 50.5.0: One Army's rule; ui.js sends the whole army on every order and greys 25% and 50%
+    pact: opts.pact ? active.filter(i => i !== PLAYER) : null,      // 50.5.9: Manhunt's rule: the rivals never hurt each other (the truce's machinery, for them only)
+    hunt: opts.hunt ? Object.assign({ wakeAt: null, wakeBy: null, told: false, fence: (fixed && fixed.fence) || null }, opts.hunt) : null,      // 50.5.9: Manhunt's sleeper: wakeAt/wakeBy once it wakes
+    homeLost: null,      // 50.5.9: when your home base first fell (the nohome star)
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
@@ -1781,8 +1797,8 @@ function newGame(opts) {
     capPer: spec.capPer,
     teams: TEAM_COLORS.map((c, i) => ({ i, active: active.includes(i), alive: active.includes(i), xp: 0, points: (i === PLAYER && opts.startPoints) || (mods.head && !mods.noup ? HEAD_POINTS : 0), earned: 0,
       lv: { hp: 0, spd: 0, dmg: 0 }, kills: 0, lost: 0, bases: 0, count: 0, beacons: 0, forges: 0, hill: 0, mem: null,
-      aiT: D.firstThink != null ? (rng(), D.firstThink) : 1.2 + rng() * 2, target: null, sent: 0, avoid: -1, avoidUntil: 0,
-      diff: D, diffName: opts.diff || 'normal', style: styleFor(opts.persona, rng) })),
+      aiT: TD(i).firstThink != null ? (rng(), TD(i).firstThink) : 1.2 + rng() * 2, target: null, sent: 0, avoid: -1, avoidUntil: 0,
+      diff: TD(i), diffName: opts.diff || 'normal', style: styleFor(opts.persona, rng) })),
     fx: [], sfx: [], lock: [null, null, null, null, null], over: false,
     // match history for the end-screen timeline: base counts once a second, plus notable moments
     hist: [], spot: [null, null, null, null, null], nextSample: 0, log: [], homes: [-1, -1, -1, -1, -1], lastTaker: [null, null, null, null, null],
@@ -1848,7 +1864,8 @@ function snapGame() {
   const keep = {};
   for (const k of Object.keys(g)) if (!SNAP_SKIP.has(k)) keep[k] = g[k];
   keep.troops = g.troops.map(t => Object.assign({}, t, { tgt: t.tgt ? { tr: t.tgt.id } : null, aim: t.aim ? (t.aim.id !== undefined && t.aim.team !== undefined && t.aim.path ? { tr: t.aim.id } : { nd: t.aim.id }) : null }));
-  const enc = (k, v) => v instanceof Set ? { $: 'set', a: [...v] }
+  const enc = (k, v) => k === '_ld' || k === '_ldw' ? undefined      // 50.5.9: Black Iron's drawing caches sit on G.deco and point back at G; a save left them in and failed (Save and quit on any islands, river or ring map in Black Iron)
+    : v instanceof Set ? { $: 'set', a: [...v] }
     : ArrayBuffer.isView(v) ? { $: v.constructor.name, a: Array.from(v) } : v;
   return JSON.stringify({ v: 1, W, H, opts: g.startOpts, rng: g.rng.get(), g: keep }, enc);
 }
@@ -1983,14 +2000,33 @@ function statArrays() {
 // then each troop only checks the 5x5 cells around it.
 const GRID = { w: 0, h: 0, count: new Int32Array(0), start: new Int32Array(0), order: new Int32Array(0), cellOf: new Int32Array(0) };
 const truceOn = () => !!(G.truce && G.truce.end == null);      // 50.5.5: Truce: no colour may hurt another while a neutral base is left
+const peaceAt = (a, b) => a >= 0 && b >= 0 && a !== b && (truceOn() || !!(G.pact && G.pact.includes(a) && G.pact.includes(b)));      // 50.5.9: a truce, or Manhunt's pact
+function peaceTab() {                                // [a * 5 + b] = 1 when colours a and b may not hurt each other; null when every pair may
+  const tr = truceOn(), P = G.pact; if (!tr && !P) return null;
+  const z = new Uint8Array(25); for (let a = 0; a < 5; a++) for (let b = 0; b < 5; b++) if (a !== b && (tr || (P.includes(a) && P.includes(b)))) z[a * 5 + b] = 1;
+  return z;
+}
+const asleep = team => !!(G.hunt && G.hunt.wakeAt == null && team === G.hunt.far);      // 50.5.9: Manhunt's far rival, until it wakes
+function huntStep() {                                // 50.5.9: the far rival wakes on the first of: the near rival nearly out, you inside its zone (not the Fortress), the clock
+  const H = G.hunt, nodes = G.nodes;
+  if (G.homeLost == null && G.homes[PLAYER] >= 0 && G.teams[PLAYER].active && nodes[G.homes[PLAYER]].owner !== PLAYER) G.homeLost = G.t;
+  if (!H || H.wakeAt != null) return;
+  const R = G.teams[H.near]; let by = null;
+  if (!R.alive || R.bases <= H.low || nodes[H.nearHome].owner !== H.near) by = 'red';
+  else if (H.zone.some(id => !H.quiet.includes(id) && nodes[id].owner === PLAYER)) by = 'zone';
+  else if (G.t >= H.clock) by = 'clock';
+  if (by) { H.wakeAt = G.t; H.wakeBy = by; const T = G.teams[H.far]; T.aiT = Math.min(T.aiT, 0.4); }
+}
 function truceStep() {                                // the truce ends for good when the last neutral base falls; until then nobody waits on a base another colour took first
-  if (!truceOn()) return;
-  let neu = false; for (const n of G.nodes) if (n.owner === NEUTRAL) { neu = true; break; }
-  if (!neu) { G.truce.end = G.t; return; }
+  if (truceOn()) {
+    let neu = false; for (const n of G.nodes) if (n.owner === NEUTRAL) { neu = true; break; }
+    if (!neu) { G.truce.end = G.t; return; }
+  } else if (!G.pact) return;      // 50.5.9: Manhunt's pact: its rivals walk home the same way
+  const pz = peaceTab();
   const nodes = G.nodes, rts = {};
   for (const t of G.troops) {                          // troops going to (or standing on) a base that another colour took first turn back to their own side,
     if (t.team < 0) continue;                          // so no army sits on a base it may not touch and strikes the moment the truce ends
-    const d = finalDest(t), o = nodes[d].owner; if (o < 0 || o === t.team) continue;
+    const d = finalDest(t), o = nodes[d].owner; if (o < 0 || o === t.team || !pz[t.team * 5 + o]) continue;
     if (G.lock[t.team] === d) G.lock[t.team] = null;
     if (t.path.length && nodes[t.home].owner === t.team) { t.path = [t.home]; t.tgt = null; continue; }      // on the road: back to the base it left
     const k = t.team + ':' + d, p = rts[k] !== undefined ? rts[k] : (rts[k] = truceWayHome(t.team, d));      // standing there: the shortest way to its nearest own base
@@ -2025,7 +2061,7 @@ function retarget() {
   for (let c = 0; c < cells; c++) start[c + 1] = start[c] + count[c];
   for (let c = 0; c < cells; c++) count[c] = start[c];          // reuse count as a write cursor
   for (let i = 0; i < n; i++) order[count[cellOf[i]]++] = i;
-  const e2 = C.engage * C.engage, tr = truceOn();
+  const e2 = C.engage * C.engage, pz = peaceTab();
   for (let i = 0; i < n; i++) {
     const t = troops[i], team = t.team, tx = t.x, ty = t.y, c = cellOf[i];
     const cx = c % gw, cy = (c / gw) | 0;
@@ -2034,7 +2070,7 @@ function retarget() {
     for (let gy = y0; gy <= y1; gy++) {
       const row = gy * gw;
       for (let k = start[row + x0], end = start[row + x1 + 1]; k < end; k++) {   // cells in a row are contiguous
-        const o = troops[order[k]]; if (o.team === team || (tr && o.team >= 0 && team >= 0)) continue;      // 50.5.5: in a truce two colours never fight
+        const o = troops[order[k]]; if (o.team === team || (pz && o.team >= 0 && team >= 0 && pz[team * 5 + o.team])) continue;      // 50.5.5: in a truce two colours never fight (50.5.9: nor Manhunt's rivals)
         const dx = o.x - tx, dy = o.y - ty, d = dx * dx + dy * dy;
         if (d < bd) { bd = d; best = o; }
       }
@@ -2047,7 +2083,7 @@ function update(dt) {
   if (!G || G.over) return;
   G.t += dt; G.step++;
   const S = statArrays(), nodes = G.nodes, troops = G.troops;
-  const R2 = C.range * C.range, E2 = (C.engage * 1.6) ** 2, L2 = (C.leash + 12) ** 2, B2 = C.baseRange ** 2, tr = truceOn();
+  const R2 = C.range * C.range, E2 = (C.engage * 1.6) ** 2, L2 = (C.leash + 12) ** 2, B2 = C.baseRange ** 2, pz = peaceTab();
   if (G.step % 3 === 1) retarget();
 
   for (let i = 0; i < troops.length; i++) {
@@ -2076,10 +2112,10 @@ function update(dt) {
     if (!engaged) {
       let hit = null;
       const h = nodes[t.home];
-      if (h.owner !== t.team && (!tr || h.owner < 0) && h.pres[h.owner + 1] === 0 && (h.x - t.x) ** 2 + (h.y - t.y) ** 2 <= B2) hit = h;      // 50.5.5: a coloured base is never hit in a truce
+      if (h.owner !== t.team && !(pz && h.owner >= 0 && t.team >= 0 && pz[t.team * 5 + h.owner]) && h.pres[h.owner + 1] === 0 && (h.x - t.x) ** 2 + (h.y - t.y) ** 2 <= B2) hit = h;      // 50.5.5: a coloured base is never hit in a truce
       else if (t.path.length) {
         const q = nodes[t.path[0]];
-        if (q.owner !== t.team && (!tr || q.owner < 0) && q.pres[q.owner + 1] === 0 && (q.x - t.x) ** 2 + (q.y - t.y) ** 2 <= B2) hit = q;
+        if (q.owner !== t.team && !(pz && q.owner >= 0 && t.team >= 0 && pz[t.team * 5 + q.owner]) && q.pres[q.owner + 1] === 0 && (q.x - t.x) ** 2 + (q.y - t.y) ** 2 <= B2) hit = q;
       }
       if (hit) {
         t.aim = hit;
@@ -2153,6 +2189,7 @@ function update(dt) {
   presenceStep(dt);
   recount();
   truceStep();
+  huntStep();
   spawnStep(dt);
   kothStep(dt);
   objStep(dt);
@@ -2164,7 +2201,7 @@ function update(dt) {
     T.aiT -= dt;
     if (T.aiT <= 0) {
       if (G.lesson) lessonThink(i); else aiThink(i);
-      const iv = (T.diff.truce && truceOn() && T.diff.truce.interval) || T.diff.interval;      // 50.5.5: Truce's rivals think faster while the truce lasts
+      const iv = (T.diff.truce && truceOn() && T.diff.truce.interval) || (T.diff.sleep && asleep(i) && T.diff.sleep.interval) || T.diff.interval;      // 50.5.5: Truce's rivals think faster while the truce lasts (50.5.9: and Manhunt's sleeper)
       T.aiT = iv[0] + G.rng() * (iv[1] - iv[0]);
     }
   }
@@ -2228,7 +2265,7 @@ function spawnStep(dt) {
   for (const n of G.nodes) {
     if (n.owner < 0) continue;
     const T = G.teams[n.owner];
-    n.spawnT -= dt * (n.owner === PLAYER && !G.autoplay ? 1 : G.teams[n.owner].diff.spawn) * (n.kind === 'forge' ? SPECIALS.forge.spawn : 1) * (G.mods.blitz ? 2 : 1) * (!(n.owner === PLAYER && !G.autoplay) && T.diff.surge && G.t < T.diff.surge.until ? T.diff.surge.mult : 1);   // surge: Deadly rivals' opening burst
+    n.spawnT -= dt * (n.owner === PLAYER && !G.autoplay ? 1 : (T.diff.truce && T.diff.truce.spawn && truceOn() ? T.diff.truce.spawn : T.diff.sleep && asleep(n.owner) ? T.diff.sleep.spawn : T.diff.spawn)) * (n.kind === 'forge' ? SPECIALS.forge.spawn : 1) * (G.mods.blitz ? 2 : 1) * (!(n.owner === PLAYER && !G.autoplay) && T.diff.surge && G.t < T.diff.surge.until ? T.diff.surge.mult : 1);   // surge: Deadly rivals' opening burst
     if (n.spawnT <= 0) {
       n.spawnT += C.spawnEvery;
       if (T.count < capOf(n.owner)) {
@@ -2243,7 +2280,7 @@ function spawnStep(dt) {
 // lock-on: fresh troops head straight for the locked base
 function setLock(team, nodeId) { G.lock[team] = nodeId; /* LOGGER BUILD */ if (team === PLAYER && window.__xlLock) window.__xlLock(nodeId == null ? -1 : nodeId); }
 function sendTo(t, target) {
-  if (truceOn() && G.nodes[target].owner >= 0 && G.nodes[target].owner !== t.team) return;      // 50.5.5: lock-on never sends at a colour in a truce
+  if (peaceAt(t.team, G.nodes[target].owner)) return;      // 50.5.5: lock-on never sends at a colour in a truce (50.5.9: nor at a partner in Manhunt's pact)
   let c = G._rtCache;
   if (!c || c.team !== t.team || c.target !== target || c.step !== G.step) {
     c = G._rtCache = { team: t.team, target, step: G.step, rt: routeTable(t.team, target) };
@@ -2423,7 +2460,7 @@ function followPath(rt, s, target) {
 }
 
 function command(team, target, frac, filter, maxCost = Infinity) {
-  if (truceOn() && G.nodes[target].owner >= 0 && G.nodes[target].owner !== team) return null;      // 50.5.5: no orders at a colour in a truce
+  if (peaceAt(team, G.nodes[target].owner)) return null;      // 50.5.5: no orders at a colour in a truce (50.5.9: nor at a partner in Manhunt's pact)
   const nodes = G.nodes, rt = routeTable(team, target), cands = [], stay = (team !== PLAYER || G.autoplay) && G.teams[team].diff.stay || null, kept = {};      // 50.5.0: a challenge rival's held bases (stay) keep their troops; 50.5.1: up to a count per base
   for (const t of G.troops) {
     if (t.team !== team) continue;
@@ -2522,13 +2559,15 @@ function aiThink(team) {
   aiSpend(team);
   const sm = D.smart || 0, S = statArrays();
   let bAllow = null, bPrey = -1, bLead = -1;           // BOUNTY (49.1.1): everyone hunts the crown holder; the crown holder hunts the runner-up
-  const TRc = G.truce, tNeu = !!TRc && TRc.end == null;      // 50.5.5: Truce: neutral bases only while it lasts; after it, Bounty's hunt for the leader
+  const TRc = G.truce, SLP = asleep(team), tNeu = (!!TRc && TRc.end == null) || SLP;      // 50.5.5: Truce: neutral bases only while it lasts; after it, Bounty's hunt for the leader (50.5.9: Manhunt's sleeper too)
+  const PCT = !!(G.pact && G.pact.includes(team)), ZN = SLP ? new Set(G.hunt.zone) : null;      // 50.5.9: Manhunt: the pact's rivals hunt only you; the sleeper stays in its zone
   if (tNeu) { bAllow = bountyOnly(-1); bPrey = -1; }
   else if (TRc && G.t - TRc.end < TRc.hunt) {         // Henry, Nov 3: no lasting Bounty (it stalls). Each rival picks its prey once, when the truce ends (the leader, or the runner-up
     if (T.huntOf == null) { const BR = bountyRanks(); T.huntOf = BR.L !== team ? BR.L : BR.R; }      // if it leads itself), and only favours it for TRc.hunt seconds: no lock, no flip-flop
     if (T.huntOf >= 0 && G.teams[T.huntOf].alive) bPrey = T.huntOf;
   }
-  if (!tNeu && G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
+  if (!tNeu && PCT) { bAllow = bountyOnly(PLAYER); bPrey = PLAYER; }      // 50.5.9: you, or neutral bases, all match long
+  else if (!tNeu && G.mods.bounty) { const BR = bountyRanks(); bLead = BR.L; if (BR.L >= 0) { if (team !== BR.L) { bAllow = bountyOnly(BR.L); bPrey = BR.L; } else if (BR.R >= 0) { bAllow = bountyOnly(BR.R); bPrey = BR.R; } } }
   if (!G._ai || G._ai.N !== N) G._ai = { N, pres: new Float64Array(N * 6), mine: new Float64Array(N), committed: new Float64Array(N) };
   const P6 = G._ai.pres.fill(0), mine = G._ai.mine.fill(0), committed = G._ai.committed.fill(0);
   const pr2 = (C.presenceR * 1.2) ** 2, keptAt = {};
@@ -2720,7 +2759,7 @@ function aiThink(team) {
     const front = new Set();
     for (const n of nodes) if (n.owner === team || mine[n.id] > 0)
       for (const v of n.adj) if (nodes[v].owner !== team) front.add(v);
-    if (bAllow && !tNeu) {                              // BOUNTY: what is really in reach decides who this colour may hit (not in a truce: neutral bases only)
+    if (bAllow && !tNeu && !PCT) {                      // BOUNTY: what is really in reach decides who this colour may hit (not in a truce: neutral bases only)
       const near = new Set(); let neu = false;
       for (const v of front) { const o = nodes[v].owner; if (o < 0) neu = true; else near.add(o); }
       if (!(bPrey >= 0 && near.has(bPrey))) {           // the preferred target is out of reach
@@ -2733,13 +2772,13 @@ function aiThink(team) {
     }
     const MS = (D.dly && D.dly.mass && G.t < D.dly.mass.until) ? D.dly.mass : null;   // DEADLY: early on, nearby rivals are the preferred target
     const full = T.count >= capOf(team) * ((D.dly && D.dly.bold) || 0.9);
-    const TM = tNeu && D.truce;                         // 50.5.5: Truce's rivals grab neutral bases with their own margin and share while it lasts
+    const TM = tNeu && (SLP ? D.sleep : D.truce);       // 50.5.5: Truce's rivals grab neutral bases with their own margin and share while it lasts (50.5.9: and Manhunt's sleeper)
     const margin = TM ? TM.margin : (full ? Math.max(1.05, D.margin * 0.8) : D.margin) * (T.style.margin || 1) * (lastStand ? 1.25 : 1), frac = TM ? TM.frac : full || lastStand ? 0.95 : D.frac;
     let armyAll4 = 0; for (let i = 0; i < N; i++) armyAll4 += mine[i];
     const AW = D.away; let awayHop = null;              // 50.5.1 (One Army's rival only): find the other side's army, the base most of its strength stands at or walks to,
     if (AW) {                                           // and count the steps from it to every base; a target far from it is hit sooner and harder
       const at = new Float64Array(N); let a = -1, ab = 0;
-      for (const t of G.troops) if (t.team !== team && t.team >= 0) at[t.path.length ? finalDest(t) : t.home] += S.st[t.team + 1];
+      for (const t of G.troops) if (t.team !== team && t.team >= 0 && !peaceAt(team, t.team)) at[t.path.length ? finalDest(t) : t.home] += S.st[t.team + 1];      // 50.5.9: not a pact partner's army
       for (let i = 0; i < N; i++) if (at[i] > ab) { ab = at[i]; a = i; }
       if (a >= 0 && ab >= AW.min) {
         awayHop = new Int32Array(N).fill(99); awayHop[a] = 0; const q = [a];
@@ -2749,6 +2788,7 @@ function aiThink(team) {
     for (const v of front) {
       const o = nodes[v].owner;
       if (bAllow && o >= 0 && !bAllow[o]) continue;   // BOUNTY: only the allowed colours (and neutrals) are targets
+      if (ZN && !ZN.has(v)) continue;                   // 50.5.9: Manhunt's sleeper: its own zone only
       if (v === T.avoid && G.t < T.avoidUntil) continue;  // just got bounced off this one
       const def = enemyAt(v), rt = routeTable(team, v);
       const far = awayHop && awayHop[v] >= AW.hops;
@@ -2820,6 +2860,7 @@ function aiThink(team) {
       if (shots >= sm + (SL ? SL.extra : 0)) break;
       const v = nv.id; if (nv.owner === team) continue;
       if (bAllow && nv.owner >= 0 && !bAllow[nv.owner]) continue;
+      if (ZN && !ZN.has(v)) continue;
       const def = enemyAt(v); if (def > (SL ? SL.maxDef : 5)) continue;
       if (v === T.target || (v === T.avoid && G.t < T.avoidUntil)) continue;
       const need = Math.max(5, def * D.margin + 3);
@@ -2857,6 +2898,7 @@ function aiThink(team) {
       const o = nodes[v].owner;
       if (o === team || v === T.target || (v === T.avoid && G.t < T.avoidUntil)) continue;
       if (bAllow && o >= 0 && !bAllow[o]) continue;
+      if (ZN && !ZN.has(v)) continue;
       const def = enemyAt(v), avail = idleStr * 0.65;
       if (avail < def * D.margin * (T.style.margin || 1) + 2) continue;
       const sc = (avail - def) / (def + 2) + (o === NEUTRAL ? 0.5 : 0) + (1 - nodes[v].hp / nodes[v].maxHp) * 0.6 + G.rng() * 0.3;
@@ -3279,7 +3321,8 @@ function paintMap(x, w, h, live, u) {                // the map as a diagram: te
   const D = G.deco;
   { const C = coastDeco(); if (C) { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(C)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } } }      // 50.1.5: a footprint's land
   if (D && D.kind === 'river') { x.strokeStyle = 'rgba(90,140,220,0.35)'; x.lineWidth = Math.max(2, D.hw * k); x.beginPath(); D.line.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.stroke(); }
-  if (D && D.kind === 'islands') { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(D)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } }
+  if (D && D.kind === 'islands' && D.lakes) { x.fillStyle = 'rgba(255,255,255,0.06)'; x.beginPath(); for (const hl of islandHulls(D).concat(islandLakes(D))) hl.forEach(([px, py], i) => { const p = P(px, py); if (i) x.lineTo(p.x, p.y); else x.moveTo(p.x, p.y); }); x.fill('evenodd'); }      // 50.5.9: islands with a lake
+  else if (D && D.kind === 'islands') { x.fillStyle = 'rgba(255,255,255,0.06)'; for (const hl of islandHulls(D)) { x.beginPath(); hl.forEach(([px, py], i) => { const p = P(px, py); i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); }); x.closePath(); x.fill(); } }
   x.strokeStyle = 'rgba(255,255,255,0.26)'; x.lineWidth = u; x.beginPath();
   for (const [a, b] of G.edges) { const p = P(G.nodes[a].x, G.nodes[a].y), q = P(G.nodes[b].x, G.nodes[b].y); x.moveTo(p[0], p[1]); x.lineTo(q[0], q[1]); }
   x.stroke();
@@ -3990,6 +4033,7 @@ function coastDeco() {
   if (coastOf !== G.land) { coastOf = G.land; coastD = { kind: 'islands', land: true, groups: G.nodes.map(() => 0) }; }
   return coastD;
 }
+const islandLakes = D => (D && D.lakes) || [];      // 50.5.9: lakes inside a hand-made map's islands (Manhunt); drawn by Black Iron (the level forces it) and the plain preview
 function islandHulls(D = decoCur || G.deco) {         // a soft outline around each island's bases, computed once per map
   if (D._hulls) return D._hulls;
   if (D.hulls) return (D._hulls = D.hulls);      // 50.5.5: a hand-made map's own islands (Truce)
@@ -4036,7 +4080,7 @@ function drawAtlasBack(now) {
 }
 function atlasStatic(ctx, nodes, near) {
   ctx.lineWidth = Math.max(1, 1.1 / V.s); ctx.strokeStyle = 'rgba(150,185,255,0.16)'; ctx.setLineDash([]);
-  if (!G.land) ctx.strokeRect(10, 10, W - 20, H - 20);                       // the edge of the chart (step E: only round a hand-made box map; on a New-Gen map the soundings are the edge)
+  if (!G.land && !(G.deco && G.deco.kind === 'islands')) ctx.strokeRect(10, 10, W - 20, H - 20);   // the edge of the chart (step E: only round a hand-made box map; on a New-Gen map the soundings are the edge; 50.5.6: and on an islands map, its coasts)
   ctx.fillStyle = 'rgba(150,185,255,0.12)'; ctx.beginPath();    // graph-paper dots, only where you can see
   const step = 70;
   for (let x = Math.ceil(VIS.x0 / step) * step; x < VIS.x1; x += step)
@@ -4742,6 +4786,7 @@ function draw(now) {
     ctx.stroke();
   }
   if (coach && coach.route) drawCoachRoute(now);      // 50.4.2: the lesson's out-of-reach moment
+  if (G.hunt && G.hunt.fence) drawHuntFence(now);      // 50.5.9: Manhunt's sleeper's fence
 
   if (selCheck() && selValid()) {
     const sn = G.nodes[selBase];
@@ -7670,6 +7715,11 @@ function biDecoPrep(D) {
     for (let i = 0; i < segs; i++) { const [x0, y0] = P[i], [x1, y1] = P[(i + 1) % n], L = Math.hypot(x1 - x0, y1 - y0); if (!L) continue; const a = Math.atan2(y1 - y0, x1 - x0);
       for (let d = carry; d < L; d += gap * (0.7 + rnd() * 0.6)) { if (rnd() > qk) continue; fn(x0 + (x1 - x0) * d / L, y0 + (y1 - y0) * d / L, a); carry = d + gap - L; } if (carry < 0) carry = 0; }
   };
+  for (const h of D.kind === 'islands' ? islandLakes(D) : []) {      // 50.5.9: a lake's shore: the filings stand out over the water (toward its middle); before the chain below, so a river or ring is untouched
+    let cx = 0, cy = 0; for (const [x, y] of h) { cx += x; cy += y; } cx /= h.length; cy /= h.length;
+    along(h, true, 2.4, (x, y, a) => { let nx = -Math.sin(a), ny = Math.cos(a); if ((x - cx) * nx + (y - cy) * ny > 0) { nx = -nx; ny = -ny; }
+      const o = rnd() * 2.2, l = 2 + rnd() * 3.2; put(x + nx * (o + l / 2), y + ny * (o + l / 2), Math.atan2(ny, nx) + (rnd() - 0.5) * 0.4, l, rnd() < 0.4); });
+  }
   if (D.kind === 'river') along(D.line, false, 2.2, (x, y, a) => { for (const sd of [-1, 1]) { const o = sd * (D.hw * 0.82 + rnd() * 3), nx = -Math.sin(a), ny = Math.cos(a); put(x + nx * o, y + ny * o, a + (rnd() - 0.5) * 0.35, 2.4 + rnd() * 2.6, rnd() < 0.45); } });
   else if (D.kind === 'islands') for (const h of islandHulls(D)) {
     let cx = 0, cy = 0, ar = 0; for (const [x, y] of h) { cx += x; cy += y; } cx /= h.length; cy /= h.length;
@@ -7698,7 +7748,8 @@ function biWater(D) {
   const w = Math.ceil((x1 - x0) / S), h = Math.ceil((y1 - y0) / S), c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.setTransform(1 / S, 0, 0, 1 / S, -x0 / S, -y0 / S); g.lineJoin = 'round';
   if (D.kind === 'islands') { g.fillStyle = g.strokeStyle = '#fff'; g.lineWidth = 16;
-    for (const hl of islandHulls(D)) { g.beginPath(); hl.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.stroke(); } }
+    for (const hl of islandHulls(D)) { g.beginPath(); hl.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.stroke(); }
+    for (const hl of islandLakes(D)) { g.beginPath(); hl.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fillStyle = '#000'; g.fill(); g.strokeStyle = '#fff'; g.stroke(); } }      // 50.5.9: a lake (its shore's fade falls on the water)
   else { g.fillStyle = '#fff'; g.fillRect(x0, y0, x1 - x0, y1 - y0); g.fillStyle = '#000'; g.beginPath(); g.ellipse(D.cx, D.cy, Math.max(1, D.rx - 8), Math.max(1, D.ry - 8), 0, 0, Math.PI * 2); g.fill(); }
   const im = g.getImageData(0, 0, w, h), d = im.data, m = new Float32Array(w * h), t = new Float32Array(w * h), R = 3;
   for (let i = 0; i < w * h; i++) m[i] = d[i * 4] / 255;
@@ -7731,7 +7782,8 @@ function biDecoPaintOne(g, D, x0, y0, x1, y1) {
   if (D.kind === 'islands') {                            // the water between, then the plate: a shade lighter, with a fine machined edge
     biWaterPaint(g, D, x0, y0, x1, y1);
     g.fillStyle = 'rgba(200,206,214,0.022)'; g.strokeStyle = 'rgba(200,206,214,' + (0.13 * hc).toFixed(3) + ')'; g.lineWidth = 0.7;
-    for (const h of islandHulls(D)) { g.beginPath(); h.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.stroke(); }
+    if (D.lakes) { g.beginPath(); for (const h of islandHulls(D).concat(islandLakes(D))) { h.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); } g.fill('evenodd'); g.stroke(); }      // 50.5.9: a plate with a lake in it
+    else for (const h of islandHulls(D)) { g.beginPath(); h.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); g.stroke(); }
   }
   for (const w of [1, 0]) { g.strokeStyle = 'rgba(200,206,214,' + ((w ? 0.17 : 0.34) * hc).toFixed(3) + ')'; g.lineWidth = w ? 0.7 : 0.75; g.beginPath();
     for (let gx = Math.floor((x0 - 8) / 32); gx <= Math.floor((x1 + 8) / 32); gx++) for (let gy = Math.floor((y0 - 8) / 32); gy <= Math.floor((y1 + 8) / 32); gy++) {
@@ -8994,9 +9046,13 @@ function hud() {
       if (you || lost || watching) toast(`${you ? 'You' : TEAM_NAMES[f.c]} took ${lost ? 'your' : 'the'} ${SPECIALS[f.kind].name}`, TEAM_COLORS[f.c], f.c);
     }
   }
-  if (G.truce && G.truce.end != null && !G.truce.told) {      // 50.5.5: the truce is over: seen (banner, toast, shake) and heard (truceCue). Words: DC placeholders for WC
+  if (G.truce && G.truce.end != null && !G.truce.told) {      // 50.5.5: the truce is over: seen (banner, toast, shake) and heard (truceCue). Words settled with WC (50.5.8)
     G.truce.told = true;
     if (G.t - G.truce.end < 3) { banner('THE TRUCE IS OVER', '#ffcd30'); toast('The truce is over. Every base is fair game.', '#ffcd30'); shake(8); truceCue(); }
+  }
+  if (G.hunt && G.hunt.wakeAt != null && !G.hunt.told) {      // 50.5.9: Manhunt's sleeper wakes: seen (banner, toast, shake) and heard. Words: DC placeholders for WC
+    G.hunt.told = true;
+    if (G.t - G.hunt.wakeAt < 3) { const nm = TEAM_NAMES[G.hunt.far].toUpperCase(), c = TEAM_COLORS[G.hunt.far]; banner(nm + ' WAKES', c); toast(G.hunt.wakeBy === 'zone' ? 'You crossed the fence. ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.', c, G.hunt.far); shake(8); truceCue(); }
   }
   if (G.scenarioId) {                               // the challenge's goal and how far along you are
     const o = G.obj, P = G.teams[PLAYER]; let lbl = o.text, txt = fmt(G.t), fr = 0;
@@ -9007,10 +9063,11 @@ function hud() {
       let held = 0, tot = 0; for (const n of G.nodes) if (n.kind === 'forge') { tot++; if (n.owner === PLAYER) held++; }
       lbl = 'Hold every Forge'; txt = `${held}/${tot} forges · ${Math.floor(G.os.forges)}/${o.secs} s`; fr = Math.max(held / Math.max(1, tot) * 0.5, G.os.forges / o.secs);
     } else if (o.type === 'crown') { lbl = 'King of the hill'; txt = fmt(G.t); }
-    if (G.truce) {                                  // 50.5.5: Truce: the neutral bases left, then the minute to knock out a rival (DC placeholders for WC)
+    if (G.truce) {                                  // 50.5.5: Truce: the neutral bases left, then the minute to knock out a rival (words settled with WC, 50.5.8)
       if (G.truce.end == null) { let nl = 0; for (const q of G.nodes) if (q.owner === NEUTRAL) nl++; lbl = 'Truce'; txt = `${nl} neutral ${nl === 1 ? 'base' : 'bases'} left · ${fmt(G.t)}`; }
       else if (G.t - G.truce.end < 60) { lbl = 'War'; txt = `${Math.ceil(60 - (G.t - G.truce.end))} s to knock out a rival · ${fmt(G.t)}`; }
     }
+    if (G.hunt) { lbl = G.hunt.wakeAt == null ? TEAM_NAMES[G.hunt.far] + ' sleeps' : 'Manhunt'; }      // 50.5.9: the sleeper's state (DC placeholder for WC)
     setText($('objLbl'), lbl); setText($('objTxt'), txt); setStyle($('objFill'), 'width', Math.min(100, fr * 100).toFixed(1) + '%');
   }
   if (G.mods.koth && G.crown >= 0) {
@@ -12207,6 +12264,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
+  { v: '50.5.9', t: 'Build 50.5', b: ['Challenge Maps\' Tier 2 is rebuilt around three new levels, One Army, Truce and Manhunt, each built around a single idea like Tier 1\'s.', 'Iron wall and Glass cannon are retired, so stars you earned on them no longer count, and the tiers above need fewer stars to open.', 'Save and quit works again in Black Iron on maps with islands, rivers or rings.'] },     // 50.5.9: DC's draft (Henry's notes; WC rewrites before Build 51)
   { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
   { v: '50.3.26', t: 'Build 50.3', b: ['Atlas + Drift are reworked. Atlas is a surveyor\'s chart with pieces of its own, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide are reworked too: a calmer, darker page that reads even zoomed out, with Tide built around a piano\'s sustain pedal. Neon\'s river is water now.', 'Zooming is smoother on most looks, and Leadlight, Black Iron, Ember and Pixel run smoother on slower phones.', 'Special bases have new icons, so you can tell what each one does at a glance, upright and readable at any zoom. Ember\'s team symbols are burned in, so they show at any health.', 'All thirteen sounds are evened out, so on a phone none plays much louder or quieter than the rest, endings included.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
   { v: '50.2', t: 'Build 50.2', b: ['Maps are landmasses now. Every map has its own coastline with rivers, rings and islands inside it, and every color starts with a fair share of the land.', 'The map no longer turns when your phone does, and on the setup screen it stays put while you pull up the deck.', 'Two new style pairs, Black Iron + Hollow and Leadlight + Bellows, and the space around the land has its own look in each style.', 'Panning is smoother in most styles, a long list of flashes is gone, and Drift and Cosmos come through on a phone speaker.', 'Smaller things: HUD size in Settings, a page counter in the Shop, and Reset all data on a screen of its own.'] },     // 50.1.1 to 50.2.15 (shipped labelled Build 50.3): DC's summary, Henry's OK Nov 1
@@ -12534,6 +12592,7 @@ function goalState(g, P) {
   switch (g.k) {
     case 'time': return G.t > g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: fmt(g.v - G.t) + ' left' };
     case 'noloss': return G.playerLosses > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
+    case 'nohome': return G.homeLost != null ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };      // 50.5.9
     case 'nostat': return P.lv[g.v] > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
     case 'bases': return { s: P.bases >= g.v ? 'ok' : 'pending', n: `${P.bases}/${g.v}` };
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive) ? { s: 'ok', n: '' } : { s: 'pending', n: '' };
@@ -13174,7 +13233,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.5.5 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.5.11 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13208,7 +13267,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]) };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]) };
   xlSave();
 }
 function xlPre(n, from) {
@@ -13251,9 +13310,9 @@ function handleTap(px, py) {
     return;
   }
   if (dbl && lastFromSel === n.id) { lastFromSel = -1; setLock(PLAYER, n.id); return; }                         // double-tap after a send from a selection: just lock on
-  if (truceOn() && n.owner >= 0 && n.owner !== PLAYER) {      // 50.5.5: Truce: a colour cannot be attacked yet (toast: DC placeholder for WC)
+  if (truceOn() && n.owner >= 0 && n.owner !== PLAYER) {      // 50.5.5: Truce: a colour cannot be attacked yet (50.5.8: WC's toast)
     uiFx.push({ k: 'no', x: n.x, y: n.y, b: now }); lastFromSel = -1;
-    if (now - truceTold > 4) { truceTold = now; const nl = G.nodes.filter(q => q.owner === NEUTRAL).length; toast(`Truce: no attacks on a colour while ${nl} neutral ${nl === 1 ? 'base is' : 'bases are'} left.`, '#ffcd30'); }
+    if (now - truceTold > 4) { truceTold = now; const nl = G.nodes.filter(q => q.owner === NEUTRAL).length; toast(`The truce holds while ${nl} neutral ${nl === 1 ? 'base is' : 'bases are'} left.`, '#ffcd30'); }
     return;
   }
   const _pre = xlPre(n, from);
@@ -13505,7 +13564,7 @@ $('vol').addEventListener('input', () => {
   settingsKey = 'volume'; renderSettingsHint();
 });
 $('bSound').addEventListener('click', () => { settings.sound = !settings.sound; save('ice-settings', settings); audioOn(); syncSound(); });
-function setSend(f) { if (mode !== 'play' || !SENDS.includes(f)) return; if (G && G.oneArmy && f !== 1) { toast('One Army: every order sends your whole army.', TEAM_COLORS[PLAYER], PLAYER); return; }      // 50.5.0: One Army sends 100% only (toast: DC placeholder for WC)
+function setSend(f) { if (mode !== 'play' || !SENDS.includes(f)) return; if (G && G.oneArmy && f !== 1) { toast('Locked. In One Army, every order sends your full army.', TEAM_COLORS[PLAYER], PLAYER); return; }      // 50.5.0: One Army sends 100% only (50.5.8: WC's toast)
   settings.send = f; save('ice-settings', settings); xlEv('pct', f); syncCtrl(); }
 document.querySelectorAll('#sendTri button').forEach(b => b.addEventListener('click', () => setSend(+b.dataset.send)));
 
@@ -13844,6 +13903,17 @@ function coachNudge() {
 function coachHidden(x, y) {                           // 50.4.4: a point too near the screen's edge, or under (or within 16 px of) the card or a HUD piece
   if (x < F.x + 24 || x > F.x + F.w - 24 || y < F.y + 24 || y > F.y + F.h - 24) return true;
   return coachObstacles().some(o => x > o.left - 16 && x < o.right + 16 && y > o.top - 16 && y < o.bottom + 16);
+}
+// 50.5.9: Manhunt's wake zone, drawn as a plain fence for the first draft (the iron-filings fence that snaps at the wake is 50.5.10): a dark underline and a
+// dash-dot line in the sleeper's colour, so it reads by its shape as well (Color-safe, High contrast). It fades out over a second when the sleeper wakes.
+function drawHuntFence(now) {
+  const H = G.hunt, age = H.wakeAt == null ? -1 : G.t - H.wakeAt; if (age > 1.2) return;
+  const k = 1 / V.s, a = age < 0 ? 1 : 1 - age / 1.2, c = colorOf(H.far);
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
+  for (const P of H.fence) { P.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); }
+  ctx.setLineDash([]); ctx.strokeStyle = 'rgba(0,0,0,' + (0.55 * a).toFixed(3) + ')'; ctx.lineWidth = (HC ? 5 : 4) * k; ctx.stroke();
+  ctx.setLineDash([14 * k, 6 * k, 2 * k, 6 * k]); ctx.strokeStyle = hexA(c, (HC ? 0.95 : 0.7) * a); ctx.lineWidth = (HC ? 2.4 : 1.8) * k; ctx.stroke();
+  ctx.restore();
 }
 // the lesson's out-of-reach moment (spec 5.12, Henry's design, Oct 31): yellow marks flank each line of the way to the Forge, on both sides, so the
 // real dashed line still shows between them. Drawn on the map (the lesson always wears Classic) until the Forge is in reach.
@@ -14347,4 +14417,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.5.5, from source sha256 f36efa5e9510715e -->
+<!-- Aiced build 50.5.11, from source sha256 8c67d3b313aaa6bd -->

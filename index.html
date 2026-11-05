@@ -432,6 +432,7 @@ body:has(#menu:not([hidden])) :is(#coach, .cRing, .cArrow) { visibility: hidden;
 .goals li { display: grid; grid-template-columns: 16px 1fr; gap: 9px; align-items: center; }
 .brief p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--dim); }
 .brief h3 { margin: 4px 0 0; font-size: 12.5px; font-weight: 500; color: var(--dim); }
+.brief p.note { font-size: 12.5px; }      /* 50.5.14: the star gate, said under the goals */
 .moments .st { color: #ffcd30; font-size: 14px; }
 #endGoals { margin: 8px 0 6px; }
 @media (orientation: landscape) and (max-height: 520px) {
@@ -749,7 +750,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.11 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.14 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -875,6 +876,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <p id="briefDesc"></p>
     <h3>Goals</h3>
     <ul id="briefGoals" class="goals"></ul>
+    <p id="briefNote" class="note" hidden></p>
     <button id="bBriefStart" class="primary big">Start</button>
   </section>
 
@@ -1135,14 +1137,14 @@ const SCENARIOS = [
     rule: 'Colored bases are safe while a neutral base is left. The last one to fall starts the war.',
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 390, t: 'Win in under 6:30' }, { k: 'truceko', v: 60, t: 'Knock out a rival within 1:00 of the truce ending' }] },      // 50.5.7: 6:30 from Henry's normal runs on 50.5.6 (4:07-6:00) and his call
-  // 50.5.9: Tier 2's final level, Manhunt (AC's spec, Henry Nov 1 and Nov 4). Name, desc, rule and star 2 are DC placeholders until WC and Henry's runs.
+  // 50.5.9: Tier 2's final level, Manhunt (AC's spec, Henry Nov 1 and Nov 4). Its text is final since 50.5.14 (Henry + WC, Nov 4).
   // Iron wall and Glass cannon (Tier 2 since 49.x) retired here (Henry, Nov 4): written into the challenge toolbox's section 7.
-  { id: 'manhunt', tier: 2, name: 'Manhunt', desc: 'Two hunters, one prey.',
+  { id: 'manhunt', tier: 2, name: 'Manhunt', desc: "There's a bounty on your head, and everyone wants it.",      // 50.5.14: Manhunt's text, final (Henry + WC, Nov 4)
     size: 'medium', teams: 3, active: [0, 1, 3], shape: 'islands', map: 'manhunt', face: 'wide', diff: 'easy', seed: 9103, fair: true, mods: {}, specials: true, forcePair: 'blackiron',
-    aiTune: {}, teamTune: { 1: MANHUNT_RED, 3: MANHUNT_YELLOW }, pact: true, hunt: { near: 1, far: 3, nearHome: 4, low: 1, zone: [15, 16, 17, 18, 19, 20, 21, 22, 23], quiet: [15], clock: 180 },
-    rule: 'Both rivals hunt only you. Yellow sleeps behind its fence until you cross it, Red nearly falls, or it simply wakes.',
+    aiTune: {}, teamTune: { 1: MANHUNT_RED, 3: MANHUNT_YELLOW }, pact: true, hunt: { near: 1, far: 3, nearHome: 4, low: 1, zone: [15, 16, 17, 18, 19, 20, 21, 22, 23], quiet: [15], clock: 135, hit: 0.15, full: 'cap' },      // 50.5.12: wakes on a full region at its army limit and on your hits too; clock 2:15
+    rule: "Both rivals hunt only you. {R} wastes no time, while {Y} gathers its forces behind the fence until it's ready, or you cross it.",      // {R}/{Y}: the match's colour names (nameText)
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 480, t: 'Win in under 8:00' }, { k: 'nohome', t: 'Win without ever losing your home base' }] },
+    stars: [{ k: 'time', v: 360, t: 'Take every base in under 6:00' }, { k: 'nohome', t: 'Win without losing your home base' }, { k: 'redwake', t: 'Bring {R} to its last base before {Y} wakes up' }] },      // 50.5.13: win + time merged into star 1 (Henry's T3 pattern); star 3 new. 50.5.14: final text
   { id: 'forge-wars', tier: 3, name: 'Forge wars', desc: 'Three Forges and three skilled rivals. Hold every Forge at once.',
     size: 'medium', teams: 4, shape: 'river', diff: 'hard', seed: 7234, fair: true, mods: {}, specials: true, specialKinds: ['forge', 'forge', 'forge'], aiTune: { spawn: 0.93, margin: 1.45, playerBias: 0.15 },
     objective: { type: 'forges', secs: 15, text: 'Hold every Forge for 15 seconds' },
@@ -1225,6 +1227,7 @@ function starMet(g) {
     case 'time': return G.t <= g.v;
     case 'noloss': return G.playerLosses === 0;
     case 'nohome': return G.homeLost == null;      // 50.5.9: your home base never fell (Manhunt)
+    case 'redwake': return !!G.hunt && G.hunt.wakeBy === 'red' && G.hunt.redLow === true;      // 50.5.13: the sleeper woke because the near rival nearly fell, before anything else woke it (Manhunt); 50.5.14: with Red on its last base (or out), not just its home lost
     case 'nostat': return P.lv[g.v] === 0;
     case 'bases': return P.bases >= g.v;
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive);
@@ -1234,7 +1237,7 @@ function starMet(g) {
   return false;
 }
 function evalStars() {                                // [objective done, second goal, third goal]; the extras only count on a win
-  const out = [G.result === 'win', false, false];
+  const out = [G.result === 'win' && (!G.starGoals || starMet(G.starGoals[0])), false, false];      // 50.5.13: star 1 asks its own goal too ('win' is always met; Manhunt's is a time)
   if (out[0] && G.starGoals) for (let i = 1; i < 3; i++) out[i] = starMet(G.starGoals[i]);
   return out;
 }
@@ -1300,7 +1303,7 @@ STATIC_MAPS.manhunt = { id: 'manhunt', w: 1500, h: 940, size: 'medium',
   nodes: [[800, 830], [690, 750], [910, 750], [800, 680], [250, 430], [380, 340], [380, 520], [220, 600], [200, 270], [540, 650], [540, 410], [680, 500], [870, 470], [770, 360], [960, 600], [1070, 430], [1190, 350], [1330, 230], [1200, 180], [1440, 330], [1330, 440], [1450, 140], [1090, 230], [1410, 700], [1160, 860]],
   edges: [[0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [4, 5], [4, 6], [5, 6], [4, 7], [4, 8], [5, 8], [6, 7], [6, 9], [9, 1], [5, 10], [10, 11], [10, 13], [11, 3], [11, 12], [11, 13], [12, 13], [12, 14], [14, 2], [12, 15], [15, 16], [16, 17], [16, 18], [16, 22], [17, 18], [17, 19], [17, 21], [19, 20], [20, 16], [18, 22], [19, 21], [20, 23], [23, 24], [24, 2]],
   bridges: [[20, 23], [24, 2]],
-  starts: [0, 4, 17], specials: { 14: 'beacon', 15: 'fortress', 21: 'forge' }, owned: { 5: 1, 6: 1, 18: 2 }, shape: 'islands', allowStartSpecials: true,      // 50.5.10: Yellow starts on 18 too, and Red on 32 troops (under its limit of 38)
+  starts: [0, 4, 17], specials: { 14: 'beacon', 15: 'fortress', 21: 'forge' }, owned: { 5: 1, 6: 1, 21: 2 }, shape: 'islands', allowStartSpecials: true,      // 50.5.10: Red on 32 troops (under its limit of 38). 50.5.12: Yellow starts on the Forge (21), and 18 is neutral again
   garrison: { 0: 10, 1: 6, 2: 6, 3: 6, 4: 20, 5: 6, 6: 6, 7: 6, 8: 6, 9: 9, 10: 9, 11: 10, 12: 10, 13: 10, 14: 14, 15: 22, 16: 8, 17: 10, 18: 8, 19: 6, 20: 8, 21: 14, 22: 8, 23: 10, 24: 10 } };
 STATIC_MAPS.manhunt.deco = { kind: 'islands', groups: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], hulls: [[[138,294],[156,322],[166,361],[149,400],[145,420],[145,440],[151,466],[157,480],[171,499],[176,513],[169,555],[156,582],[154,608],[158,624],[174,648],[186,657],[202,664],[212,666],[238,664],[257,655],[276,637],[355,597],[366,594],[382,597],[470,668],[476,674],[485,691],[499,705],[516,714],[541,720],[619,772],[634,796],[648,809],[663,817],[689,825],[700,839],[704,859],[714,882],[727,899],[738,909],[748,916],[771,926],[790,930],[810,930],[829,926],[852,916],[869,903],[886,882],[895,862],[903,833],[917,822],[937,817],[952,809],[966,796],[974,784],[982,757],[980,723],[999,665],[1023,636],[1031,614],[1032,593],[1027,573],[1019,558],[1008,545],[1005,537],[1007,519],[1018,507],[1034,503],[1062,510],[1078,510],[1106,502],[1121,492],[1132,481],[1140,470],[1147,452],[1155,443],[1175,429],[1185,425],[1196,425],[1206,429],[1265,467],[1275,481],[1289,495],[1301,502],[1322,508],[1348,506],[1371,495],[1387,478],[1398,454],[1457,395],[1474,387],[1488,376],[1502,354],[1506,338],[1506,322],[1500,301],[1505,196],[1522,162],[1525,148],[1525,132],[1519,110],[1508,92],[1486,74],[1458,65],[1442,65],[1428,68],[1402,82],[1384,104],[1377,120],[1370,127],[1359,132],[1320,130],[1301,134],[1280,143],[1270,144],[1252,138],[1234,123],[1218,116],[1192,114],[1176,118],[1163,125],[1144,142],[1101,162],[1072,166],[1056,173],[1042,184],[1028,206],[1024,222],[1024,238],[1028,254],[1042,276],[1067,293],[1079,307],[1084,323],[1079,339],[1069,348],[1050,352],[1030,360],[999,385],[906,404],[895,403],[884,398],[846,358],[834,326],[826,314],[806,297],[788,290],[777,288],[756,289],[734,297],[717,311],[709,314],[568,345],[530,342],[455,310],[445,302],[428,282],[410,271],[388,265],[352,267],[256,230],[234,213],[208,204],[192,204],[176,208],[154,222],[143,236],[136,252],[134,278]],[[1159,791],[1136,798],[1112,814],[1098,836],[1094,852],[1094,868],[1103,894],[1119,912],[1142,924],[1168,926],[1194,917],[1206,908],[1223,888],[1409,769],[1434,762],[1456,748],[1467,734],[1474,718],[1476,692],[1472,676],[1458,654],[1434,638],[1418,634],[1402,634],[1386,638],[1364,652],[1347,672]]], lakes: [[[449,491],[447,478],[451,466],[462,456],[470,453],[481,453],[489,456],[499,465],[501,465],[502,467],[511,472],[522,476],[542,480],[606,521],[616,532],[617,536],[624,546],[634,556],[658,571],[687,615],[690,624],[690,632],[684,646],[680,650],[670,655],[654,655],[605,624],[601,620],[595,609],[581,595],[579,595],[578,593],[569,588],[547,581],[461,511],[454,504]]] };
 STATIC_MAPS.manhunt.fence = [[[1123,341],[1123,363],[1130,382],[1142,398],[1158,410],[1171,415],[1182,411],[1196,411],[1212,417],[1274,456],[1286,472],[1307,489],[1323,494],[1344,492],[1363,483],[1375,470],[1388,444],[1448,384],[1477,366],[1489,348],[1492,324],[1486,300],[1491,194],[1509,157],[1511,147],[1511,134],[1506,116],[1497,101],[1479,87],[1456,79],[1443,79],[1433,81],[1411,93],[1396,111],[1387,130],[1342,163],[1323,162],[1300,169],[1246,151],[1227,135],[1215,130],[1193,128],[1171,137],[1151,154],[1107,175],[1076,180],[1063,185],[1053,194],[1041,212],[1038,224],[1041,248],[1052,266],[1078,284]],[[1342,693],[1345,720],[1353,738],[1367,753],[1390,765],[1404,756],[1428,749],[1446,737],[1460,715],[1462,693],[1459,682],[1448,664],[1428,651],[1416,648],[1392,651],[1373,663],[1357,682]]];
@@ -2008,14 +2011,17 @@ function peaceTab() {                                // [a * 5 + b] = 1 when col
 }
 const asleep = team => !!(G.hunt && G.hunt.wakeAt == null && team === G.hunt.far);      // 50.5.9: Manhunt's far rival, until it wakes
 function huntStep() {                                // 50.5.9: the far rival wakes on the first of: the near rival nearly out, you inside its zone (not the Fortress), the clock
+                                                     // 50.5.12: or you knocking `hit` of a base's health off one of its bases (G.hunt.hurt, counted in hitBase), or its zone full (every base but the quiet ones its own; with full 'cap', and its army at its limit)
   const H = G.hunt, nodes = G.nodes;
   if (G.homeLost == null && G.homes[PLAYER] >= 0 && G.teams[PLAYER].active && nodes[G.homes[PLAYER]].owner !== PLAYER) G.homeLost = G.t;
   if (!H || H.wakeAt != null) return;
   const R = G.teams[H.near]; let by = null;
   if (!R.alive || R.bases <= H.low || nodes[H.nearHome].owner !== H.near) by = 'red';
   else if (H.zone.some(id => !H.quiet.includes(id) && nodes[id].owner === PLAYER)) by = 'zone';
+  else if (H.hit && H.hurt && Object.keys(H.hurt).some(id => H.hurt[id] >= H.hit * nodes[id].maxHp)) by = 'hit';
+  else if (H.full && H.zone.every(id => H.quiet.includes(id) || nodes[id].owner === H.far) && (H.full !== 'cap' || G.teams[H.far].count >= capOf(H.far) - 1)) by = 'full';
   else if (G.t >= H.clock) by = 'clock';
-  if (by) { H.wakeAt = G.t; H.wakeBy = by; const T = G.teams[H.far]; T.aiT = Math.min(T.aiT, 0.4); }
+  if (by) { H.wakeAt = G.t; H.wakeBy = by; if (by === 'red') H.redLow = !R.alive || R.bases <= H.low; const T = G.teams[H.far]; T.aiT = Math.min(T.aiT, 0.4); }      // 50.5.14: redLow = Red was on its last base (or out) at the wake, not only homeless (star 3)
 }
 function truceStep() {                                // the truce ends for good when the last neutral base falls; until then nobody waits on a base another colour took first
   if (truceOn()) {
@@ -2239,7 +2245,9 @@ function hitBase(n, team, dmg, x, y) {
   if (team < 0) return;                               // unclaimed troops guard their ground; they never take bases
   // a base can only soak up so much per second, so even a huge army needs a few seconds
   const d = Math.min(dmg, n.budget);
-  n.budget -= d; n.hp -= d / (1 + C.hpPer * lvOf(n.owner, 'hp') * C.baseHpFactor); n.lastHitT = G.t; n.heat += d; n.heatBy = team;
+  const hl = d / (1 + C.hpPer * lvOf(n.owner, 'hp') * C.baseHpFactor);
+  n.budget -= d; n.hp -= hl; n.lastHitT = G.t; n.heat += d; n.heatBy = team;
+  if (G.hunt && G.hunt.wakeAt == null && team === PLAYER && n.owner === G.hunt.far) { const hd = G.hunt.hurt || (G.hunt.hurt = {}); hd[n.id] = (hd[n.id] || 0) + hl; }      // 50.5.12: Manhunt: your hits on the sleeper's bases
   if (G.sfx.length < 48) G.sfx.push({ x, y, tx: n.x, ty: n.y, team, base: true, ni: n.id, hf: Math.max(0, n.hp / n.maxHp) });
   if (n.hp <= 0) takeNode(n, team);
 }
@@ -9050,9 +9058,9 @@ function hud() {
     G.truce.told = true;
     if (G.t - G.truce.end < 3) { banner('THE TRUCE IS OVER', '#ffcd30'); toast('The truce is over. Every base is fair game.', '#ffcd30'); shake(8); truceCue(); }
   }
-  if (G.hunt && G.hunt.wakeAt != null && !G.hunt.told) {      // 50.5.9: Manhunt's sleeper wakes: seen (banner, toast, shake) and heard. Words: DC placeholders for WC
+  if (G.hunt && G.hunt.wakeAt != null && !G.hunt.told) {      // 50.5.9: Manhunt's sleeper wakes: seen (banner, toast, shake) and heard. Words: WC's (50.5.14)
     G.hunt.told = true;
-    if (G.t - G.hunt.wakeAt < 3) { const nm = TEAM_NAMES[G.hunt.far].toUpperCase(), c = TEAM_COLORS[G.hunt.far]; banner(nm + ' WAKES', c); toast(G.hunt.wakeBy === 'zone' ? 'You crossed the fence. ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.', c, G.hunt.far); shake(8); truceCue(); }
+    if (G.t - G.hunt.wakeAt < 3) { const nm = TEAM_NAMES[G.hunt.far].toUpperCase(), c = TEAM_COLORS[G.hunt.far]; banner(nm + ' WAKES', c); toast(G.hunt.wakeBy === 'zone' || G.hunt.wakeBy === 'hit' ? 'You crossed the fence. ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : G.hunt.wakeBy === 'red' ? TEAM_NAMES[G.hunt.near] + ' is broken, and ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.', c, G.hunt.far); shake(8); truceCue(); }
   }
   if (G.scenarioId) {                               // the challenge's goal and how far along you are
     const o = G.obj, P = G.teams[PLAYER]; let lbl = o.text, txt = fmt(G.t), fr = 0;
@@ -9067,7 +9075,7 @@ function hud() {
       if (G.truce.end == null) { let nl = 0; for (const q of G.nodes) if (q.owner === NEUTRAL) nl++; lbl = 'Truce'; txt = `${nl} neutral ${nl === 1 ? 'base' : 'bases'} left · ${fmt(G.t)}`; }
       else if (G.t - G.truce.end < 60) { lbl = 'War'; txt = `${Math.ceil(60 - (G.t - G.truce.end))} s to knock out a rival · ${fmt(G.t)}`; }
     }
-    if (G.hunt) { lbl = G.hunt.wakeAt == null ? TEAM_NAMES[G.hunt.far] + ' sleeps' : 'Manhunt'; }      // 50.5.9: the sleeper's state (DC placeholder for WC)
+    if (G.hunt) { lbl = TEAM_NAMES[G.hunt.far] + (G.hunt.wakeAt == null ? ' sleeps' : ' hunts'); }      // 50.5.9: the sleeper's state; 50.5.14: WC's words ('hunts' once it wakes)
     setText($('objLbl'), lbl); setText($('objTxt'), txt); setStyle($('objFill'), 'width', Math.min(100, fr * 100).toFixed(1) + '%');
   }
   if (G.mods.koth && G.crown >= 0) {
@@ -12552,7 +12560,14 @@ const ladder = {}, bests = {};
     const e = {}; if (Number(b.t) > 0) e.t = +b.t; if (b.bases != null && count(b.bases) >= 0 && Number.isFinite(+b.bases)) e.bases = count(b.bases);
     if (Object.keys(e).length) bests[c.id] = e;
   }
+  const R = load('ice-retired', {});              // 50.5.14: once, Manhunt's stars and best from before 50.5.13 (its slots changed meaning) are set aside here, never deleted; tokens paid stay
+  if (!R.manhunt5013) { R.manhunt5013 = { stars: ladder.manhunt || null, best: bests.manhunt || null }; save('ice-retired', R); delete ladder.manhunt; delete bests.manhunt; save('ice-ladder', ladder); save('ice-bests', bests); }
 }
+function scenNames() {                             // 50.5.14: the colour names a challenge match will use: this palette's, dressed around your Classic colour (as applyColors does for a challenge)
+  const P = (PALETTES[settings.colors] || PALETTES.standard).slots, first = Math.max(0, COLOR_KEYS.indexOf(settings.classic.color));
+  return [first, ...[0, 1, 2, 3, 4].filter(i => i !== first)].map(k => P[k][1]);
+}
+function nameText(s, names) { const N = names || TEAM_NAMES; return String(s).replace(/\{([BRGYP])\}/g, (m, k) => N['BRGYP'.indexOf(k)]); }      // 50.5.14 (WC): {R} = team slot 1's name (Orange in Color-safe), never typed in
 // 50.0.4: stars needed to open a tier = half (rounded up) of all the stars that the tiers below it can give (every level has 3), so it follows the ladder as levels are added
 const TIERS = (() => { const top = Math.max(...SCENARIOS.map(c => c.tier)), out = [{ need: 0 }]; let below = 0; for (let t = 1; t < top; t++) { below += 3 * SCENARIOS.filter(c => c.tier === t).length; out.push({ need: Math.ceil(below / 2) }); } return out; })();
 const starsOfId = id => ladder[id] || [false, false, false];
@@ -12569,7 +12584,7 @@ function renderLadder() {
     const need = TIERS[t - 1].need, open = unlocks.tiers || totalStars() >= need, more = need - totalStars();
     h += `<div class="tier"><span>Tier ${t}</span><span>${open ? '' : `Earn ${more} more ${more === 1 ? 'star' : 'stars'} to unlock`}</span></div>`;
     for (const c of SCENARIOS.filter(x => x.tier === t))
-      h += `<button class="chcard${open ? '' : ' locked'}" data-c="${c.id}"><b>${c.name}</b><span class="d">${c.desc}</span><span class="best">${bestText(c)}</span><span class="stars">${starsOfId(c.id).map(starSvg).join('')}</span></button>`;
+      h += `<button class="chcard${open ? '' : ' locked'}" data-c="${c.id}"><b>${c.name}</b><span class="d">${nameText(c.desc, scenNames())}</span><span class="best">${bestText(c)}</span><span class="stars">${starsOfId(c.id).map(starSvg).join('')}</span></button>`;
   }
   $('ladder').innerHTML = h;
 }
@@ -12580,9 +12595,10 @@ function updateLadderBlurb() {
 }
 function openBrief(id) {
   const c = SCENARIOS.find(x => x.id === id); briefId = id;
-  $('briefTitle').textContent = c.name; $('briefDesc').textContent = c.desc + (c.rule ? ' ' + c.rule : '');
+  $('briefTitle').textContent = c.name; $('briefDesc').textContent = nameText(c.desc + (c.rule ? ' ' + c.rule : ''), scenNames());
   const st = starsOfId(id);
-  $('briefGoals').innerHTML = c.stars.map((g, i) => `<li>${starSvg(st[i])}<span>${g.t}</span></li>`).join('');
+  $('briefGoals').innerHTML = c.stars.map((g, i) => `<li>${starSvg(st[i])}<span>${nameText(g.t, scenNames())}</span></li>`).join('');
+  { const g0 = c.stars[0], nt = $('briefNote'); nt.hidden = g0.k === 'win'; nt.textContent = g0.k === 'win' ? '' : g0.k === 'time' ? `The other stars count only on a win under ${fmt(g0.v)}.` : 'The other stars count only on a win that earns the first.'; }      // 50.5.14: the gate, said (WC's words)
   go('scrBrief');
 }
 // ---- rules in the stats drop-down: the challenge's goals with live status, or whatever modifiers are on ----
@@ -12593,6 +12609,7 @@ function goalState(g, P) {
     case 'time': return G.t > g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: fmt(g.v - G.t) + ' left' };
     case 'noloss': return G.playerLosses > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
     case 'nohome': return G.homeLost != null ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };      // 50.5.9
+    case 'redwake': return !G.hunt || G.hunt.wakeAt == null ? { s: 'pending', n: '' } : G.hunt.wakeBy === 'red' && G.hunt.redLow === true ? { s: 'ok', n: '' } : { s: 'fail', n: 'missed' };      // 50.5.13; 50.5.14: Red on its last base at the wake
     case 'nostat': return P.lv[g.v] > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
     case 'bases': return { s: P.bases >= g.v ? 'ok' : 'pending', n: `${P.bases}/${g.v}` };
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive) ? { s: 'ok', n: '' } : { s: 'pending', n: '' };
@@ -12604,10 +12621,11 @@ function rulesHtml() {
   const P = G.teams[PLAYER]; let h = '';
   if (G.scenarioId) {
     const sc = SCENARIOS.find(x => x.id === G.scenarioId);
-    h += `<div class="rt">${sc.name}</div><div class="gr main"><i class="dot"></i><span>${sc.objective.text}</span></div>`;
+    h += `<div class="rt">${sc.name}</div><div class="gr main"><i class="dot"></i><span>${nameText(sc.objective.text)}</span></div>`;
     sc.stars.forEach((g, i) => {
-      if (!i) return; const st = goalState(g, P);
-      h += `<div class="gr ${st.s}">${starSvg(st.s === 'ok')}<span>${g.t}${st.n ? ` <em>${st.n}</em>` : ''}</span></div>`;
+      if (!i && g.k === 'win') return; let st = goalState(g, P);      // 50.5.13: a star 1 that asks more than the win (Manhunt's time) shows too
+      if (i && sc.stars[0].k !== 'win' && goalState(sc.stars[0], P).s === 'fail') st = { s: 'fail', n: 'missed' };      // 50.5.14: stars 2-3 only count with star 1, so they go when it goes
+      h += `<div class="gr ${st.s}">${starSvg(st.s === 'ok')}<span>${nameText(g.t)}${st.n ? ` <em>${st.n}</em>` : ''}</span></div>`;
     });
   } else h += `<div class="rt">Modifiers</div>`;
   if (G.overtimeOn && !G.otCrown) h += `<div class="gr"><i class="dot"></i><span><b>Overtime</b> A crown appears if the match stalls</span></div>`;
@@ -13078,20 +13096,21 @@ function showEnd() {
   }
   $('endGoals').innerHTML = ''; $('endGoals').hidden = true;     // 50.0.3: a challenge shows its star goals on the Result page; every other card keeps it empty
   if (G.scenarioId) {                               // a challenge: stars instead of highlights
-    const sc = SCENARIOS.find(x => x.id === G.scenarioId), st = evalStars(), prev = starsOfId(G.scenarioId).slice();
+    const sc = SCENARIOS.find(x => x.id === G.scenarioId), st = evalStars(), prev = starsOfId(G.scenarioId).slice(), won = G.result === 'win';      // 50.5.13: a win is a win, even one too slow for a timed star 1
     ladder[G.scenarioId] = st.map((v, i) => v || prev[i]); save('ice-ladder', ladder);
-    if (st[0]) {                                    // your personal best: fastest win, or for Last stand the most bases held at the end
+    if (won) {                                    // your personal best: fastest win, or for Last stand the most bases held at the end
       const bst = bests[G.scenarioId] || (bests[G.scenarioId] = {});
       if (G.obj.type === 'survive') bst.bases = Math.max(bst.bases || 0, P.bases); else bst.t = Math.min(bst.t || Infinity, G.t);
       save('ice-bests', bests);
     }
     const n = st.filter(Boolean).length, fresh = ladder[G.scenarioId].filter(Boolean).length - prev.filter(Boolean).length;
-    t.innerHTML = `<span class="sw"${st[0] ? '' : ` data-s="${TEAM_SLOT[PLAYER]}"`} style="background:${st[0] ? '#ffcd30' : TEAM_COLORS[PLAYER]}"></span>${st[0] ? 'Challenge complete' : 'Challenge failed'}`;
-    sub.textContent = st[0] ? `${sc.name}: ${n} of 3 stars in ${fmt(G.t)}${fresh > 0 ? `, ${fresh} new.` : '.'}` : `${sc.name}: you lasted ${fmt(G.t)}. Give it another go.`;
+    t.innerHTML = `<span class="sw"${won ? '' : ` data-s="${TEAM_SLOT[PLAYER]}"`} style="background:${won ? '#ffcd30' : TEAM_COLORS[PLAYER]}"></span>${won ? 'Challenge complete' : 'Challenge failed'}`;
+    sub.textContent = won && !st[0] && sc.stars[0].k === 'time' ? `${sc.name}: won in ${fmt(G.t)}, but stars need a win under ${fmt(sc.stars[0].v)}.`      // 50.5.13; words WC's (50.5.14)
+      : won ? `${sc.name}: ${n} of 3 stars in ${fmt(G.t)}${fresh > 0 ? `, ${fresh} new.` : '.'}` : `${sc.name}: you lasted ${fmt(G.t)}. Give it another go.`;
     { const g = shopStarSync(); if (g) $('endCoda').textContent = SHOP_TEXT.starTokens(g); }
-    $('endGoals').innerHTML = sc.stars.map((g, i) => `<li><time class="st">${st[i] ? '&#9733;' : '&#9734;'}</time><i style="background:${st[i] ? '#ffcd30' : '#3a3a3e'}"></i><span>${g.t}</span></li>`).join(''); $('endGoals').hidden = false;   // the Moments tab now shows the match's own highlights
+    $('endGoals').innerHTML = sc.stars.map((g, i) => `<li><time class="st">${st[i] ? '&#9733;' : '&#9734;'}</time><i style="background:${st[i] ? '#ffcd30' : '#3a3a3e'}"></i><span>${nameText(g.t)}</span></li>`).join(''); $('endGoals').hidden = false;   // the Moments tab now shows the match's own highlights
     const nx = SCENARIOS[SCENARIOS.findIndex(x => x.id === G.scenarioId) + 1];
-    if (st[0] && nx && isOpen(nx)) nextScen = nx.id;
+    if (won && nx && isOpen(nx)) nextScen = nx.id;
   }
   $('bNext').hidden = !nextScen;
   {                                                 // 49.8.4: the Stats tab is a scoreboard, one row per color, best finish first (not for lessons)
@@ -13233,7 +13252,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.5.11 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.5.14 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -14417,4 +14436,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.5.11, from source sha256 8c67d3b313aaa6bd -->
+<!-- Aiced build 50.5.14, from source sha256 dbbbd463c76d0ecb -->

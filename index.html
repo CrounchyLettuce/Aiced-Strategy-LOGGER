@@ -750,7 +750,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.5.15 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.6.1 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1111,6 +1111,7 @@ const MANHUNT_RED = { smart: 1, spawn: 1, margin: 1.6, frac: 0.75, interval: [2,
 const MANHUNT_YELLOW = { smart: 1, spawn: 1, margin: 1.4, frac: 0.85, interval: [2, 3.5], away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 },      // T2_M3's far rival: awake, it goes where your army isn't (One Army's away; 50.5.11: AC's spec numbers again, it hunts once it wakes);
   sleep: { spawn: 1.2, margin: 1.15, frac: 0.85, interval: [1, 1.8] } };      // asleep (G.hunt), it grabs the neutral bases in its zone only, with Truce's grab numbers (50.5.10: builds at 1.2 asleep, so an early wake is no gift)
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
+const BACK_BLUE = D => Object.assign({}, DIFF.normal, D.truce ? { truce: D.truce } : {});      // 50.6.1: blue's AI in a level's backdrop (behind its brief): Normal, plus the level's truce grab numbers; never the rival's own dials
 const SCENARIOS = [
   { id: 'alone', tier: 1, name: 'Land Rush', desc: 'Look at alllll thooose bases.',      // 50.0.14: Tier 1 text from Henry and WC (spelling deliberate)
     size: 'small', teams: 2, shape: 'continent', map: 'alone', face: 'wide', diff: 'easy', seed: 9001, fair: true, mods: {}, specials: true, aiTune: ALONE_AI, rule: "Take a base and it'll make troops for you. Take another, and you can see where this is going. Godspeed.",
@@ -1145,34 +1146,7 @@ const SCENARIOS = [
     rule: "Both rivals hunt only you. {R} wastes no time, while {Y} gathers its forces behind the fence until it's ready, or you cross it.",      // {R}/{Y}: the match's colour names (nameText)
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: 'time', v: 360, t: 'Take every base in under 6:00' }, { k: 'nohome', t: 'Win without losing your home base' }, { k: 'redwake', t: 'Bring {R} to its last base before {Y} wakes up' }] },      // 50.5.13: win + time merged into star 1 (Henry's T3 pattern); star 3 new. 50.5.14: final text
-  { id: 'forge-wars', tier: 3, name: 'Forge wars', desc: 'Three Forges and three skilled rivals. Hold every Forge at once.',
-    size: 'medium', teams: 4, shape: 'river', diff: 'hard', seed: 7234, fair: true, mods: {}, specials: true, specialKinds: ['forge', 'forge', 'forge'], aiTune: { spawn: 0.93, margin: 1.45, playerBias: 0.15 },
-    objective: { type: 'forges', secs: 15, text: 'Hold every Forge for 15 seconds' },
-    stars: [{ k: 'win', t: 'Hold every Forge for 15 seconds' }, { k: 'time', v: 420, t: 'Win in under 7:00' }, { k: 'bases', v: 12, t: 'Finish with 12 or more bases' }] },
-  { id: 'last-stand', tier: 3, name: 'Last stand', desc: 'You start in the middle of the map with two skilled rivals right beside you. Survive.',
-    size: 'medium', teams: 3, shape: 'continent', diff: 'hard', seed: 4606, mods: {}, specials: false, surround: true, playerTroops: 12, aiTune: { spawn: 1.0, margin: 1.4, playerBias: 0.28 },
-    objective: { type: 'survive', secs: 300, text: 'Survive for 5 minutes' },
-    stars: [{ k: 'win', t: 'Survive for 5 minutes' }, { k: 'bases', v: 5, t: 'Hold 5 or more bases at the end' }, { k: 'ko', t: 'Knock out a rival' }] },
-  { id: 'blackout', tier: 4, name: 'Blackout', desc: 'Three colors on islands, fog of war, and you can barely see past your own bases.',
-    rule: 'Sight is cut to just over half.',
-    size: 'medium', teams: 3, shape: 'islands', diff: 'normal', seed: 8101, fair: true, mods: { fog: true }, fogScale: 0.55, specials: false, aiTune: { spawn: 0.89 },
-    objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 600, t: 'Win in under 10:00' }, { k: 'bases', v: 14, t: 'Finish with 14 or more bases' }] },
-  { id: 'double-crown', tier: 4, name: 'Double crown', desc: 'Two crowns, far apart. Time only counts while one color holds both.',
-    rule: 'Hold both crowns for 60 seconds in total.',
-    size: 'medium', teams: 3, shape: 'continent', diff: 'normal', seed: 8202, fair: true, mods: { koth: true }, crowns: 2, kothTarget: 60, specials: false,
-    objective: { type: 'crown', text: 'Hold both crowns for 60 seconds' },
-    stars: [{ k: 'win', t: 'Hold both crowns for 60 seconds' }, { k: 'time', v: 360, t: 'Win in under 6:00' }, { k: 'bases', v: 10, t: 'Finish with 10 or more bases' }] },
-  { id: 'fortress-ring', tier: 4, name: 'Fortress ring', desc: 'A ring of bases with double health. Nothing falls quickly, so every attack has to count.',
-    rule: 'Every base has twice the health.',
-    size: 'medium', teams: 4, shape: 'ring', diff: 'hard', seed: 8307, fair: true, mods: {}, hpMul: 2, specials: false, aiTune: { spawn: 0.95, margin: 1.5, playerBias: 0.2 },
-    objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: 'win', t: 'Take every base' }, { k: 'time', v: 720, t: 'Win in under 12:00' }, { k: 'time', v: 540, t: 'Win in under 9:00' }] },
-  { id: 'aftershock', tier: 4, name: 'Aftershock', desc: 'The ground shakes under whoever is winning. Hold a big territory while it keeps cracking.',
-    rule: 'Every 40 seconds the biggest color has its strongest base cracked open.',
-    size: 'medium', teams: 4, shape: 'continent', diff: 'hard', seed: 8401, fair: true, mods: {}, quake: 40, specials: false, aiTune: { spawn: 0.9, margin: 1.6, playerBias: 0.15 },
-    objective: { type: 'hold', n: 12, secs: 90, text: 'Hold 12 bases for 90 seconds' },
-    stars: [{ k: 'win', t: 'Hold 12 bases for 90 seconds' }, { k: 'time', v: 420, t: 'Win in under 7:00' }, { k: 'bases', v: 16, t: 'Finish with 16 or more bases' }] }
+  // 50.6.0: the old Tier 3 and Tier 4 levels (Forge wars, Last stand; Blackout, Double crown, Fortress ring, Aftershock) retired here (Henry, Nov 5): written into the challenge toolbox's section 7; their engine parts stay. Tiers 3 and 4 are rebuilt from scratch in 50.7 and 50.8.
 ];
 // ---- Practice lessons (How to play). 50.4.2: one lesson, the guided match, rebuilt (spec GUIDED_MATCH_SPEC_50.4.md, text GUIDED_MATCH_TEXT_FINAL.md).
 // Every step waits for the player to do something (ui.js: COACH_STEPS holds each step's gate, ring and skip rule). {R} is the rival's palette name
@@ -1781,7 +1755,7 @@ function newGame(opts) {
     spawnT: rng() * C.spawnEvery, pres: new Int32Array(6) }));
   for (const [a, b] of m.edges) { nodes[a].adj.push(b); nodes[b].adj.push(a); }
   const D = Object.assign({}, DIFF[opts.diff] || DIFF.normal, opts.aiTune || {});     // aiTune: a challenge can nudge its rivals' numbers
-  const TD = i => opts.teamTune && opts.teamTune[i] ? Object.assign({}, D, opts.teamTune[i]) : D;      // 50.5.9: and give one rival numbers of its own (Manhunt)
+  const TD = i => opts.backdrop && i === PLAYER ? BACK_BLUE(D) : opts.teamTune && opts.teamTune[i] ? Object.assign({}, D, opts.teamTune[i]) : D;      // 50.6.1: a backdrop's blue plays at Normal      // 50.5.9: and give one rival numbers of its own (Manhunt)
   G = {
     t: 0, step: 0, nodes, edges: m.edges, troops: [], nextId: 1, rng, seed,
     shape: m.shape || 'continent', deco: m.deco || null, noTurn: opts.aspect > 0 || !!(fp && fp.outline),      // 50.1.2: a New-Gen map is never turned to fit the screen
@@ -1789,6 +1763,7 @@ function newGame(opts) {
     mods, baseHP, crown: -1, crown2: -1, kothTarget: opts.kothTarget || KOTH_TARGET, kothRival: opts.kothRival || 0, fogScale: opts.fogScale || 1, quake: opts.quake || 0, nextQuake: opts.quake || 0, endReason: null,
     overtimeOn: !!opts.overtime && !opts.scenarioId, maxedT: null, otCrown: false,
     truce: opts.truce ? { end: null, hunt: opts.truce.hunt || 15 } : null,      // 50.5.5: Truce's rule; truceOn() while a neutral base is left, then end is when the last one fell; for hunt s after it each rival favours the prey it picked then
+    backdrop: !!opts.backdrop,      // 50.6.1: this match plays behind a level's brief, the AI on every side (ui.js buildLevelBack); nothing it does counts
     oneArmy: !!opts.oneArmy,      // 50.5.0: One Army's rule; ui.js sends the whole army on every order and greys 25% and 50%
     pact: opts.pact ? active.filter(i => i !== PLAYER) : null,      // 50.5.9: Manhunt's rule: the rivals never hurt each other (the truce's machinery, for them only)
     hunt: opts.hunt ? Object.assign({ wakeAt: null, wakeBy: null, told: false, fence: (fixed && fixed.fence) || null }, opts.hunt) : null,      // 50.5.9: Manhunt's sleeper: wakeAt/wakeBy once it wakes
@@ -2468,6 +2443,7 @@ function followPath(rt, s, target) {
 }
 
 function command(team, target, frac, filter, maxCost = Infinity) {
+  if (G.oneArmy && G.backdrop && team === PLAYER) { frac = 1; filter = null; maxCost = Infinity; }      // 50.6.1: One Army behind its brief: blue's AI sends its whole army on every order, as the rule does for you
   if (peaceAt(team, G.nodes[target].owner)) return null;      // 50.5.5: no orders at a colour in a truce (50.5.9: nor at a partner in Manhunt's pact)
   const nodes = G.nodes, rt = routeTable(team, target), cands = [], stay = (team !== PLAYER || G.autoplay) && G.teams[team].diff.stay || null, kept = {};      // 50.5.0: a challenge rival's held bases (stay) keep their troops; 50.5.1: up to a count per base
   for (const t of G.troops) {
@@ -3311,7 +3287,7 @@ function layout() {
   tall = r.height > r.width * 1.1;                  // the screen's shape (portrait HUD layout)
   F = { x: b.left, y: b.top, w: Math.max(1, b.width), h: Math.max(1, b.height) };     // 49.9.1: the whole screen, in menus too (it was inset 16 px there, so every background and decoration stopped at a visible rectangle)
   FI = { w: Math.max(1, r.width), h: Math.max(1, r.height) };                         // the size the map is fitted into: still 16 px in from each edge in menus
-  { const want = G && G.noTurn ? false : tall; if (mode === 'demo' && want !== rot) { rot = want; resetCam(); } }     // 50.1.1: in a match the map keeps the way it faced at the start; turning the phone only reshapes the view. 50.1.2: a map that never turns (New-Gen) stays as it is in the preview too
+  { const want = G && (G.noTurn || (backLevel && G.scenarioId === backLevel && (SCENARIOS.find(x => x.id === backLevel) || {}).face === 'wide')) ? false : tall; if (mode === 'demo' && want !== rot) { rot = want; resetCam(); } }      // 50.6.1: a level's backdrop faces as the level does     // 50.1.1: in a match the map keeps the way it faced at the start; turning the phone only reshapes the view. 50.1.2: a map that never turns (New-Gen) stays as it is in the preview too
   hudEl.classList.toggle('rotv', tall);
   applyHudSize();
   if (!hudEl.hidden) placeMapButton();
@@ -9285,6 +9261,7 @@ function syncLook() {                                 // Colors and Team symbols
 function currentColorArgs() {                         // the color choice that is in force right now: the running match, or the setup behind the menu
   const live = mode === 'play' || mode === 'paused' || mode === 'ending' || mode === 'over';
   const key = live ? curModeKey : previewMode, watch = live ? watching : key === 'spec';
+  if (!live && backLevel) return [false, settings.classic.color];      // 50.6.1: a level's backdrop wears the match's colours
   return [watch, live && curPrac ? COLOR_KEYS[0] : live && curScen ? settings.classic.color : key === 'spec' ? 'blue' : settings[key].color];
 }
 function applyLook() {                                // a Colors or Team symbols change takes effect at once, even in the middle of a match
@@ -12272,6 +12249,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
+  { v: '50.6.0', t: 'Build 50.6', b: ['The six older Tier 3 and Tier 4 levels are retired, so Challenge Maps holds Tiers 1 and 2 for now. The tokens you earned on them stay yours, and new Tier 3 and Tier 4 levels are on the way.'] },     // 50.6.0: DC's draft (WC rewrites before Build 51); fold later 50.6.x items in
   { v: '50.5.9', t: 'Build 50.5', b: ['Challenge Maps\' Tier 2 is rebuilt around three new levels, One Army, Truce and Manhunt, each built around a single idea like Tier 1\'s.', 'Iron wall and Glass cannon are retired, so stars you earned on them no longer count, and the tiers above need fewer stars to open.', 'Save and quit works again in Black Iron on maps with islands, rivers or rings.'] },     // 50.5.9: DC's draft (Henry's notes; WC rewrites before Build 51)
   { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
   { v: '50.3.26', t: 'Build 50.3', b: ['Atlas + Drift are reworked. Atlas is a surveyor\'s chart with pieces of its own, and Drift is the sea the battle is fought on, growing rougher with the fighting.', 'Ink + Tide are reworked too: a calmer, darker page that reads even zoomed out, with Tide built around a piano\'s sustain pedal. Neon\'s river is water now.', 'Zooming is smoother on most looks, and Leadlight, Black Iron, Ember and Pixel run smoother on slower phones.', 'Special bases have new icons, so you can tell what each one does at a glance, upright and readable at any zoom. Ember\'s team symbols are burned in, so they show at any health.', 'All thirteen sounds are evened out, so on a phone none plays much louder or quieter than the rest, endings included.'] },     // 50.3.1 on: DC's summary, Henry's OK Nov 1 (50.1's size); fold later 50.3.x items into these lines
@@ -12375,6 +12353,7 @@ function fitHints() {
 let fitT = 0; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitHints, 150); });
 function showScreen(id) {
   if (id !== 'scrShop' && shopReal) closeShop();
+  if (mode === 'demo') { if (id === 'scrBrief' && briefId) buildLevelBack(briefId); else if (backLevel) { leaveLevelBack(); if (!SCREEN_MODE[id]) buildPreview(previewMode); } }      // 50.6.1: the brief shows its level's map; leaving it brings the menu's match back
   for (const sc of document.querySelectorAll('#menu .screen')) sc.hidden = sc.id !== id;
   $('menu').classList.toggle('shopOn', id === 'scrShop');
   $('menu').classList.toggle('deckOn', $(id).classList.contains('deck'));      // 49.9.2: the setup deck screens
@@ -12429,12 +12408,12 @@ function shopStarSync() {                           // every challenge star pays
   if (tot <= shop.stars) return 0;
   const g = tot - shop.stars; shop.stars = tot; shop.tok += g; saveShop(); return g;
 }
-function forceStyles(pairId) {                     // 50.0.13: a challenge can name a style pair (`forcePair` in SCENARIOS) that every player sees, owned or not; null puts yours back
+function forceStyles(pairId, lookOnly) {           // 50.6.1: lookOnly (a level's brief) wears the pair's look and keeps your sound. 50.0.13: a challenge can name a style pair (`forcePair` in SCENARIOS) that every player sees, owned or not; null puts yours back
   const P = pairId && SHOP_PAIRS.find(x => x.id === pairId);
   if (!P) { releaseStyles(); return; }
   if (!forcedReal) forcedReal = { visual: settings.visual, tone: settings.tone };
   if (settings.visual !== P.v) applyStyle('visual', P.v);
-  if (settings.tone !== P.s) applyStyle('tone', P.s, true);
+  if (!lookOnly && settings.tone !== P.s) applyStyle('tone', P.s, true);
 }
 function releaseStyles() {                          // leaving a forced challenge: your own pair comes back (it was never saved over, see save())
   const r = forcedReal; if (!r) return;
@@ -12550,7 +12529,7 @@ $('scYes').addEventListener('click', () => { const f = shopAskFn; shopAskClose()
 $('bSetStyles').addEventListener('click', () => { shopNextOwned = true; go('scrShop'); });      // 49.5.3: Styles lives in Settings only (the Pause menu no longer has its own button)
 window.addEventListener('resize', () => { if (shopReal) placeShop(); });
 // ---- the challenge ladder ----
-let curScen = null, briefId = null, nextScen = null, curPrac = null, coach = null;
+let curScen = null, briefId = null, nextScen = null, curPrac = null, coach = null, backLevel = null;      // 50.6.1: backLevel, the level whose own map plays behind its brief
 const ladder = {}, bests = {};
 {                                                     // stars are three booleans per challenge, a best is a time or a base count; anything else is dropped
   const rawL = load('ice-ladder', {}), rawB = load('ice-bests', {});
@@ -12559,6 +12538,11 @@ const ladder = {}, bests = {};
     const b = rawB[c.id]; if (!isObj(b)) continue;
     const e = {}; if (Number(b.t) > 0) e.t = +b.t; if (b.bases != null && count(b.bases) >= 0 && Number.isFinite(+b.bases)) e.bases = count(b.bases);
     if (Object.keys(e).length) bests[c.id] = e;
+  }
+  {                                                 // 50.6.0: stars and a best saved on a level that is no longer in the ladder are set aside once, never deleted (above keeps only SCENARIOS, so the next save would drop them)
+    const R = load('ice-retired', {}), gone = isObj(R.gone) ? R.gone : {}; let n = 0;
+    for (const k of new Set([...Object.keys(rawL), ...Object.keys(rawB)])) if (!SCENARIOS.some(c => c.id === k) && !(k in gone)) { gone[k] = { stars: rawL[k] == null ? null : rawL[k], best: rawB[k] == null ? null : rawB[k] }; n++; }
+    if (n) { R.gone = gone; save('ice-retired', R); }
   }
   const R = load('ice-retired', {});              // 50.5.14: once, Manhunt's stars and best from before 50.5.13 (its slots changed meaning) are set aside here, never deleted; tokens paid stay
   if (!R.manhunt5013) { R.manhunt5013 = { stars: ladder.manhunt || null, best: bests.manhunt || null }; save('ice-retired', R); delete ladder.manhunt; delete bests.manhunt; save('ice-ladder', ladder); save('ice-bests', bests); }
@@ -12747,7 +12731,20 @@ function buildPreview(key) {                         // the map behind the menu 
   G.autoplay = true; acc = 0; hl = []; uiFx = [];
   resetCam(); layout(); placePreview();
 }
-function startDemo() { mode = 'demo'; buildPreview(previewMode); }
+function buildLevelBack(id) {                       // 50.6.1: a level's brief plays that level's own map behind it: its own rules, the AI on every side, in its forced look
+  if (mode !== 'demo') return;
+  const sc = SCENARIOS.find(x => x.id === id); if (!sc) return;
+  backLevel = id; clearEffects();
+  applyColors(false, settings.classic.color);       // the colours the match will use (startGame's, for a challenge)
+  layout();
+  newGame({ scenario: id, backdrop: true });        // Start's own path (startGame), so a new level gets its backdrop for free
+  forceStyles(sc.forcePair, true);                  // its forced look, as a preview: never saved (forcedReal), your own sound keeps playing
+  rot = G.noTurn || sc.face === 'wide' ? false : tall;
+  G.autoplay = true; acc = 0; hl = []; uiFx = [];
+  resetCam(); layout();
+}
+function leaveLevelBack() { if (!backLevel) return; backLevel = null; releaseStyles(); }      // 50.6.1: off the brief: your own look comes back
+function startDemo() { mode = 'demo'; if (backLevel && stack[stack.length - 1] === 'scrBrief') { buildLevelBack(backLevel); return; } leaveLevelBack(); buildPreview(previewMode); }      // 50.6.1: a finished backdrop match on a brief starts that level again
 let curModeKey = 'custom';
 
 // ---- SAVE AND QUIT (49.3) ----
@@ -12809,7 +12806,7 @@ function resumeSaved() {
   pause();                                          // a saved match opens paused, so you can look around before it moves
 }
 function startGame(watch, scen, modeKey, prac, resume) {
-  resetPtrs(); if (!resume) resumedFromSlot = false;
+  resetPtrs(); if (!resume) resumedFromSlot = false; backLevel = null;      // 50.6.1: a real match is never a brief's backdrop (a forced look stays forced; forceStyles below adds its sound)
   curPrac = prac || null; curScen = scen || null; curModeKey = scen ? curModeKey : (modeKey || (watch ? 'spec' : 'custom'));
   const cfg = settings[curModeKey];
   audioOn(); armBack(); hideInfo();
@@ -13252,7 +13249,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.5.15 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.6.1 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -14436,4 +14433,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.5.15, from source sha256 c2fd4309f1447467 -->
+<!-- Aiced build 50.6.1, from source sha256 4a3136259697c579 -->

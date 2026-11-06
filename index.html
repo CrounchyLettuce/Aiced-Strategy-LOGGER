@@ -814,7 +814,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.7 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1229,8 +1229,8 @@ const SCENARIOS = [
     stars: [{ k: "time", v: 300, t: "Take every base in under 5:00" }, { k: "takeby", base: 14, v: 170, t: "Take the Forge before 2:50" }, { k: "netlost", v: 40, t: "Lose fewer than 40 troops to neutral help" }] },      // 50.7.3: A and C reset from the refit sims (B stays)
   { id: 'echo', tier: 3, name: "Follow the Leader", desc: "{R} is a quick study.",      // 50.7.4: Tier 3's second level (WC's words)
     size: 'small', teams: 2, active: [0, 1], shape: 'islands', map: 'echo', face: 'wide', diff: 'easy', seed: 9202, fair: true, mods: {}, specials: true,
-    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true, noOverrule: true, spineCap: 0.5 },      // the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends); 50.7.6: no copy overrules Red's own turns, the Spine copy at most half its army
-    rule: "{R} copies your orders a few seconds later, at the matching base, or as close as it can. Two bases have no match, and if you go quiet, it moves on its own.",
+    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true, noOverrule: true, spineCap: 0.5, quietUseful: true },      // 50.7.7: only an order Red can copy holds its own turns off; the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends); 50.7.6: no copy overrules Red's own turns, the Spine copy at most half its army
+    rule: "{R} copies your orders moments later, at the matching base, or as close as it can. Two bases have no match, and with nothing to copy, it moves on its own.",
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: "time", v: 390, t: "Take every base in under 6:30" }, { k: "takeby", base: 6, v: 225, t: "Take {R}'s home before 3:45" }, { k: "lostmax", v: 1, t: "Lose no more than one base" }] },      // 50.7.4: first-build numbers from the sims
   // 50.6.0: the old Tier 3 and Tier 4 levels (Forge wars, Last stand; Blackout, Double crown, Fortress ring, Aftershock) retired here (Henry, Nov 5): written into the challenge toolbox's section 7; their engine parts stay. Tiers 3 and 4 are rebuilt from scratch in 50.7 and 50.8.
@@ -2403,6 +2403,8 @@ function nestStrike(n, team) {                      // 50.7.3: strike: a neutral
 // order for `idle` s (the first window `first` s) it takes one turn of its normal think (echoStep).
 // 50.7.6 (Henry's first runs): noOverrule: a copy leaves alone the rival's troops walking under its own turn or its defence (Henry's "recall" made
 // those turns free); spineCap f: a Spine copy sends as many as blue sent, but at most f of the rival's army (whoever held a Spine base won every fight there).
+// 50.7.7 (Henry's runs on 50.7.6): quietUseful: only an order whose copy gives the rival something to do holds its own turns off: a send or lock at a
+// base it holds, or at one whose twin it doesn't hold; an upgrade. Pokes copied as regroups on its own ground, and the Blind Spot, no longer do.
 const ECHO_RIVAL = 1;
 function echoD() { const E = G.echo, Q = E.quicken; return Q ? Math.max(Q.min, E.delay - Q.per * E.redLost) : E.delay; }
 function echoLand(tw) {      // where a copy aimed at tw lands now: tw if the rival can reach it, else the reachable base fewest roads from tw (then the nearest); null: nowhere
@@ -2418,7 +2420,8 @@ function echoLand(tw) {      // where a copy aimed at tw lands now: tw if the ri
 function echoRec(o) {
   const E = G.echo; if (E.firing) return;
   const nodes = G.nodes, own = o.target != null && nodes[o.target].owner === PLAYER, inReach = o.target != null && nodes[o.target].adj.some(u => nodes[u].owner === PLAYER);
-  if (o.k === 'up' || (o.k === 'lock' && o.target != null && !own && (!E.lockReach || inReach)) || ((o.k === 'pct' || o.k === 'one') && !own)) E.lastReal = G.t;      // a real order: the rival's own turns wait (a send or a lock on your own base, or a lock you can't reach, isn't one)
+  const useful = !E.quietUseful || o.k === 'up' || (o.target != null && (nodes[o.target].owner === ECHO_RIVAL || (E.twin[o.target] != null && nodes[E.twin[o.target]].owner !== ECHO_RIVAL)));      // 50.7.7: does its copy give the rival something to do
+  if (useful && (o.k === 'up' || (o.k === 'lock' && o.target != null && !own && (!E.lockReach || inReach)) || ((o.k === 'pct' || o.k === 'one') && !own))) E.lastReal = G.t;      // a real order: the rival's own turns wait (a send or a lock on your own base, or a lock you can't reach, isn't one)
   if (o.k === 'pct' && own) o.k = 'regroup';
   const tw = o.target == null ? null : E.twin[o.target], land = tw == null ? null : echoLand(tw);
   o.id = E.nid++; o.t = +G.t.toFixed(2); o.at = G.t + echoD();
@@ -9398,7 +9401,7 @@ function hud() {
   if (G.echo && mode === 'play' && !watching) {      // 50.7.4: M8's three notes, once a match each, only while fresh (WC's words)
     const E = G.echo, tl = E.told || (E.told = {}), c = TEAM_COLORS[ECHO_RIVAL], F = E.lastFail;
     if (F && !F.seen) { F.seen = 1; if (G.t - F.t < 3) { if (F.why === 'noTwin') { if (!tl.nt) { tl.nt = 1; toast(nameText("That base has no match, so {R} can't copy it."), c, ECHO_RIVAL); } } else if (!tl.f) { tl.f = 1; toast(nameText("{R} couldn't copy that one."), c, ECHO_RIVAL); } } }
-    if (E.idleTurns.length && !tl.q) { tl.q = 1; if (G.t - E.idleTurns[0] < 3) toast(nameText('You went quiet, so {R} moved on its own.'), c, ECHO_RIVAL); }
+    if (E.idleTurns.length && !tl.q) { tl.q = 1; if (G.t - E.idleTurns[0] < 3) toast(nameText('{R} had nothing to copy, so it moved on its own.'), c, ECHO_RIVAL); }
   }
   if (G.hunt && G.hunt.wakeAt != null && !G.hunt.told) {      // 50.5.9: Manhunt's sleeper wakes: seen (banner, toast, shake) and heard. Words: WC's (50.5.14)
     G.hunt.told = true;
@@ -13698,7 +13701,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.7.6 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.7.7 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -14907,4 +14910,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.7.6, from source sha256 157cb5dc315bed50 -->
+<!-- Aiced build 50.7.7, from source sha256 ef99c852fa066c77 -->

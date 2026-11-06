@@ -810,7 +810,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.3 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1176,6 +1176,7 @@ const MANHUNT_RED = { smart: 1, spawn: 1, margin: 1.6, frac: 0.75, interval: [2,
 const MANHUNT_YELLOW = { smart: 1, spawn: 1, margin: 1.4, frac: 0.85, interval: [2, 3.5], away: { min: 8, hops: 4, margin: 1.8, frac: 0.9, bonus: 2.5 },      // T2_M3's far rival: awake, it goes where your army isn't (One Army's away; 50.5.11: AC's spec numbers again, it hunts once it wakes);
   sleep: { spawn: 1.2, margin: 1.15, frac: 0.85, interval: [1, 1.8] } };      // asleep (G.hunt), it grabs the neutral bases in its zone only, with Truce's grab numbers (50.5.10: builds at 1.2 asleep, so an early wake is no gift)
 const NEST_AI = { smart: 1, spawn: 1, margin: 1.4, frac: 0.8, interval: [2, 3.5], firstThink: 20 };      // 50.7.1: T3_M1's rival
+const ECHO_RED = { smart: 1, spawn: 1, margin: 1.3, frac: 0.8, interval: [1.5, 2.4], defOnly: true };      // 50.7.4: T3_M2's rival: defOnly (its attacks are your copies); interval paces its defence step
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const BACK_BLUE = D => Object.assign({}, DIFF.normal, D.truce ? { truce: D.truce } : {});      // 50.6.1: blue's AI in a level's backdrop (behind its brief): Normal, plus the level's truce grab numbers; never the rival's own dials
 const SCENARIOS = [
@@ -1215,9 +1216,15 @@ const SCENARIOS = [
   { id: 'nest', tier: 3, name: "Hornet's Nest", desc: "The land looks after its own.",      // 50.7.1: Tier 3's first level
     size: 'medium', teams: 2, active: [0, 1], shape: 'islands', map: 'nest', face: 'wide', diff: 'easy', seed: 9201, fair: true, mods: {}, specials: true, aiTune: NEST_AI,
     nest: { share: 0.5, cool: 15, lvl: 10, aware: true, awareK: 0.6, noRegrow: true, heart: 14, bonus: 1.5, grow: { rate: 0.6, max: 2, every: 4, from: 90, idle: 15 }, strike: 1, netXp: 0.5 },      // 50.7.3: no level cap (lvl 10 is the game's top), bases left alone grow (grow), the land strikes back (strike), half XP for neutral kills (netXp)
-    rule: "Attack a neutral base and its neighbors send help. Take it, and they throw everything left to win it back. Neutral bases left alone slowly grow.",      // 50.7.3: a placeholder line (WC's); the final wording waits until the level is wrapped (Henry, Nov 5)
+    rule: "Attack a neutral base and its neighbors send help. Take it, and they throw everything left to win it back. Neutral bases left alone slowly grow.",      // 50.7.4: final (WC, Nov 5 22:56: the 50.7.3 line word for word)
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: "time", v: 300, t: "Take every base in under 5:00" }, { k: "takeby", base: 14, v: 170, t: "Take the Forge before 2:50" }, { k: "netlost", v: 40, t: "Lose fewer than 40 troops to neutral help" }] },      // 50.7.3: A and C reset from the refit sims (B stays)
+  { id: 'echo', tier: 3, name: "Follow the Leader", desc: "{R} is a quick study.",      // 50.7.4: Tier 3's second level (WC's words)
+    size: 'small', teams: 2, active: [0, 1], shape: 'islands', map: 'echo', face: 'wide', diff: 'easy', seed: 9202, fair: true, mods: {}, specials: true,
+    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true },      // the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends)
+    rule: "{R} copies your orders a few seconds later, at the matching base, or as close as it can. Two bases have no match, and if you go quiet, it moves on its own.",
+    objective: { type: 'conquest', text: 'Take every base' },
+    stars: [{ k: "time", v: 390, t: "Take every base in under 6:30" }, { k: "takeby", base: 6, v: 225, t: "Take {R}'s home before 3:45" }, { k: "lostmax", v: 1, t: "Lose no more than one base" }] },      // 50.7.4: first-build numbers from the sims
   // 50.6.0: the old Tier 3 and Tier 4 levels (Forge wars, Last stand; Blackout, Double crown, Fortress ring, Aftershock) retired here (Henry, Nov 5): written into the challenge toolbox's section 7; their engine parts stay. Tiers 3 and 4 are rebuilt from scratch in 50.7 and 50.8.
 ];
 // ---- Practice lessons (How to play). 50.4.2: one lesson, the guided match, rebuilt (spec GUIDED_MATCH_SPEC_50.4.md, text GUIDED_MATCH_TEXT_FINAL.md).
@@ -1264,7 +1271,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active, teamTune: c.teamTune, pact: c.pact, hunt: c.hunt, nest: c.nest };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active, teamTune: c.teamTune, pact: c.pact, hunt: c.hunt, nest: c.nest, echo: c.echo };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1272,6 +1279,7 @@ function starMet(g) {
     case 'win': return true;
     case 'time': return G.t <= g.v;
     case 'noloss': return G.playerLosses === 0;
+    case 'lostmax': return G.playerLosses <= g.v;      // 50.7.4: you lost at most g.v bases (M8)
     case 'nohome': return G.homeLost == null;      // 50.5.9: your home base never fell (Manhunt)
     case 'redwake': return !!G.hunt && G.hunt.wakeBy === 'red' && G.hunt.redLow === true;      // 50.5.13: the sleeper woke because the near rival nearly fell, before anything else woke it (Manhunt); 50.5.14: with Red on its last base (or out), not just its home lost
     case 'nostat': return P.lv[g.v] === 0;
@@ -1362,6 +1370,13 @@ STATIC_MAPS.nest = { id: 'nest', w: 1500, h: 940, size: 'medium',
   starts: [0, 7], specials: { 5: 'beacon', 12: 'beacon', 14: 'forge' }, shape: 'islands',
   garrison: { 0: 10, 1: 6, 2: 6, 3: 8, 4: 8, 5: 12, 6: 8, 7: 10, 8: 6, 9: 6, 10: 8, 11: 8, 12: 12, 13: 8, 14: 20, 15: 10, 16: 10, 17: 10, 18: 10, 19: 10, 20: 10 } };      // 50.7.1
 STATIC_MAPS.nest.deco = { kind: 'islands', groups: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2], hulls: [[[157, 449], [145, 460], [128, 465], [102, 478], [87, 491], [74, 508], [65, 528], [60, 550], [60, 570], [65, 592], [78, 618], [98, 639], [108, 646], [128, 655], [151, 661], [162, 671], [187, 708], [190, 715], [193, 732], [199, 745], [215, 764], [233, 775], [246, 779], [267, 780], [282, 777], [298, 769], [314, 755], [321, 745], [327, 732], [328, 725], [334, 716], [407, 632], [412, 627], [435, 614], [444, 605], [457, 582], [460, 567], [460, 553], [457, 538], [449, 522], [435, 506], [425, 499], [411, 493], [404, 487], [350, 430], [343, 414], [344, 402], [349, 392], [418, 319], [438, 309], [464, 287], [678, 191], [704, 189], [718, 185], [980, 223], [1003, 235], [1016, 239], [1037, 240], [1052, 237], [1075, 224], [1091, 205], [1097, 192], [1100, 177], [1100, 163], [1097, 148], [1089, 132], [1075, 116], [1057, 105], [1044, 101], [1023, 100], [999, 105], [740, 67], [717, 55], [704, 51], [683, 50], [668, 53], [652, 61], [626, 83], [412, 179], [393, 180], [378, 183], [355, 196], [339, 215], [333, 231], [327, 240], [236, 337], [229, 343], [212, 351], [196, 365], [183, 388], [178, 414]], [[477, 840], [501, 835], [760, 873], [788, 887], [803, 890], [817, 890], [832, 887], [845, 881], [874, 857], [1088, 761], [1114, 759], [1135, 751], [1154, 735], [1161, 725], [1167, 709], [1173, 700], [1264, 603], [1271, 597], [1288, 589], [1304, 575], [1317, 552], [1322, 526], [1348, 485], [1359, 478], [1372, 475], [1392, 466], [1409, 453], [1422, 438], [1435, 412], [1440, 390], [1440, 370], [1438, 358], [1426, 328], [1413, 311], [1398, 298], [1372, 285], [1349, 279], [1338, 269], [1313, 232], [1310, 225], [1307, 208], [1301, 195], [1285, 176], [1267, 165], [1247, 160], [1226, 161], [1205, 169], [1195, 176], [1181, 192], [1173, 208], [1172, 215], [1166, 224], [1093, 308], [1088, 313], [1065, 326], [1056, 335], [1043, 358], [1040, 373], [1040, 387], [1043, 402], [1051, 418], [1065, 434], [1075, 441], [1089, 447], [1096, 453], [1150, 510], [1157, 526], [1156, 538], [1151, 548], [1082, 621], [1062, 631], [1036, 653], [822, 749], [796, 751], [782, 755], [520, 717], [497, 705], [484, 701], [463, 700], [448, 703], [425, 716], [409, 735], [403, 748], [400, 763], [400, 777], [403, 792], [416, 815], [435, 831], [448, 837], [463, 840]], [[560, 402], [536, 425], [525, 443], [520, 463], [520, 477], [523, 492], [536, 515], [559, 536], [597, 602], [600, 609], [603, 631], [616, 654], [635, 670], [656, 678], [684, 678], [709, 669], [791, 669], [816, 678], [837, 679], [852, 676], [865, 670], [875, 663], [891, 644], [897, 631], [900, 609], [903, 602], [941, 536], [964, 515], [971, 505], [979, 484], [980, 463], [975, 443], [964, 425], [941, 404], [903, 338], [900, 331], [897, 309], [891, 296], [875, 277], [857, 266], [844, 262], [816, 262], [791, 271], [709, 271], [692, 264], [677, 261], [656, 262], [643, 266], [625, 277], [609, 296], [603, 309], [598, 336]]] };
+STATIC_MAPS.echo = { id: 'echo', w: 1500, h: 1000, size: 'small',      // 50.7.4: AC's map (a crooked mirror on four islands); twin: each base's match (null: none)
+  nodes: [[170,470],[300,320],[300,620],[450,190],[480,470],[450,750],[1317,591],[1221,417],[1159,710],[1102,258],[1014,526],[985,806],[750,215],[750,470],[750,725],[215,790],[300,905]],
+  edges: [[0,1],[0,2],[1,3],[1,4],[2,4],[2,5],[3,4],[4,5],[6,7],[6,8],[7,9],[7,10],[8,10],[8,11],[9,10],[10,11],[3,12],[4,13],[5,14],[9,12],[10,13],[11,14],[12,13],[13,14],[2,15],[15,16],[16,5]],
+  starts: [0,6], owned: {"7":1,"8":1}, specials: {"13":"beacon","16":"forge"},
+  garrison: {"0":10,"1":14,"2":14,"3":6,"4":10,"5":12,"6":10,"7":8,"8":8,"9":12,"10":10,"11":6,"12":10,"13":16,"14":10,"15":10,"16":20},
+  twin: [6,7,8,9,10,11,0,1,2,3,4,5,12,13,14,null,null] };
+STATIC_MAPS.echo.deco = { kind: 'islands', groups: [0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,3,3], hulls: [[[81,438],[89,417],[99,396],[112,376],[128,357],[147,338],[165,319],[183,299],[201,278],[219,257],[237,236],[257,215],[277,195],[298,175],[321,157],[345,141],[371,126],[399,114],[426,106],[453,102],[479,102],[506,108],[528,116],[547,129],[562,145],[573,165],[581,187],[585,210],[586,234],[584,261],[583,287],[584,312],[588,338],[592,362],[597,389],[600,416],[602,445],[603,475],[602,505],[600,535],[596,565],[589,595],[584,625],[581,655],[578,685],[577,715],[573,743],[566,768],[556,792],[544,813],[529,830],[512,842],[493,849],[472,851],[452,850],[434,844],[418,834],[402,821],[388,806],[372,789],[358,772],[342,753],[325,735],[306,718],[284,701],[261,684],[238,668],[217,653],[197,638],[178,622],[160,608],[143,592],[128,578],[112,562],[100,547],[90,531],[82,514],[78,496],[76,478],[77,458]],[[1449,581],[1448,566],[1444,554],[1438,544],[1429,536],[1419,531],[1407,521],[1395,507],[1382,489],[1367,466],[1354,444],[1340,420],[1327,396],[1314,372],[1300,347],[1286,323],[1270,299],[1253,275],[1235,253],[1216,234],[1195,218],[1173,203],[1149,192],[1124,182],[1096,176],[1068,171],[1042,172],[1020,179],[1002,191],[986,208],[974,228],[966,249],[960,273],[956,300],[952,325],[947,350],[941,374],[933,398],[926,423],[919,449],[912,476],[906,506],[901,535],[897,564],[895,594],[894,623],[894,650],[895,674],[898,694],[900,712],[902,732],[901,756],[899,784],[896,814],[898,840],[906,862],[921,879],[942,892],[962,899],[981,900],[999,896],[1017,885],[1035,874],[1053,861],[1071,847],[1090,832],[1111,818],[1133,805],[1158,792],[1184,782],[1210,771],[1234,760],[1256,749],[1278,738],[1298,727],[1318,716],[1337,705],[1354,693],[1372,680],[1390,665],[1408,648],[1425,630],[1438,612],[1446,596]],[[776,129],[792,137],[806,147],[818,159],[826,173],[830,190],[833,207],[833,225],[830,243],[826,262],[822,280],[819,298],[817,316],[816,334],[817,354],[820,376],[825,401],[832,429],[835,456],[835,484],[832,511],[825,539],[820,564],[817,586],[816,606],[817,624],[819,642],[822,660],[826,678],[832,697],[834,716],[833,734],[830,753],[822,772],[813,788],[802,801],[789,810],[773,818],[758,821],[742,821],[727,818],[711,810],[698,801],[687,788],[678,772],[670,753],[667,734],[666,716],[668,697],[674,678],[678,660],[681,642],[683,624],[684,606],[683,586],[680,564],[675,539],[668,511],[665,484],[665,456],[668,429],[675,401],[680,376],[683,354],[684,334],[683,316],[681,298],[678,280],[674,262],[670,243],[667,225],[667,207],[670,190],[674,173],[682,159],[694,147],[708,137],[724,129],[742,126],[758,126]],[[129,767],[133,751],[143,738],[157,727],[176,718],[200,710],[222,710],[241,716],[258,729],[274,749],[290,769],[307,790],[325,811],[345,833],[361,854],[374,875],[383,896],[389,915],[390,933],[385,949],[374,964],[359,976],[341,985],[322,989],[301,989],[279,986],[259,978],[243,967],[230,952],[220,933],[208,916],[195,901],[181,888],[164,877],[151,864],[141,850],[133,834],[129,816],[126,799],[126,783]]] };      // the coast drawn by hand (AC, coast8.py)
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1850,7 +1865,9 @@ function newGame(opts) {
     hunt: opts.hunt ? Object.assign({ wakeAt: null, wakeBy: null, told: false, fence: (fixed && fixed.fence) || null }, opts.hunt) : null,      // 50.5.9: Manhunt's sleeper: wakeAt/wakeBy once it wakes
     homeLost: null,      // 50.5.9: when your home base first fell (the nohome star)
     ownAt: {},      // 50.7.1: when you first owned each base (the takeby star)
-    nest: opts.nest ? Object.assign({ calls: {}, don: {}, helpCalls: [0, 0, 0, 0, 0], sent: 0, netLost: 0, netLostAll: 0, netTook: [], heartAt: null, heartBy: null }, opts.nest) : null,      // 50.7.1: neutral help (nestCall)
+    nest: opts.nest ? Object.assign({ calls: {}, don: {}, helpCalls: [0, 0, 0, 0, 0], sent: 0, netLost: 0, netLostAll: 0, netTook: [], heartAt: null, heartBy: null }, opts.nest) : null,
+    echo: opts.echo ? Object.assign({ twin: (fixed && fixed.twin) || [], q: [], rings: [], nid: 0, orders: 0, lastReal: 0, lastIdle: 0, firing: false, redLost: 0, echoes: { pct: 0, one: 0, regroup: 0, lock: 0, up: 0 }, toward: 0, lockCopy: null,
+      fail: { noTwin: 0, noSource: 0, outOfReach: 0, noPoint: 0 }, failLog: [], idleTurns: [], lostAt: [], spineAt: {}, redHomeAt: null, lastFail: null }, opts.echo) : null,      // 50.7.4: the copy rule      // 50.7.1: neutral help (nestCall)
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
@@ -2271,6 +2288,7 @@ function update(dt) {
   objStep(dt);
   overtimeStep();
   quakeStep();
+  echoStep();      // 50.7.4
   for (let i = G.autoplay ? 0 : 1; i < G.teams.length; i++) {   // autoplay: the AI drives blue as well
     const T = G.teams[i];
     if (!T.alive) continue;
@@ -2339,6 +2357,7 @@ function takeNode(n, team) {
   if (team === PLAYER && G.ownAt && G.ownAt[n.id] == null) G.ownAt[n.id] = G.t;      // 50.7.1
   if (G.nest && n.id === G.nest.heart && G.nest.heartAt == null) { G.nest.heartAt = G.t; G.nest.heartBy = team; }
   if (G.nest && G.nest.strike && prev === NEUTRAL) nestStrike(n, team);      // 50.7.3: the land strikes back at once
+  if (G.echo) echoTake(n, prev, team);      // 50.7.4
   if (team === PLAYER && prev >= 0 && prev !== PLAYER && !G.firstTake) G.firstTake = { t: G.t, from: prev };      // 49.8.2: the first base you took from a rival
   if (prev === PLAYER) G.playerLosses++;
   n.owner = team; n.hp = n.maxHp * C.flipHP; n.lastHitT = G.t; n.spawnT = C.spawnEvery * 0.5; n.heat = 0;
@@ -2367,6 +2386,80 @@ function nestStrike(n, team) {                      // 50.7.3: strike: a neutral
     for (let i = 0; i < k; i++) { const t = g[i]; t.path = [n.id]; t.tgt = null; t.help = 1; }
     N.don[u] = G.t; N.sent += k; s += k; }
   N.struck = (N.struck || 0) + s; if (s && team === PLAYER && N.strikeT == null) N.strikeT = G.t;      // strikeT: the first strike at a base you took (the toast)
+}
+// 50.7.4: Tier 3 level 2 (M8). The rival repeats blue's orders: each order the engine takes (a send, a lock, an upgrade) is queued (echoRec) and given
+// again by the rival `delay` s later at the twin base (G.echo.twin), with its own numbers; a copy at a base that is its own twin (the Spine) sends as many
+// troops as blue sent (spine 'match'). A twin out of the rival's reach: the copy goes at the base it can reach that is fewest roads from the twin, the
+// nearest of those (echoLand; AC's draft 3). An upgrade copy needs no point (upFree), only a stat under 10. Checked when it fires (echoFire): no twin,
+// no source, nowhere to go, a stat at 10 = dropped, counted, shown. The rival's own think is its defence step (aiThink defOnly); when blue gives no real
+// order for `idle` s (the first window `first` s) it takes one turn of its normal think (echoStep).
+const ECHO_RIVAL = 1;
+function echoD() { const E = G.echo, Q = E.quicken; return Q ? Math.max(Q.min, E.delay - Q.per * E.redLost) : E.delay; }
+function echoLand(tw) {      // where a copy aimed at tw lands now: tw if the rival can reach it, else the reachable base fewest roads from tw (then the nearest); null: nowhere
+  const nodes = G.nodes, R = ECHO_RIVAL, ok = v => nodes[v].owner === R || nodes[v].adj.some(u => nodes[u].owner === R);
+  if (ok(tw)) return tw;
+  if (G.echo.reach !== 'toward') return null;
+  const hop = new Int32Array(nodes.length).fill(99); hop[tw] = 0; const q = [tw];
+  for (let i = 0; i < q.length; i++) for (const u of nodes[q[i]].adj) if (hop[u] === 99) { hop[u] = hop[q[i]] + 1; q.push(u); }
+  let b = -1, bd = Infinity; const d = v => Math.hypot(nodes[v].x - nodes[tw].x, nodes[v].y - nodes[tw].y);
+  for (const n of nodes) if (ok(n.id) && n.owner !== R && (b < 0 || hop[n.id] < hop[b] || (hop[n.id] === hop[b] && d(n.id) < bd))) { b = n.id; bd = d(n.id); }
+  return b < 0 ? null : b;
+}
+function echoRec(o) {
+  const E = G.echo; if (E.firing) return;
+  const nodes = G.nodes, own = o.target != null && nodes[o.target].owner === PLAYER, inReach = o.target != null && nodes[o.target].adj.some(u => nodes[u].owner === PLAYER);
+  if (o.k === 'up' || (o.k === 'lock' && o.target != null && !own && (!E.lockReach || inReach)) || ((o.k === 'pct' || o.k === 'one') && !own)) E.lastReal = G.t;      // a real order: the rival's own turns wait (a send or a lock on your own base, or a lock you can't reach, isn't one)
+  if (o.k === 'pct' && own) o.k = 'regroup';
+  const tw = o.target == null ? null : E.twin[o.target], land = tw == null ? null : echoLand(tw);
+  o.id = E.nid++; o.t = +G.t.toFixed(2); o.at = G.t + echoD();
+  E.q.push(o); E.orders++;
+  E.rings.push({ id: o.id, n: o.k === 'up' ? G.homes[ECHO_RIVAL] : land != null ? land : tw != null ? tw : o.target != null ? o.target : G.homes[ECHO_RIVAL], b: G.t, at: o.at, st: 0, k: o.k });      // the ring where the copy will land (at the base itself when it has no twin)
+}
+function echoFire(o) {
+  const E = G.echo, R = ECHO_RIVAL, T = G.teams[R], ring = E.rings.find(r => r.id === o.id);
+  const fail = why => { E.fail[why]++; E.failLog.push([o.k, why, +G.t.toFixed(1)]); if (ring) { ring.st = -1; ring.why = why; ring.ft = G.t; } E.lastFail = { why, t: G.t }; };
+  const done = v => { E.echoes[o.k]++; if (ring) { ring.st = 1; ring.ft = G.t; if (v != null) ring.n = v; } };
+  if (!T.alive) return;
+  if (o.k === 'up') {
+    if (T.lv[o.up] >= C.maxLvl || (!E.upFree && T.points <= 0)) return fail('noPoint');
+    if (T.points <= 0) T.points++;      // upFree: the copy brings its own point
+    E.firing = true; upgrade(R, o.up); E.firing = false; return done();
+  }
+  const tw = o.target == null ? null : E.twin[o.target];
+  if (o.target != null && tw == null) return fail('noTwin');
+  if (o.k === 'lock') { const v = tw == null ? null : echoLand(tw); G.lock[R] = v; E.lockCopy = v; return done(v); }      // an unlock copies as an unlock
+  const v = echoLand(tw); if (v == null) return fail('outOfReach');
+  let f = null;
+  if (o.src != null) {
+    const s = E.twin[o.src], nodes = G.nodes, at = t => { const b = nodes[s]; return t.team === R && (Math.hypot(t.x - b.x, t.y - b.y) < 60 || (t.home === s && !t.path.length)); };
+    if (s == null || nodes[s].owner !== R || !G.troops.some(at)) return fail('noSource');
+    f = at;
+  }
+  const exact = E.spine === 'match' && v === tw && E.twin[tw] === tw ? Math.max(1, o.n) : undefined;      // the Spine: as many troops as you sent (or all it has)
+  E.firing = true; G._etag = 'copy'; const r = command(R, v, o.frac, f, Infinity, exact); G._etag = null; E.firing = false;
+  if (!r) return fail('noSource');
+  if (v !== tw) E.toward++;
+  done(v);
+}
+function echoStep() {
+  const E = G.echo; if (!E || G.over) return;
+  if (E.q.length && E.q[0].at <= G.t) { const due = E.q.filter(o => o.at <= G.t); E.q = E.q.filter(o => o.at > G.t); for (const o of due) echoFire(o); }
+  if (E.rings.length && G.t - E.rings[0].at > 3) E.rings = E.rings.filter(r => G.t - r.at <= 3);
+  const w = !E.lastReal && !E.lastIdle && E.first ? E.first : E.idle;      // the first window is longer: the first bite needs a full army
+  if (G.teams[ECHO_RIVAL].alive && G.t - Math.max(E.lastReal, E.lastIdle) >= w) {      // quiet for w s: one turn of the rival's own
+    E.lastIdle = G.t; E.idleTurns.push(+G.t.toFixed(1)); G._etag = 'own'; aiThink(ECHO_RIVAL, true); G._etag = null;
+  }
+}
+function echoTake(n, prev, team) {
+  const E = G.echo;
+  if (prev === ECHO_RIVAL) E.redLost++;
+  if (E.twin[n.id] === n.id && E.spineAt[n.id] == null) E.spineAt[n.id] = [team, +G.t.toFixed(1)];
+  if (n.id === G.homes[ECHO_RIVAL] && team === PLAYER && E.redHomeAt == null) E.redHomeAt = +G.t.toFixed(1);
+  if (prev === PLAYER && team >= 0) {      // who took it: the most of the taker's troops on it, by what moved them (a copy, its own turn, its defence)
+    const c = {}; for (const t of G.troops) if (t.team === team && Math.hypot(t.x - n.x, t.y - n.y) < 60) { const k = t.etag || 'other'; c[k] = (c[k] || 0) + 1; }
+    let by = 'other', m = 0; for (const k in c) if (c[k] > m) { m = c[k]; by = k; }
+    E.lostAt.push([n.id, +G.t.toFixed(1), by]);
+  }
 }
 function nestHelp(v) {                              // the help base v would call now (the AI's cost of a bite)
   const N = G.nest, nodes = G.nodes; if (N.calls[v] != null && G.t - N.calls[v] < N.cool) return 0;
@@ -2400,7 +2493,7 @@ function spawnStep(dt) {
 }
 
 // lock-on: fresh troops head straight for the locked base
-function setLock(team, nodeId) { G.lock[team] = nodeId; /* LOGGER BUILD */ if (team === PLAYER && window.__xlLock) window.__xlLock(nodeId == null ? -1 : nodeId); }
+function setLock(team, nodeId) { G.lock[team] = nodeId; /* LOGGER BUILD */ if (team === PLAYER && window.__xlLock) window.__xlLock(nodeId == null ? -1 : nodeId); if (G.echo && team === PLAYER && !G.echo.firing) echoRec({ k: 'lock', target: nodeId == null ? null : nodeId }); }      // 50.7.4: M8 copies a lock (and an unlock)
 function sendTo(t, target) {
   if (peaceAt(t.team, G.nodes[target].owner)) return;      // 50.5.5: lock-on never sends at a colour in a truce (50.5.9: nor at a partner in Manhunt's pact)
   let c = G._rtCache;
@@ -2526,6 +2619,7 @@ function upgrade(team, k) {
   const T = G.teams[team];
   if (T.points <= 0 || T.lv[k] >= C.maxLvl) return false;
   T.points--; T.lv[k]++; G._S = null;               // stats changed: recompute next time they're asked for
+  if (G.echo && team === PLAYER && !G.echo.firing) echoRec({ k: 'up', up: k });      // 50.7.4: M8 copies an upgrade
   return true;
 }
 
@@ -2582,7 +2676,7 @@ function followPath(rt, s, target) {
   return p;
 }
 
-function command(team, target, frac, filter, maxCost = Infinity) {
+function command(team, target, frac, filter, maxCost = Infinity, exact) {      // 50.7.4: exact: send that many (M8's Spine copies); filter.src: a one-base send's base
   if (G.oneArmy && G.backdrop && team === PLAYER) { frac = 1; filter = null; maxCost = Infinity; }      // 50.6.1: One Army behind its brief: blue's AI sends its whole army on every order, as the rule does for you
   if (peaceAt(team, G.nodes[target].owner)) return null;      // 50.5.5: no orders at a colour in a truce (50.5.9: nor at a partner in Manhunt's pact)
   const nodes = G.nodes, rt = routeTable(team, target), cands = [], stay = (team !== PLAYER || G.autoplay) && G.teams[team].diff.stay || null, kept = {};      // 50.5.0: a challenge rival's held bases (stay) keep their troops; 50.5.1: up to a count per base
@@ -2605,12 +2699,12 @@ function command(team, target, frac, filter, maxCost = Infinity) {
   }
   if (!cands.length) return null;
   cands.sort((a, b) => a.best - b.best);
-  const k = Math.max(1, Math.ceil(cands.length * frac));
+  const k = exact != null ? Math.min(cands.length, Math.max(1, exact)) : Math.max(1, Math.ceil(cands.length * frac));
   const edgeSet = new Set(), edges = [];
   let moved = 0;
   for (let i = 0; i < k; i++) {
     const c = cands[i];
-    c.t.path = c.path; c.t.tgt = null;
+    c.t.path = c.path; c.t.tgt = null; if (G._etag) c.t.etag = G._etag;      // 50.7.4: what moved it (M8's Logger)
     if (c.path.length) {
       moved++;
       let prev = c.t.home;
@@ -2623,6 +2717,7 @@ function command(team, target, frac, filter, maxCost = Infinity) {
       }
     }
   }
+  if (G.echo && team === PLAYER && !G.echo.firing) echoRec({ k: filter && filter.src != null ? 'one' : 'pct', target, frac, src: filter && filter.src != null ? filter.src : null, n: moved });      // 50.7.4: M8 copies it
   return { moved, cands: cands.length, sent: k, edges };
 }
 
@@ -2677,10 +2772,11 @@ function lessonThink(team) {
   }
 }
 
-function aiThink(team) {
+function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a defOnly rival (M8's own turns)
   const T = G.teams[team], D = T.diff, nodes = G.nodes, N = nodes.length, ti = team + 1;
   if (!T.alive || !T.count) return;
-  aiSpend(team);
+  const DO = D.defOnly && !full;      // 50.7.4: M8's rival: retreat and defend only, nothing to spend
+  if (!DO) aiSpend(team);
   const sm = D.smart || 0, S = statArrays();
   let bAllow = null, bPrey = -1, bLead = -1;           // BOUNTY (49.1.1): everyone hunts the crown holder; the crown holder hunts the runner-up
   const TRc = G.truce, SLP = asleep(team), tNeu = (!!TRc && TRc.end == null) || SLP;      // 50.5.5: Truce: neutral bases only while it lasts; after it, Bounty's hunt for the leader (50.5.9: Manhunt's sleeper too)
@@ -2866,6 +2962,7 @@ function aiThink(team) {
     (T.dskip || (T.dskip = {}))[best.node] = G.t + 3; best = null;
   }
   if (best && best.warn) T.warn = { v: best.node, until: G.t + WN.hold };
+  if (DO) { if (best && best.kind === 'def') { G._etag = 'def'; command(team, best.node, best.frac, null, best.R); G._etag = null; } return; }      // 50.7.4: defend, and nothing else
 
   // 3. stick with an attack that's still going (and give a fresh one time to arrive before second-guessing it)
   if (!best && T.target != null && nodes[T.target].owner !== team && G.t < (T.busyUntil || 0) && committed[T.target] > 0.5) break primary;
@@ -2973,6 +3070,7 @@ function aiThink(team) {
     }
   }
   } // end primary
+  if (DO) return;      // 50.7.4: a retreat, and nothing else
 
   // 5b. smart rivals punish a vacant or lightly held base next to them with just enough troops, without waiting for the main attack to finish
   if (sm && G.t >= C.settle && !lastStand) {
@@ -2995,7 +3093,8 @@ function aiThink(team) {
       for (const u of nv.adj) { if (nodes[u].owner !== team) continue; const av = idleAt[u]; if (av > sb) { sb = av; src = u; } }
       if (src < 0 || sb < need) continue;
       if (SL && (need > armyAll * SL.cap || enemyAt(src) >= 1 || idleAt[src] - need < SL.keep || (T.warn && T.warn.v === src && G.t < T.warn.until))) continue;   // the source must be quiet, keep a few at home, and not be the base being guarded
-      if (command(team, v, Math.min(1, need / sb * 1.2), t => !t.path.length && t.home === src && holdFilter(t))) { committed[v] += need; idleAt[src] -= need; shots++; }
+      const f1 = t => !t.path.length && t.home === src && holdFilter(t); f1.src = src;      // 50.7.4: a one-base send (M8 copies it as one)
+      if (command(team, v, Math.min(1, need / sb * 1.2), f1)) { committed[v] += need; idleAt[src] -= need; shots++; }
     }
   }
 
@@ -4580,6 +4679,59 @@ function drawEdges(now) {
   ctx.setLineDash([]); ctx.lineDashOffset = 0;
   drawBridges();
 }
+/*STYLE:K1*/
+const MARK_COL = { ink: c => ikHex(c), sand: c => markDeep(saCol(c), SA_BG, 4.2, [40, 28, 14]) };      // 50.7.4: the mark colour slot: how a team colour is drawn as a thin mark on a look's ground (M8's copy rings). A look whose ground the plain colour can't hold at 3:1 adds an entry
+const markCol = c => { const f = MARK_COL[settings.visual]; return f ? f(c) : c; };
+const MARK_DEEP = new Map();
+function markDeep(hex, bg, floor, dark) {      // a colour mixed toward dark a step at a time until it holds floor against bg (Sand: its sand keeps the palette near 2:1 by design, too pale for a thin mark)
+  const key = hex + bg + floor; let k = MARK_DEEP.get(key); if (k) return k;
+  const n = parseInt(hex.slice(1), 16), c0 = [n >> 16, (n >> 8) & 255, n & 255];
+  for (let i = 0; i <= 20; i++) { k = '#' + emMix(c0, dark, i / 20).map(v => Math.round(v).toString(16).padStart(2, '0')).join(''); if (ikContrast(k, bg) >= floor) break; }
+  MARK_DEEP.set(key, k); return k;
+}
+// 50.7.4 (M8): where each copy of your orders lands. A general slot: every look draws it the same way, in the rival's colour (through the mark colour slot).
+// Waiting: a faint track and an arc that fills over the delay. Copied: the whole ring, fading over half a second. Not copied: a dashed ring that widens
+// and fades over 1.2 s (told apart by its shape, not only its colour). Pixel draws the same three on its grid (pxEchoRings).
+function drawEchoRings() {
+  const E = G.echo; if (!E || !E.rings.length) return;
+  const col = markCol(TEAM_COLORS[ECHO_RIVAL]), u = 1 / V.s, r0 = 27, w = (HC ? 3 : 2.2) * u, TAU = Math.PI * 2, T = -Math.PI / 2;
+  ctx.save(); ctx.strokeStyle = col; ctx.lineCap = 'butt';
+  for (const g of E.rings) {
+    const n = G.nodes[g.n]; if (!n || !inV(n.x, n.y)) continue;
+    if (g.st === 0) {
+      const p = Math.max(0, Math.min(1, (G.t - g.b) / Math.max(0.01, g.at - g.b)));
+      ctx.setLineDash([]); ctx.globalAlpha = HC ? 0.5 : 0.35; ctx.lineWidth = w * 0.5; ctx.beginPath(); ctx.arc(n.x, n.y, r0, 0, TAU); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(n.x, n.y, r0, T, T + p * TAU); ctx.stroke();
+    } else if (g.st === 1) {
+      const a = (G.t - g.ft) / 0.5; if (a >= 1) continue;
+      ctx.setLineDash([]); ctx.globalAlpha = 1 - a; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(n.x, n.y, r0, 0, TAU); ctx.stroke();
+    } else {
+      const a = (G.t - g.ft) / 1.2; if (a >= 1) continue;
+      ctx.setLineDash([5 * u, 4 * u]); ctx.globalAlpha = 1 - a * a; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(n.x, n.y, r0 + (reduceMotion ? 0 : 10 * a), 0, TAU); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function pxEchoRings() {      // 50.7.4: the copy rings on Pixel's grid
+  const x = PX.x, E = G.echo; if (!E || !E.rings.length) return;
+  x.fillStyle = TEAM_COLORS[ECHO_RIVAL];
+  for (const g of E.rings) {
+    const n = G.nodes[g.n]; if (!n) continue; pxp(n.x, n.y);
+    if (g.st === 0) {
+      const p = Math.max(0, Math.min(1, (G.t - g.b) / Math.max(0.01, g.at - g.b)));
+      x.globalAlpha = 0.4; x.beginPath(); pxRing(PXX, PXY, 12, 2); x.fill();
+      x.globalAlpha = 1; x.beginPath(); pxRing(PXX, PXY, 12, 1, 0, p); x.fill();
+    } else if (g.st === 1) {
+      const a = (G.t - g.ft) / 0.5; if (a >= 1) continue;
+      x.globalAlpha = Math.ceil((1 - a) * 4) / 4; x.beginPath(); pxRing(PXX, PXY, 12, 1); x.fill();
+    } else {
+      const a = (G.t - g.ft) / 1.2; if (a >= 1) continue;
+      x.globalAlpha = Math.ceil((1 - a * a) * 4) / 4; x.beginPath(); pxRing(PXX, PXY, 12 + (reduceMotion ? 0 : Math.round(4 * a)), 3); x.fill();
+    }
+  }
+  x.globalAlpha = 1;
+}
+const echoLockShown = (i, L) => !!(G.echo && i === ECHO_RIVAL && G.echo.lockCopy != null && G.echo.lockCopy === L);      // 50.7.4: the rival's lock shows while it is a copy of yours
 function drawArrows(now) {            // off-screen pointers: your bases under attack (filled) and your lock-on target (outline)
   arrowHits = [];
   if (mode !== 'play' || watching || cam.z <= 1.01) return;
@@ -4981,12 +5133,13 @@ function draw(now) {
   for (let i = 0; i < 5; i++) {
     const L = G.lock[i];
     if (L == null || !(mode === 'play' || mode === 'paused' || mode === 'ending') || !G.teams[i].alive) continue;
-    if (!watching && i !== PLAYER) continue;
+    if (!watching && i !== PLAYER && !echoLockShown(i, L)) continue;      // 50.7.4: and the rival's copy of your lock (M8)
     const n = nodes[L];
     ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(Math.PI / 4 + (reduceMotion ? 0 : now * 0.7) + i * 0.3);
     ctx.strokeStyle = IN_ ? ikHex(TEAM_COLORS[i]) : TEAM_COLORS[i]; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
     ctx.strokeRect(-19, -19, 38, 38); ctx.restore();
   }
+  if (G.echo && (mode === 'play' || mode === 'paused' || mode === 'ending')) drawEchoRings();      // 50.7.4: M8's copy rings (a general slot)
   for (const n of nodes) {
     if (!inV(n.x, n.y)) continue;
     const c = colorOf(n.owner);
@@ -8751,9 +8904,10 @@ function pxMarkers(now, tk) {                         // send highlights, the ba
   if (hover && mode === 'play') { pxp(hover.x, hover.y); x.fillStyle = TEAM_COLORS[PLAYER]; x.beginPath(); pxBrackets(PXX, PXY, 7 + (tk >> 2) % 2, 3); x.fill(); }
   for (let i = 0; i < 5; i++) {
     const L = G.lock[i];
-    if (L == null || !(mode === 'play' || mode === 'paused') || !G.teams[i].alive || (!watching && i !== PLAYER)) continue;
+    if (L == null || !(mode === 'play' || mode === 'paused') || !G.teams[i].alive || (!watching && i !== PLAYER && !echoLockShown(i, L))) continue;      // 50.7.4: and the rival's copied lock (M8)
     pxp(nodes[L].x, nodes[L].y); x.fillStyle = TEAM_COLORS[i]; x.beginPath(); pxBox(PXX, PXY, 9 + (i % 2), 2, tk >> 1); x.fill();
   }
+  if (G.echo && (mode === 'play' || mode === 'paused' || mode === 'ending')) pxEchoRings();      // 50.7.4: M8's copy rings
 }
 function pxBases(now, tk) {
   const x = PX.x;
@@ -9229,6 +9383,11 @@ function hud() {
   }
   if (G.nest && G.nest.sent > 0 && !G.nest.told) { G.nest.told = true; toast('Neutral help is on the way.', NEUTRAL_COLOR); }      // 50.7.1: the first help of the match (WC)
   if (G.nest && G.nest.strikeT != null && !G.nest.toldS) { G.nest.toldS = true; if (!watching && G.t - G.nest.strikeT < 3) toast('The neighbors want it back.', NEUTRAL_COLOR); }      // 50.7.3: the first strike-back at a base you took, once a match (WC)
+  if (G.echo && mode === 'play' && !watching) {      // 50.7.4: M8's three notes, once a match each, only while fresh (WC's words)
+    const E = G.echo, tl = E.told || (E.told = {}), c = TEAM_COLORS[ECHO_RIVAL], F = E.lastFail;
+    if (F && !F.seen) { F.seen = 1; if (G.t - F.t < 3) { if (F.why === 'noTwin') { if (!tl.nt) { tl.nt = 1; toast(nameText("That base has no match, so {R} can't copy it."), c, ECHO_RIVAL); } } else if (!tl.f) { tl.f = 1; toast(nameText("{R} couldn't copy that one."), c, ECHO_RIVAL); } } }
+    if (E.idleTurns.length && !tl.q) { tl.q = 1; if (G.t - E.idleTurns[0] < 3) toast(nameText('You went quiet, so {R} moved on its own.'), c, ECHO_RIVAL); }
+  }
   if (G.hunt && G.hunt.wakeAt != null && !G.hunt.told) {      // 50.5.9: Manhunt's sleeper wakes: seen (banner, toast, shake) and heard. Words: WC's (50.5.14)
     G.hunt.told = true;
     if (G.t - G.hunt.wakeAt < 3) { const nm = TEAM_NAMES[G.hunt.far].toUpperCase(), c = TEAM_COLORS[G.hunt.far]; banner(nm + ' WAKES', c); toast(G.hunt.wakeBy === 'zone' || G.hunt.wakeBy === 'hit' ? 'You crossed the fence. ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : G.hunt.wakeBy === 'red' ? TEAM_NAMES[G.hunt.near] + ' is broken, and ' + TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.' : TEAM_NAMES[G.hunt.far] + ' is awake and hunting you.', c, G.hunt.far); shake(8); truceCue(); }
@@ -12444,7 +12603,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.7.3', t: 'Build 50.7', b: ['Tier 3 has its first new level, Hornet\'s Nest.', 'In Hornet\'s Nest the land now strikes back when a neutral base falls, and bases left alone grow stronger.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
+  { v: '50.7.4', t: 'Build 50.7', b: ['Tier 3 has two new levels, Hornet\'s Nest and Follow the Leader.', 'In Hornet\'s Nest the land now strikes back when a neutral base falls, and bases left alone grow stronger.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
   { v: '50.6.0', t: 'Build 50.6', b: ['The six older Tier 3 and Tier 4 levels are retired, so Challenge Maps holds Tiers 1 and 2 for now. The tokens you earned on them stay yours, and new Tier 3 and Tier 4 levels are on the way.'] },     // 50.6.0: DC's draft (WC rewrites before Build 51); fold later 50.6.x items in
   { v: '50.5.9', t: 'Build 50.5', b: ['Tier 2 of Challenge Maps is three new levels, One Army, Truce and Manhunt.', 'In One Army every order sends your full army, in Truce nobody can fight until the neutral land runs out, and in Manhunt both rivals hunt only you.', 'Manhunt plays in Black Iron + Hollow.', 'Save and quit works again in Black Iron on maps with islands, rivers or rings.'] },     // 50.5.9: DC's draft. 50.7.3: WC's text, Henry's yes (Nov 5)
   { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
@@ -12821,6 +12980,7 @@ function goalState(g, P) {
   switch (g.k) {
     case 'time': return G.t > g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: fmt(g.v - G.t) + ' left' };
     case 'noloss': return G.playerLosses > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
+    case 'lostmax': return G.playerLosses > g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: `${G.playerLosses} lost · ${g.v} allowed` };      // 50.7.4 (DC's words; WC to check)
     case 'nohome': return G.homeLost != null ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };      // 50.5.9
     case 'redwake': return !G.hunt || G.hunt.wakeAt == null ? { s: 'pending', n: '' } : G.hunt.wakeBy === 'red' && G.hunt.redLow === true ? { s: 'ok', n: '' } : { s: 'fail', n: 'missed' };      // 50.5.13; 50.5.14: Red on its last base at the wake
     case 'nostat': return P.lv[g.v] > 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: '' };
@@ -13198,6 +13358,7 @@ const END_TEXT = {
   facts: {                                          // the Moments tab, under the graph; each is shown only when it is true
     firstCapture: (team, t) => ({ t, text: `You first took a base from ${team}.` }),
     netTook: (n, t) => ({ t, text: `The neutrals took back ${bs(n)} from you.` }),      // 50.7.1 (WC)
+    echoed: (team, n) => `${team} copied ${n} of your orders.`,      // 50.7.4 (WC)
     lead:         t => `You spent ${t} in the lead.`,
     leadNone:     'You were never in the lead.',
     low:          (n, t) => ({ t, text: `Your lowest point: ${bs(n)}.` }),               // wins only, and only after a real dip
@@ -13260,6 +13421,7 @@ function endFacts(ES) {                             // the Moments tab text, as 
   if (you) {
     if (G.firstTake) { const f = F.firstCapture(TEAM_NAMES[G.firstTake.from], G.firstTake.t); add(f.t, G.firstTake.from, f.text); }
     if (G.nest) { const k = G.nest.netTook.filter(x => x[1] === PLAYER); if (k.length) { const f = F.netTook(k.length, k[0][2]); add(f.t, NEUTRAL, f.text); } }      // 50.7.1
+    if (G.echo) { const e = G.echo.echoes, k = e.pct + e.one + e.regroup + e.lock + e.up; if (k) add(null, ECHO_RIVAL, F.echoed(TEAM_NAMES[ECHO_RIVAL], k)); }      // 50.7.4
     add(null, PLAYER, ES.lead > 0.5 ? F.lead(fmt(ES.lead)) : F.leadNone);
     if (G.result === 'win') { if (ES.low && ES.depth >= 2) { const f = F.low(ES.low.n, ES.low.t); add(f.t, PLAYER, f.text); } }
     else if (ES.peak.n) { const f = F.peak(ES.peak.n, ES.peak.t); add(f.t, PLAYER, f.text); }
@@ -13522,7 +13684,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.7.3 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.7.4 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13534,10 +13696,10 @@ function xlNew() {
 function xlEv(k, ...a) { if (XL.log && XL.g === G && mode === 'play' && !watching) XL.log.ev.push([G.step, k, ...a]); }
 // AI orders (LOGGER BUILD): every command() a rival issues is logged as ['ai', team, target, moved, sent, cands, sourceBases]; no per-troop positions
 const _xlCmd = command;   // LOGGER BUILD
-command = function (team, target, frac, filter, maxCost) {   // LOGGER BUILD
+command = function (team, target, frac, filter, maxCost, exact) {   // LOGGER BUILD
   const live = team !== PLAYER && XL.log && XL.g === G, before = live ? G.troops.filter(t => t.team === team).map(t => [t, t.path]) : null;   // LOGGER BUILD
-  const r = _xlCmd(team, target, frac, filter, maxCost === undefined ? Infinity : maxCost);   // LOGGER BUILD
-  if (live && r) xlEv('ai', team, target, r.moved, r.sent, r.cands, new Set(before.filter(b => b[0].path !== b[1]).map(b => b[0].home)).size);   // LOGGER BUILD
+  const r = _xlCmd(team, target, frac, filter, maxCost === undefined ? Infinity : maxCost, exact);   // LOGGER BUILD
+  if (live && r) xlEv('ai', team, target, r.moved, r.sent, r.cands, new Set(before.filter(b => b[0].path !== b[1]).map(b => b[0].home)).size, ...(G.echo ? [G._etag || ''] : []));   // LOGGER BUILD
   return r;   // LOGGER BUILD
 };   // LOGGER BUILD
 function xlSnap() {
@@ -13556,7 +13718,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null, echo: G.echo ? { orders: G.echo.orders, echoes: Object.assign({}, G.echo.echoes), fail: Object.assign({}, G.echo.fail), failLog: G.echo.failLog.slice(), toward: G.echo.toward, idleTurns: G.echo.idleTurns.slice(), lostAt: G.echo.lostAt.slice(), redHomeAt: G.echo.redHomeAt, youRedHomeAt: G.ownAt && G.ownAt[G.homes[ECHO_RIVAL]] != null ? +G.ownAt[G.homes[ECHO_RIVAL]].toFixed(1) : null, spineAt: Object.assign({}, G.echo.spineAt), redLost: G.echo.redLost } : null };
   xlSave();
 }
 function xlPre(n, from) {
@@ -13605,7 +13767,7 @@ function handleTap(px, py) {
     return;
   }
   const _pre = xlPre(n, from);
-  const r = command(PLAYER, n.id, settings.send, from == null ? undefined : t => atBase(t, from));
+  const r = command(PLAYER, n.id, settings.send, from == null ? undefined : Object.assign(t => atBase(t, from), { src: from }));      // 50.7.4: src (M8 copies a one-base send from the matching base)
   xlEv('o', from == null ? -1 : from, n.id, settings.send, dbl ? 1 : 0, r ? r.moved : -1, r ? r.cands : 0, r ? r.sent : 0, _pre);
   lastFromSel = r && from != null ? n.id : -1;
   if (coach) coachSent(n, r);
@@ -14721,4 +14883,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.7.3, from source sha256 7416e2a6a3ba9cca -->
+<!-- Aiced build 50.7.4, from source sha256 0e34ed71ad686009 -->

@@ -617,6 +617,9 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 #shopConfirm .screen { width: min(100%, 340px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 12px; }
 #shopConfirm h2 { margin: 0; font-size: 18px; }
 #shopConfirm p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--dim); }
+#retryAsk { z-index: 30; background: rgba(0,0,0,.72); touch-action: none; }      /* 50.7.5: Retry asks first, in the Shop confirm's look */
+#retryAsk .screen { width: min(100%, 300px); background: rgba(10,10,14,.96); border: 1px solid var(--faint); border-radius: var(--rk); padding: 18px 16px; gap: 14px; }
+#retryAsk h2 { margin: 0; font-size: 18px; text-align: center; }
 @media (orientation: landscape) and (max-height: 500px) {
   #scrShop { left: auto; width: calc(330px + max(16px, env(safe-area-inset-right, 0px))); padding-left: 14px;
     background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,.88) 14%); }
@@ -633,6 +636,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
   #scrPause { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; width: min(100%, 520px); }
   #scrPause header, #scrPause #bResume { grid-column: 1 / -1; }
   #scrPause #bPauseSave:not([hidden]) ~ #bQuit { grid-column: 1 / -1; }      /* 49.5.3: Settings and Save and quit share a row, Quit under them; with no save to offer, Settings and Quit share it */
+  #scrPause #bPauseRetry:not([hidden]) + #bPauseSave[hidden] + #bQuit { grid-column: 1 / -1; }      /* 50.7.5: in a level, Settings and Retry share a row and Quit runs under them (the Logger's Save match log pairs with Quit instead) */
 }
 
 /* ---------- Build 49.9.2 to 49.9.5: the setup deck (Classic, then Custom and Spectate, then pan and zoom, then fixes). The match map fills the screen; one near-black deck of collapsed rows sits over it. ---------- */
@@ -810,7 +814,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.4 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.6 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1007,6 +1011,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
     <header><h2>Paused</h2></header>
     <button id="bResume" class="primary big">Resume</button>
     <button class="ghost big2" data-go="scrSettings">Settings</button>
+    <button id="bPauseRetry" class="ghost big2" hidden>Retry</button>
     <button id="bPauseSave" class="ghost big2" hidden>Save and quit</button>
     <button id="bLogP" class="ghost big2">Save match log</button>
     <button id="bQuit" class="ghost big2">Quit to menu</button>
@@ -1053,6 +1058,9 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
 </div>
 <div id="shopConfirm" class="overlay" role="dialog" aria-modal="true" aria-labelledby="scT" hidden>
   <div class="screen"><h2 id="scT"></h2><p id="scX"></p><div class="btns"><button id="scNo" class="ghost">Cancel</button><button id="scYes" class="primary"></button></div></div>
+</div>
+<div id="retryAsk" class="overlay" role="dialog" aria-modal="true" aria-labelledby="raT" hidden>
+  <div class="screen"><h2 id="raT">Restart level?</h2><div class="btns"><button id="raNo" class="ghost">No</button><button id="raYes" class="primary">Yes</button></div></div>
 </div>
 <div id="shopInfo" class="overlay" role="dialog" aria-modal="true" aria-labelledby="stT" hidden>
   <div class="screen"><h2 id="stT"></h2><div id="stX"></div><button id="stOk" class="primary big2"></button></div>
@@ -1221,7 +1229,7 @@ const SCENARIOS = [
     stars: [{ k: "time", v: 300, t: "Take every base in under 5:00" }, { k: "takeby", base: 14, v: 170, t: "Take the Forge before 2:50" }, { k: "netlost", v: 40, t: "Lose fewer than 40 troops to neutral help" }] },      // 50.7.3: A and C reset from the refit sims (B stays)
   { id: 'echo', tier: 3, name: "Follow the Leader", desc: "{R} is a quick study.",      // 50.7.4: Tier 3's second level (WC's words)
     size: 'small', teams: 2, active: [0, 1], shape: 'islands', map: 'echo', face: 'wide', diff: 'easy', seed: 9202, fair: true, mods: {}, specials: true,
-    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true },      // the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends)
+    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true, noOverrule: true, spineCap: 0.5 },      // the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends); 50.7.6: no copy overrules Red's own turns, the Spine copy at most half its army
     rule: "{R} copies your orders a few seconds later, at the matching base, or as close as it can. Two bases have no match, and if you go quiet, it moves on its own.",
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: "time", v: 390, t: "Take every base in under 6:30" }, { k: "takeby", base: 6, v: 225, t: "Take {R}'s home before 3:45" }, { k: "lostmax", v: 1, t: "Lose no more than one base" }] },      // 50.7.4: first-build numbers from the sims
@@ -1867,7 +1875,7 @@ function newGame(opts) {
     ownAt: {},      // 50.7.1: when you first owned each base (the takeby star)
     nest: opts.nest ? Object.assign({ calls: {}, don: {}, helpCalls: [0, 0, 0, 0, 0], sent: 0, netLost: 0, netLostAll: 0, netTook: [], heartAt: null, heartBy: null }, opts.nest) : null,
     echo: opts.echo ? Object.assign({ twin: (fixed && fixed.twin) || [], q: [], rings: [], nid: 0, orders: 0, lastReal: 0, lastIdle: 0, firing: false, redLost: 0, echoes: { pct: 0, one: 0, regroup: 0, lock: 0, up: 0 }, toward: 0, lockCopy: null,
-      fail: { noTwin: 0, noSource: 0, outOfReach: 0, noPoint: 0 }, failLog: [], idleTurns: [], lostAt: [], spineAt: {}, redHomeAt: null, lastFail: null }, opts.echo) : null,      // 50.7.4: the copy rule      // 50.7.1: neutral help (nestCall)
+      fail: { noTwin: 0, noSource: 0, outOfReach: 0, noPoint: 0 }, failLog: [], idleTurns: [], lostAt: [], spineAt: {}, redHomeAt: null, lastFail: null, spared: 0, capped: [] }, opts.echo) : null,      // 50.7.4: the copy rule      // 50.7.1: neutral help (nestCall)
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
@@ -2393,6 +2401,8 @@ function nestStrike(n, team) {                      // 50.7.3: strike: a neutral
 // nearest of those (echoLand; AC's draft 3). An upgrade copy needs no point (upFree), only a stat under 10. Checked when it fires (echoFire): no twin,
 // no source, nowhere to go, a stat at 10 = dropped, counted, shown. The rival's own think is its defence step (aiThink defOnly); when blue gives no real
 // order for `idle` s (the first window `first` s) it takes one turn of its normal think (echoStep).
+// 50.7.6 (Henry's first runs): noOverrule: a copy leaves alone the rival's troops walking under its own turn or its defence (Henry's "recall" made
+// those turns free); spineCap f: a Spine copy sends as many as blue sent, but at most f of the rival's army (whoever held a Spine base won every fight there).
 const ECHO_RIVAL = 1;
 function echoD() { const E = G.echo, Q = E.quicken; return Q ? Math.max(Q.min, E.delay - Q.per * E.redLost) : E.delay; }
 function echoLand(tw) {      // where a copy aimed at tw lands now: tw if the rival can reach it, else the reachable base fewest roads from tw (then the nearest); null: nowhere
@@ -2435,7 +2445,9 @@ function echoFire(o) {
     if (s == null || nodes[s].owner !== R || !G.troops.some(at)) return fail('noSource');
     f = at;
   }
-  const exact = E.spine === 'match' && v === tw && E.twin[tw] === tw ? Math.max(1, o.n) : undefined;      // the Spine: as many troops as you sent (or all it has)
+  if (E.noOverrule) { const f0 = f; f = t => { if (f0 && !f0(t)) return false; if (t.path.length && (t.etag === 'own' || t.etag === 'def')) { if (!t.spared) { t.spared = 1; E.spared++; } return false; } return true; }; }      // 50.7.6: its own turns keep walking
+  let exact = E.spine === 'match' && v === tw && E.twin[tw] === tw ? Math.max(1, o.n) : undefined;      // the Spine: as many troops as you sent (or all it has)
+  if (exact != null && E.spineCap) { const m = Math.max(1, Math.floor(T.count * E.spineCap)); if (exact > m) { E.capped.push([+G.t.toFixed(1), v, exact, m]); exact = m; } }      // 50.7.6: but at most spineCap of its army
   E.firing = true; G._etag = 'copy'; const r = command(R, v, o.frac, f, Infinity, exact); G._etag = null; E.firing = false;
   if (!r) return fail('noSource');
   if (v !== tw) E.toward++;
@@ -2704,7 +2716,7 @@ function command(team, target, frac, filter, maxCost = Infinity, exact) {      /
   let moved = 0;
   for (let i = 0; i < k; i++) {
     const c = cands[i];
-    c.t.path = c.path; c.t.tgt = null; if (G._etag) c.t.etag = G._etag;      // 50.7.4: what moved it (M8's Logger)
+    c.t.path = c.path; c.t.tgt = null; if (G._etag) c.t.etag = G._etag; else if (G.echo && team === ECHO_RIVAL) c.t.etag = null;      // 50.7.4: what moved it (M8's Logger); 50.7.6: an untagged move clears it (a guard)
     if (c.path.length) {
       moved++;
       let prev = c.t.home;
@@ -12603,7 +12615,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.7.4', t: 'Build 50.7', b: ['Tier 3 has two new levels, Hornet\'s Nest and Follow the Leader.', 'In Hornet\'s Nest the land now strikes back when a neutral base falls, and bases left alone grow stronger.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
+  { v: '50.7.5', t: 'Build 50.7', b: ['Tier 3 has two new levels, Hornet\'s Nest and Follow the Leader.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.', 'Pause a challenge level and tap Retry to start it again from the beginning.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
   { v: '50.6.0', t: 'Build 50.6', b: ['The six older Tier 3 and Tier 4 levels are retired, so Challenge Maps holds Tiers 1 and 2 for now. The tokens you earned on them stay yours, and new Tier 3 and Tier 4 levels are on the way.'] },     // 50.6.0: DC's draft (WC rewrites before Build 51); fold later 50.6.x items in
   { v: '50.5.9', t: 'Build 50.5', b: ['Tier 2 of Challenge Maps is three new levels, One Army, Truce and Manhunt.', 'In One Army every order sends your full army, in Truce nobody can fight until the neutral land runs out, and in Manhunt both rivals hunt only you.', 'Manhunt plays in Black Iron + Hollow.', 'Save and quit works again in Black Iron on maps with islands, rivers or rings.'] },     // 50.5.9: DC's draft. 50.7.3: WC's text, Henry's yes (Nov 5)
   { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
@@ -13176,6 +13188,7 @@ let resumedFromSlot = false;
 function readSaveMeta() { try { const m = JSON.parse(localStorage.getItem(SAVE_META)); return m && typeof m.t === 'number' && Array.isArray(m.nodes) && localStorage.getItem(SAVE_KEY) ? m : null; } catch (e) { return null; } }
 function dropSave() { try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_META); } catch (e) {} refreshResume(); }
 function canSaveNow() { return !!G && !G.over && !watching && !curScen && !curPrac && (curModeKey === 'classic' || curModeKey === 'custom'); }
+function canRetryNow() { return !!G && !G.over && !watching && !!curScen && !curPrac; }      // 50.7.5 (Henry): Retry on the pause screen, in a challenge level only
 function saveAge(at) {
   const T = SAVE_TEXT, d0 = new Date(); d0.setHours(0, 0, 0, 0); const days = Math.round((d0 - new Date(at).setHours(0, 0, 0, 0)) / 864e5);
   return days <= 0 ? (Date.now() - at < 120000 ? T.now : T.today) : days === 1 ? T.yesterday : days + ' ' + T.daysAgo;
@@ -13269,12 +13282,12 @@ function pause() {
   if (mode !== 'play') return;
   resetPtrs();
   mode = 'paused'; hover = null; selBase = null; hideInfo(); drawDirty = true;
-  resetStack('scrPause'); $('bPauseSave').hidden = !canSaveNow(); show('menu', true);
+  resetStack('scrPause'); $('bPauseSave').hidden = !canSaveNow(); $('bPauseRetry').hidden = !canRetryNow(); show('menu', true);
 }
 function resume() {
   if (mode !== 'paused') return;
   audioOn();
-  mode = 'play'; last = performance.now(); show('menu', false);
+  mode = 'play'; last = performance.now(); show('menu', false); $('retryAsk').hidden = true;
 }
 function fmt(t) { const m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + String(s).padStart(2, '0'); }
 
@@ -13591,6 +13604,7 @@ function armBack() {
 }
 function onBack() {
   if (mode === 'ending') { END.skip = true; return true; }
+  if (!$('retryAsk').hidden) { retryAskClose(); return true; }      // 50.7.5: back closes Retry's question first
   if (!$('end').hidden) { leaveToMenu(); return true; }
   if (mode === 'play') { pause(); return true; }
   if (!$('menu').hidden && stack.length > 1) { back(); return true; }
@@ -13684,7 +13698,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.7.4 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.7.6 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13718,7 +13732,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null, echo: G.echo ? { orders: G.echo.orders, echoes: Object.assign({}, G.echo.echoes), fail: Object.assign({}, G.echo.fail), failLog: G.echo.failLog.slice(), toward: G.echo.toward, idleTurns: G.echo.idleTurns.slice(), lostAt: G.echo.lostAt.slice(), redHomeAt: G.echo.redHomeAt, youRedHomeAt: G.ownAt && G.ownAt[G.homes[ECHO_RIVAL]] != null ? +G.ownAt[G.homes[ECHO_RIVAL]].toFixed(1) : null, spineAt: Object.assign({}, G.echo.spineAt), redLost: G.echo.redLost } : null };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null, echo: G.echo ? { orders: G.echo.orders, echoes: Object.assign({}, G.echo.echoes), fail: Object.assign({}, G.echo.fail), failLog: G.echo.failLog.slice(), toward: G.echo.toward, idleTurns: G.echo.idleTurns.slice(), lostAt: G.echo.lostAt.slice(), redHomeAt: G.echo.redHomeAt, youRedHomeAt: G.ownAt && G.ownAt[G.homes[ECHO_RIVAL]] != null ? +G.ownAt[G.homes[ECHO_RIVAL]].toFixed(1) : null, spineAt: Object.assign({}, G.echo.spineAt), redLost: G.echo.redLost, spared: G.echo.spared, capped: G.echo.capped.slice() } : null };
   xlSave();
 }
 function xlPre(n, from) {
@@ -13940,6 +13954,16 @@ function leaveToMenu() {                            // back to where you set the
 }
 $('bQuit').addEventListener('click', leaveToMenu);
 $('bPauseSave').addEventListener('click', saveAndQuit);
+// 50.7.5 (Henry, Nov 6): Retry from the pause screen starts the level again, as Quit to menu and then Start would (the same map and forced pair; the
+// dropped attempt counts nowhere, as a quit counts nowhere). The end card's Retry does the same through bAgain.
+// It asks first (Henry, Nov 6): "Restart level?" with No and Yes, so a mis-tap meant for Resume can't throw a run away. No has the focus; a Yes
+// in the first 0.35 s is ignored, so a double tap on Retry can't go straight through.
+let retryAskAt = 0;
+function retryAsk() { if (mode !== 'paused' || !canRetryNow()) return; retryAskAt = performance.now(); $('retryAsk').hidden = false; try { $('raNo').focus({ preventScroll: true }); } catch (_) {} }
+function retryAskClose() { const was = !$('retryAsk').hidden; $('retryAsk').hidden = true; if (was && mode === 'paused') try { $('bPauseRetry').focus({ preventScroll: true }); } catch (_) {} }
+$('bPauseRetry').addEventListener('click', retryAsk);
+$('raNo').addEventListener('click', retryAskClose);
+$('raYes').addEventListener('click', () => { if (performance.now() - retryAskAt < 350) return; $('retryAsk').hidden = true; if (mode !== 'paused' || !canRetryNow()) return; startGame(false, curScen, curModeKey, null); });
 $('mResume').addEventListener('click', resumeSaved);
 $('bAgain').addEventListener('click', () => { if (performance.now() - endAt < 450) return; startGame(watching, curScen, curModeKey, curPrac); });
 $('bNext').addEventListener('click', () => { if (performance.now() - endAt < 450) return; const id = nextScen; toMenu(); go('scrPlay'); renderLadder(); go('scrLadder'); openBrief(id); });      // 50.6.2: Next opens the next level's brief, its map already behind it (was: started its match)
@@ -14037,7 +14061,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape') { onBack(); e.preventDefault(); return; }
   if (e.key === ' ' || e.key === 'p') {
     if (mode === 'play') { pause(); e.preventDefault(); }
-    else if (mode === 'paused' && stack.length === 1) { resume(); e.preventDefault(); }
+    else if (mode === 'paused' && stack.length === 1 && $('retryAsk').hidden) { resume(); e.preventDefault(); }      // 50.7.5: not while Retry's question is up
     return;
   }
   if (mode !== 'play') return;
@@ -14883,4 +14907,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.7.4, from source sha256 0e34ed71ad686009 -->
+<!-- Aiced build 50.7.6, from source sha256 157cb5dc315bed50 -->

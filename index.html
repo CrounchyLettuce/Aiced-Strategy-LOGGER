@@ -814,7 +814,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.8 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.10 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -1185,6 +1185,7 @@ const MANHUNT_YELLOW = { smart: 1, spawn: 1, margin: 1.4, frac: 0.85, interval: 
   sleep: { spawn: 1.2, margin: 1.15, frac: 0.85, interval: [1, 1.8] } };      // asleep (G.hunt), it grabs the neutral bases in its zone only, with Truce's grab numbers (50.5.10: builds at 1.2 asleep, so an early wake is no gift)
 const NEST_AI = { smart: 1, spawn: 1, margin: 1.4, frac: 0.8, interval: [2, 3.5], firstThink: 20 };      // 50.7.1: T3_M1's rival
 const ECHO_RED = { smart: 1, spawn: 1, margin: 1.3, frac: 0.8, interval: [1.5, 2.4], defOnly: true };      // 50.7.4: T3_M2's rival: defOnly (its attacks are your copies); interval paces its defence step
+const KEYS_RED = { smart: 1, spawn: 1, margin: 1.4, frac: 0.8, interval: [2, 3.5], firstThink: 8, gate: { lever: 1.0, behind: 0.25, toward: 0.6, def: 0.8 } };      // 50.7.10: T3_M2's rival (the level that replaced Follow the Leader): M7's rival with an early first think; gate: its lever terms (aiThink)
 const LOADED_AI = { smart: 1, spawn: 0.3, margin: 2.6, interval: [6, 9] };         // T1_M3's rival (50.0.9, Bases Loaded): punishes an empty base next to it (smart 1), slow to build and patient, so sending everything down one road costs bases but a newcomer can still win
 const BACK_BLUE = D => Object.assign({}, DIFF.normal, D.truce ? { truce: D.truce } : {});      // 50.6.1: blue's AI in a level's backdrop (behind its brief): Normal, plus the level's truce grab numbers; never the rival's own dials
 const SCENARIOS = [
@@ -1227,12 +1228,13 @@ const SCENARIOS = [
     rule: "Attack a neutral base and its neighbors send help. Take it, and they throw everything left to win it back. Neutral bases left alone slowly grow.",      // 50.7.4: final (WC, Nov 5 22:56: the 50.7.3 line word for word)
     objective: { type: 'conquest', text: 'Take every base' },
     stars: [{ k: "time", v: 300, t: "Take every base in under 5:00" }, { k: "takeby", base: 14, v: 170, t: "Take the Forge before 2:50" }, { k: "netlost", v: 40, t: "Lose fewer than 40 troops to neutral help" }] },      // 50.7.3: A and C reset from the refit sims (B stays)
-  { id: 'echo', tier: 3, name: "Follow the Leader", desc: "{R} is a quick study.",      // 50.7.4: Tier 3's second level (WC's words)
-    size: 'small', teams: 2, active: [0, 1], shape: 'islands', map: 'echo', face: 'wide', diff: 'easy', seed: 9202, fair: true, mods: {}, specials: true,
-    aiTune: {}, teamTune: { 1: ECHO_RED }, echo: { delay: 4, idle: 8, first: 20, quicken: null, spine: "match", reach: "toward", upFree: true, lockReach: true, noOverrule: true, spineCap: 0.5, quietUseful: true },      // 50.7.7: only an order Red can copy holds its own turns off; the copy rule's dials (delay s, idle s, quicken, the Spine's matched sends); 50.7.6: no copy overrules Red's own turns, the Spine copy at most half its army
-    rule: "{R} copies your orders moments later, at the matching base, or as close as it can. Two bases have no match, and with nothing to copy, it moves on its own.",
+  // 50.7.10: Follow the Leader (50.7.4 to 50.7.9) retired (Henry, Nov 7: 'Replace it'): written into the challenge toolbox's section 9; the copy rule's engine parts stay.
+  { id: 'keys', tier: 3, name: "Crossed Keys", desc: "Nobody holds their own keys.",      // 50.7.10: Tier 3's second level (WC's words)
+    size: 'small', teams: 2, active: [0, 1], shape: 'islands', map: 'keys', face: 'wide', diff: 'easy', seed: 9203, fair: true, mods: {}, specials: true,
+    aiTune: {}, teamTune: { 1: KEYS_RED }, gates: { relock: 0 },      // the gate rule's dials (relock s)
+    rule: "Two roads are gates, open only to the team that holds their lever. Each lever works the gate on the far side of the map.",
     objective: { type: 'conquest', text: 'Take every base' },
-    stars: [{ k: "time", v: 390, t: "Take every base in under 6:30" }, { k: "takeby", base: 6, v: 225, t: "Take {R}'s home before 3:45" }, { k: "lostmax", v: 1, t: "Lose no more than one base" }] },      // 50.7.4: first-build numbers from the sims
+    stars: [{ k: "time", v: 330, t: "Take every base in under 5:30" }, { k: "takeby", base: 14, v: 220, t: "Take lever I before 3:40" }, { k: "noloss", t: "Win without losing a base" }] },      // 50.7.10: first-build numbers from the sims
   // 50.6.0: the old Tier 3 and Tier 4 levels (Forge wars, Last stand; Blackout, Double crown, Fortress ring, Aftershock) retired here (Henry, Nov 5): written into the challenge toolbox's section 7; their engine parts stay. Tiers 3 and 4 are rebuilt from scratch in 50.7 and 50.8.
 ];
 // ---- Practice lessons (How to play). 50.4.2: one lesson, the guided match, rebuilt (spec GUIDED_MATCH_SPEC_50.4.md, text GUIDED_MATCH_TEXT_FINAL.md).
@@ -1279,7 +1281,7 @@ function scenarioOpts(id) {
   const c = SCENARIOS.find(x => x.id === id); if (!c) return {};
   return { scenarioId: c.id, map: c.map, size: c.size, teams: c.teams, shape: c.shape, diff: c.diff, seed: c.seed, mods: c.mods, specials: c.specials,
     specialKinds: c.specialKinds, surround: c.surround, playerTroops: c.playerTroops, fair: c.fair, persona: c.persona, objective: c.objective, stars: c.stars,
-    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active, teamTune: c.teamTune, pact: c.pact, hunt: c.hunt, nest: c.nest, echo: c.echo };
+    aiTune: c.aiTune, hpMul: c.hpMul, fogScale: c.fogScale, quake: c.quake, crowns: c.crowns, kothTarget: c.kothTarget, kothRival: c.kothRival, oneArmy: c.oneArmy, truce: c.truce, active: c.active, teamTune: c.teamTune, pact: c.pact, hunt: c.hunt, nest: c.nest, echo: c.echo, gates: c.gates };
 }
 function starMet(g) {
   const P = G.teams[PLAYER];
@@ -1385,6 +1387,14 @@ STATIC_MAPS.echo = { id: 'echo', w: 1500, h: 1000, size: 'small',      // 50.7.4
   garrison: {"0":10,"1":14,"2":14,"3":6,"4":10,"5":12,"6":10,"7":8,"8":8,"9":12,"10":10,"11":6,"12":10,"13":16,"14":10,"15":10,"16":20},
   twin: [6,7,8,9,10,11,0,1,2,3,4,5,12,13,14,null,null] };
 STATIC_MAPS.echo.deco = { kind: 'islands', groups: [0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,3,3], hulls: [[[81,438],[89,417],[99,396],[112,376],[128,357],[147,338],[165,319],[183,299],[201,278],[219,257],[237,236],[257,215],[277,195],[298,175],[321,157],[345,141],[371,126],[399,114],[426,106],[453,102],[479,102],[506,108],[528,116],[547,129],[562,145],[573,165],[581,187],[585,210],[586,234],[584,261],[583,287],[584,312],[588,338],[592,362],[597,389],[600,416],[602,445],[603,475],[602,505],[600,535],[596,565],[589,595],[584,625],[581,655],[578,685],[577,715],[573,743],[566,768],[556,792],[544,813],[529,830],[512,842],[493,849],[472,851],[452,850],[434,844],[418,834],[402,821],[388,806],[372,789],[358,772],[342,753],[325,735],[306,718],[284,701],[261,684],[238,668],[217,653],[197,638],[178,622],[160,608],[143,592],[128,578],[112,562],[100,547],[90,531],[82,514],[78,496],[76,478],[77,458]],[[1449,581],[1448,566],[1444,554],[1438,544],[1429,536],[1419,531],[1407,521],[1395,507],[1382,489],[1367,466],[1354,444],[1340,420],[1327,396],[1314,372],[1300,347],[1286,323],[1270,299],[1253,275],[1235,253],[1216,234],[1195,218],[1173,203],[1149,192],[1124,182],[1096,176],[1068,171],[1042,172],[1020,179],[1002,191],[986,208],[974,228],[966,249],[960,273],[956,300],[952,325],[947,350],[941,374],[933,398],[926,423],[919,449],[912,476],[906,506],[901,535],[897,564],[895,594],[894,623],[894,650],[895,674],[898,694],[900,712],[902,732],[901,756],[899,784],[896,814],[898,840],[906,862],[921,879],[942,892],[962,899],[981,900],[999,896],[1017,885],[1035,874],[1053,861],[1071,847],[1090,832],[1111,818],[1133,805],[1158,792],[1184,782],[1210,771],[1234,760],[1256,749],[1278,738],[1298,727],[1318,716],[1337,705],[1354,693],[1372,680],[1390,665],[1408,648],[1425,630],[1438,612],[1446,596]],[[776,129],[792,137],[806,147],[818,159],[826,173],[830,190],[833,207],[833,225],[830,243],[826,262],[822,280],[819,298],[817,316],[816,334],[817,354],[820,376],[825,401],[832,429],[835,456],[835,484],[832,511],[825,539],[820,564],[817,586],[816,606],[817,624],[819,642],[822,660],[826,678],[832,697],[834,716],[833,734],[830,753],[822,772],[813,788],[802,801],[789,810],[773,818],[758,821],[742,821],[727,818],[711,810],[698,801],[687,788],[678,772],[670,753],[667,734],[666,716],[668,697],[674,678],[678,660],[681,642],[683,624],[684,606],[683,586],[680,564],[675,539],[668,511],[665,484],[665,456],[668,429],[675,401],[680,376],[683,354],[684,334],[683,316],[681,298],[678,280],[674,262],[670,243],[667,225],[667,207],[670,190],[674,173],[682,159],[694,147],[708,137],[724,129],[742,126],[758,126]],[[129,767],[133,751],[143,738],[157,727],[176,718],[200,710],[222,710],[241,716],[258,729],[274,749],[290,769],[307,790],[325,811],[345,833],[361,854],[374,875],[383,896],[389,915],[390,933],[385,949],[374,964],[359,976],[341,985],[322,989],[301,989],[279,986],[259,978],[243,967],[230,952],[220,933],[208,916],[195,901],[181,888],[164,877],[151,864],[141,850],[133,834],[129,816],[126,799],[126,783]]] };      // the coast drawn by hand (AC, coast8.py)
+STATIC_MAPS.keys = { id: "keys", w: 1500, h: 1000, size: 'small',      // 50.7.10: AC's map (five islands in an S); gates: a road and its lever
+  nodes: [[170,760],[290,620],[300,880],[450,760],[255,420],[330,250],[492,262],[605,440],[750,500],[1330,240],[1210,380],[1200,120],[1050,240],[1245,580],[1170,750],[1008,738],[895,560]],
+  edges: [[0,1],[0,2],[1,3],[2,3],[1,4],[4,5],[4,6],[6,7],[7,8],[9,10],[9,11],[10,12],[11,12],[10,13],[13,14],[13,15],[15,16],[16,8],[3,16],[12,7]],
+  bridges: [[1,4],[6,7],[10,13],[15,16],[3,16],[12,7]],
+  gates: [{ id: 'I', a: 3, b: 16, lever: 14 }, { id: 'II', a: 12, b: 7, lever: 5 }],
+  starts: [0,9], owned: {}, specials: {"8":"forge"},
+  garrison: {"0":10,"1":8,"2":8,"3":10,"4":8,"5":14,"6":8,"7":10,"8":22,"9":10,"10":8,"11":8,"12":10,"13":8,"14":8,"15":8,"16":10} };
+STATIC_MAPS.keys.deco = { kind: 'islands', groups: [0,0,0,0,1,1,1,2,2,4,4,4,4,3,3,3,2], hulls: [[[82,730],[88,710],[95,691],[104,673],[116,656],[129,639],[144,624],[158,609],[173,594],[189,581],[205,569],[223,559],[241,552],[261,546],[280,544],[299,544],[317,546],[335,552],[351,560],[364,570],[374,582],[383,598],[392,612],[401,625],[412,638],[423,650],[436,660],[450,667],[466,672],[484,674],[499,680],[513,689],[525,701],[535,717],[542,733],[545,750],[546,768],[542,787],[536,803],[526,816],[512,827],[496,836],[479,845],[462,857],[446,869],[429,884],[414,898],[401,912],[389,926],[378,941],[366,952],[351,961],[335,968],[317,972],[299,973],[281,972],[264,968],[246,962],[230,954],[215,944],[202,932],[190,918],[177,905],[163,892],[148,879],[132,867],[118,852],[106,835],[96,815],[87,793],[82,772],[81,750]],[[172,386],[174,364],[179,341],[187,318],[197,295],[209,271],[222,250],[235,230],[248,211],[262,195],[276,181],[292,171],[310,164],[328,161],[345,160],[360,162],[373,168],[385,177],[395,186],[404,195],[412,204],[418,212],[425,217],[432,218],[439,215],[447,207],[456,201],[466,195],[478,190],[490,186],[504,185],[516,187],[530,192],[542,200],[553,211],[561,224],[567,240],[571,258],[572,275],[570,291],[566,305],[558,317],[550,327],[538,335],[526,340],[510,342],[496,347],[480,354],[466,363],[450,375],[435,386],[418,398],[401,410],[383,422],[367,434],[353,445],[342,456],[332,466],[322,476],[310,484],[297,491],[283,497],[268,501],[253,502],[237,501],[221,497],[207,490],[195,479],[186,465],[178,447],[174,428],[172,408]],[[521,446],[527,428],[534,412],[542,398],[552,386],[562,376],[574,369],[586,363],[598,360],[612,358],[625,360],[638,366],[650,374],[662,387],[674,396],[687,404],[700,409],[712,412],[726,414],[740,416],[754,418],[768,418],[783,420],[798,424],[812,428],[828,432],[844,437],[861,441],[879,444],[899,448],[916,455],[932,467],[947,484],[959,506],[968,526],[972,544],[973,561],[969,577],[964,591],[957,603],[948,614],[938,624],[926,631],[914,637],[902,640],[888,642],[875,640],[862,634],[850,626],[838,613],[826,604],[813,596],[800,591],[788,588],[774,586],[760,584],[746,582],[732,582],[717,580],[702,576],[688,572],[672,568],[656,563],[639,559],[621,556],[601,552],[583,546],[566,535],[550,520],[534,502],[525,483],[520,465]],[[1331,619],[1331,645],[1327,670],[1319,692],[1308,714],[1294,734],[1280,753],[1266,771],[1252,789],[1238,805],[1224,819],[1208,829],[1190,836],[1172,839],[1155,840],[1140,838],[1127,832],[1115,823],[1105,814],[1096,805],[1088,796],[1082,788],[1075,783],[1068,782],[1061,785],[1053,793],[1044,799],[1034,805],[1022,810],[1010,814],[996,815],[984,813],[970,808],[958,800],[947,789],[939,776],[933,760],[929,742],[928,725],[930,709],[934,695],[942,683],[950,673],[962,665],[974,660],[990,658],[1004,653],[1020,646],[1034,637],[1050,625],[1065,614],[1082,602],[1099,590],[1117,578],[1131,570],[1141,564],[1146,563],[1148,565],[1154,562],[1166,554],[1183,540],[1205,522],[1226,509],[1245,501],[1263,499],[1279,503],[1293,510],[1305,521],[1314,535],[1322,553],[1327,573],[1330,595]],[[1422,270],[1421,290],[1416,310],[1410,328],[1401,347],[1389,365],[1375,382],[1359,396],[1340,410],[1320,422],[1299,432],[1279,441],[1259,448],[1239,454],[1220,456],[1201,456],[1183,454],[1165,448],[1149,440],[1136,430],[1126,418],[1117,402],[1108,388],[1099,375],[1088,362],[1077,350],[1064,340],[1050,333],[1034,328],[1016,326],[1001,320],[987,311],[975,299],[965,283],[958,267],[955,250],[954,232],[958,213],[964,197],[974,184],[988,173],[1004,164],[1019,158],[1031,153],[1041,150],[1049,150],[1059,142],[1073,128],[1089,107],[1109,79],[1128,58],[1147,42],[1165,32],[1183,28],[1201,27],[1219,28],[1236,32],[1254,38],[1270,46],[1285,56],[1298,68],[1310,82],[1323,95],[1337,108],[1352,121],[1368,133],[1382,148],[1394,165],[1404,185],[1413,207],[1418,228],[1422,250]]] };      // the coast drawn by hand (AC, coast8b2.py)
 function validateStaticMap(mp) {
   const bad = [], isN = v => typeof v === 'number' && isFinite(v);
   if (!mp || typeof mp !== 'object') return ['not a map'];
@@ -1398,13 +1408,13 @@ function validateStaticMap(mp) {
   if (bad.length) return bad;
   const P = mp.nodes, d = (i, j) => Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]);
   for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) if (d(i, j) < 90) bad.push('bases ' + i + ' and ' + j + ' are closer than 90');
-  const seen = new Set(), adj = P.map(() => []);
+  const seen = new Set(), adj = P.map(() => []), GK = new Set((Array.isArray(mp.gates) ? mp.gates : []).map(g => g.a < g.b ? g.a + '-' + g.b : g.b + '-' + g.a));      // 50.7.10: the gate roads
   for (const e of mp.edges) {
     if (!Array.isArray(e) || !Number.isInteger(e[0]) || !Number.isInteger(e[1]) || e[0] < 0 || e[1] < 0 || e[0] >= N || e[1] >= N) { bad.push('a link names a base that is not there'); continue; }
     const [a, b] = e; if (a === b) { bad.push('base ' + a + ' links to itself'); continue; }
     const key = a < b ? a + '-' + b : b + '-' + a; if (seen.has(key)) { bad.push('link ' + key + ' appears twice'); continue; } seen.add(key);
     adj[a].push(b); adj[b].push(a);
-    if (d(a, b) < 60 || d(a, b) > 450) bad.push('link ' + key + ' is ' + Math.round(d(a, b)) + ' long (60 to 450 is fine)');
+    if (d(a, b) < 60 || d(a, b) > (GK.has(key) ? 520 : 450)) bad.push('link ' + key + ' is ' + Math.round(d(a, b)) + (GK.has(key) ? ' long (60 to 520 is fine for a gate)' : ' long (60 to 450 is fine)'));      // 50.7.10: a gate road can be a long bridge
     for (let k = 0; k < N; k++) if (k !== a && k !== b && segDist(P[k], P[a], P[b]) < 36) bad.push('link ' + key + ' runs through base ' + k);
   }
   const E = mp.edges.filter(e => Array.isArray(e) && Number.isInteger(e[0]) && Number.isInteger(e[1]) && e[0] >= 0 && e[1] >= 0 && e[0] < N && e[1] < N && e[0] !== e[1]);
@@ -1414,6 +1424,17 @@ function validateStaticMap(mp) {
   }
   for (let i = 0; i < N; i++) if (!adj[i].length) bad.push('base ' + i + ' has no link');
   { const got = new Set([0]), st = [0]; while (st.length) { const u = st.pop(); for (const v of adj[u]) if (!got.has(v)) { got.add(v); st.push(v); } } if (got.size < N) bad.push('the map is in separate pieces'); }
+  if (mp.gates != null) {      // 50.7.10: gates
+    if (!Array.isArray(mp.gates) || !mp.gates.length) bad.push('gates: a list of { id, a, b, lever }');
+    else for (const g of mp.gates) {
+      const key = g.a < g.b ? g.a + '-' + g.b : g.b + '-' + g.a;
+      if (!seen.has(key)) bad.push('gate ' + g.id + ' is not on a road');
+      if (!Number.isInteger(g.lever) || g.lever < 0 || g.lever >= N) bad.push('gate ' + g.id + "'s lever is not a base");
+      else if (g.lever === g.a || g.lever === g.b) bad.push('gate ' + g.id + "'s lever is on its own road");
+    }
+    const got = new Set([0]), st = [0]; while (st.length) { const u = st.pop(); for (const v of adj[u]) if (!got.has(v) && !GK.has(u < v ? u + '-' + v : v + '-' + u)) { got.add(v); st.push(v); } }
+    if (got.size < N) bad.push('with every gate shut the map is in separate pieces');      // so from any base each side can always walk to every lever
+  }
   const S = mp.starts;
   if (!Array.isArray(S) || S.length < 2 || S.length > 5 || new Set(S).size !== S.length || S.some(v => !Number.isInteger(v) || v < 0 || v >= N)) bad.push('starts: 2 to 5 different bases');
   else {
@@ -1876,6 +1897,7 @@ function newGame(opts) {
     nest: opts.nest ? Object.assign({ calls: {}, don: {}, helpCalls: [0, 0, 0, 0, 0], sent: 0, netLost: 0, netLostAll: 0, netTook: [], heartAt: null, heartBy: null }, opts.nest) : null,
     echo: opts.echo ? Object.assign({ twin: (fixed && fixed.twin) || [], q: [], rings: [], nid: 0, orders: 0, lastReal: 0, lastIdle: 0, firing: false, redLost: 0, echoes: { pct: 0, one: 0, regroup: 0, lock: 0, up: 0 }, toward: 0, lockCopy: null,
       fail: { noTwin: 0, noSource: 0, outOfReach: 0, noPoint: 0 }, failLog: [], idleTurns: [], lostAt: [], spineAt: {}, redHomeAt: null, lastFail: null, spared: 0, capped: [] }, opts.echo) : null,      // 50.7.4: the copy rule      // 50.7.1: neutral help (nestCall)
+    gates: opts.gates && fixed && fixed.gates ? gateNew(fixed, opts.gates) : null,      // 50.7.10: the gate rule
     scenarioId: opts.scenarioId || null, practice: opts.practice || null, lesson: opts.lesson ? Object.assign({ awake: false, wokeAt: null }, opts.lesson) : null, obj: opts.objective || { type: 'conquest' }, starGoals: opts.stars || null,
     os: { hold: 0, forges: 0, surv: 0 }, playerLosses: 0,
     bridges: new Set((m.bridges || []).map(([a, b]) => a < b ? a + '-' + b : b + '-' + a)),
@@ -1938,6 +1960,7 @@ function newGame(opts) {
   }
   presenceStep(0);
   recount();
+  if (G.gates) for (const g of G.gates.list) g.holder = g.to = nodes[g.lever].owner;      // 50.7.10: each gate starts open to whoever starts on its lever
   if (opts.runSeed != null) G.rng = mulberry32(opts.runSeed);   // tests: same map, different course of events
   return G;
 }
@@ -2296,6 +2319,7 @@ function update(dt) {
   objStep(dt);
   overtimeStep();
   quakeStep();
+  gateStep();      // 50.7.10
   echoStep();      // 50.7.4
   for (let i = G.autoplay ? 0 : 1; i < G.teams.length; i++) {   // autoplay: the AI drives blue as well
     const T = G.teams[i];
@@ -2366,6 +2390,7 @@ function takeNode(n, team) {
   if (G.nest && n.id === G.nest.heart && G.nest.heartAt == null) { G.nest.heartAt = G.t; G.nest.heartBy = team; }
   if (G.nest && G.nest.strike && prev === NEUTRAL) nestStrike(n, team);      // 50.7.3: the land strikes back at once
   if (G.echo) echoTake(n, prev, team);      // 50.7.4
+  if (G.gates) gateTake(n, prev, team);      // 50.7.10
   if (team === PLAYER && prev >= 0 && prev !== PLAYER && !G.firstTake) G.firstTake = { t: G.t, from: prev };      // 49.8.2: the first base you took from a rival
   if (prev === PLAYER) G.playerLosses++;
   n.owner = team; n.hp = n.maxHp * C.flipHP; n.lastHitT = G.t; n.spawnT = C.spawnEvery * 0.5; n.heat = 0;
@@ -2475,6 +2500,81 @@ function echoTake(n, prev, team) {
     let by = 'other', m = 0; for (const k in c) if (c[k] > m) { m = c[k]; by = k; }
     E.lostAt.push([n.id, +G.t.toFixed(1), by]);
   }
+}
+// 50.7.10: Tier 3 level 2. GATES: a road open only to the team that holds its lever (G.gates; only in a level that turns them on, on a map that has
+// them). A neutral lever shuts its gate to everyone. One check, passable(a, b, team), is used by routing (routeTable: every order and lock-on),
+// retreats (nearestOwned), your reach (ui.js reachable) and the rival's targets, raids and staging. When a gate shuts on a team, its troops already
+// out on the gate's road finish crossing; troops whose path crosses it later stop at the base before it (gateCut). No troop is ever destroyed by a
+// gate. A lock across a shut gate stays set: lock-on finds no route (sendTo) and leaves new troops home until it opens. relock: a gate follows its
+// lever's owner after that many seconds (0: at once).
+const GATE_ON = C.presenceR;      // a troop farther than this from the base it left is out on the road
+function gateOf(a, b) { const L = G.gates.list; for (let i = 0; i < L.length; i++) { const g = L[i]; if ((g.a === a && g.b === b) || (g.a === b && g.b === a)) return g; } return null; }
+function passable(a, b, team) { if (!G.gates) return true; const g = gateOf(a, b); return !g || g.holder === team; }
+function gateNew(fixed, o) {      // the match's gate state, from the map's gates and the level's dials (plain data: Save and quit keeps it)
+  const list = fixed.gates.map(g => ({ id: g.id, a: g.a, b: g.b, lever: g.lever, holder: NEUTRAL, to: NEUTRAL, at: 0, flipT: -99 })), held = {};
+  for (const g of list) held[g.id] = [0, 0, 0, 0, 0, 0];      // seconds its lever spent with each owner (index owner + 1: neutral first)
+  return Object.assign({ relock: 0 }, o, { list, held, ver: 0, lastT: 0, ev: [], cross: [], stops: [], leverAt: {}, forgeAt: [], lostAt: [], cues: [] });
+}
+function gateStep() {      // each frame: a lever's owner moves its gate (after relock s), the clock on each lever, troops starting across a gate
+  const Q = G.gates; if (!Q) return;
+  const nodes = G.nodes, dt = G.t - Q.lastT; Q.lastT = G.t;
+  for (const g of Q.list) {
+    const o = nodes[g.lever].owner; Q.held[g.id][o + 1] += dt;
+    if (o !== g.to) { g.to = o; g.at = G.t + Q.relock; Q.cues.push({ k: 'lever', g: g.id, c: o, b: G.t }); }
+    if (g.holder !== g.to && G.t >= g.at) gateFlip(g);
+  }
+  for (const t of G.troops) {      // gateCross: troops out on a gate's road, one entry per gate, team and 2 s
+    if (t.team < 0 || !t.path.length) { if (t.gx) t.gx = 0; continue; }
+    const g = gateOf(t.home, t.path[0]); if (!g) { if (t.gx) t.gx = 0; continue; }
+    const k = t.home * 256 + t.path[0] + 1; if (t.gx === k) continue;
+    const h = nodes[t.home]; if ((t.x - h.x) ** 2 + (t.y - h.y) ** 2 <= GATE_ON * GATE_ON) continue;
+    t.gx = k; const L = Q.cross[Q.cross.length - 1];
+    if (L && L[0] === g.id && L[1] === t.team && L[4] === t.home && G.t - L[3] < 2) L[2]++; else Q.cross.push([g.id, t.team, 1, +G.t.toFixed(1), t.home]);
+  }
+  if (Q.cues.length && G.t - Q.cues[0].b > 4) Q.cues = Q.cues.filter(c => G.t - c.b <= 4);
+}
+function gateFlip(g) {      // the gate opens to its lever's holder and shuts to everyone else; the old holder's walkers that would cross it stop short
+  const Q = G.gates, was = g.holder; g.holder = g.to; g.flipT = G.t; Q.ver++; G._rtCache = null;
+  Q.ev.push([g.id, g.holder, +G.t.toFixed(1)]); Q.cues.push({ k: 'gate', g: g.id, c: g.holder, b: G.t });
+  if (was >= 0) gateCut(g, was);
+}
+function gateCut(g, team) {
+  const Q = G.gates, nodes = G.nodes, at = new Map();
+  for (const t of G.troops) {
+    if (t.team !== team || !t.path.length) continue;
+    let prev = t.home, i = 0;
+    for (; i < t.path.length; i++) { const v = t.path[i]; if ((prev === g.a && v === g.b) || (prev === g.b && v === g.a)) break; prev = v; }
+    if (i === t.path.length) continue;
+    if (i === 0) { const h = nodes[t.home]; if ((t.x - h.x) ** 2 + (t.y - h.y) ** 2 > GATE_ON * GATE_ON) continue; }      // out on the gate's road already: it finishes crossing
+    t.path = t.path.slice(0, i); at.set(prev, (at.get(prev) || 0) + 1);      // it stops at the base before the gate
+  }
+  for (const [v, n] of at) { Q.stops.push([g.id, team, n, v, +G.t.toFixed(1)]); Q.cues.push({ k: 'stop', g: g.id, v, c: team, n, b: G.t }); }
+}
+function gateTake(n, prev, team) {      // a base changed hands (the Logger's keys)
+  const Q = G.gates, t = +G.t.toFixed(1);
+  if (n.kind === 'forge') Q.forgeAt.push([team, t]);
+  if (prev === PLAYER) Q.lostAt.push([n.id, t, team]);
+  if (team === PLAYER) for (const g of Q.list) if (g.lever === n.id && Q.leverAt[g.id] == null) Q.leverAt[g.id] = t;
+}
+function gateHops(src, pass) {      // road steps from a set of bases, through the roads pass allows
+  const nodes = G.nodes, d = new Int32Array(nodes.length).fill(99), q = [];
+  for (const v of src) { d[v] = 0; q.push(v); }
+  for (let i = 0; i < q.length; i++) { const u = q[i]; for (const v of nodes[u].adj) if (d[v] === 99 && pass(u, v)) { d[v] = d[u] + 1; q.push(v); } }
+  return d;
+}
+function gateWorth(team, g) {      // the rival's 'behind' term: what holding g's lever is worth to team. The bases the gate opens up for it
+  const nodes = G.nodes, as = (T, open) => (u, v) => { const h = gateOf(u, v); return !h || (h === g ? open : h.holder === T); };      // (fewer steps from its bases), plus the bases it shuts the holder away from, plus the holder's troops walking through it now
+  const own = T => nodes.filter(n => n.owner === T).map(n => n.id);
+  let w = 0;
+  const M = own(team), a1 = gateHops(M, as(team, true)), a0 = gateHops(M, as(team, false));
+  for (const n of nodes) if (n.owner !== team && a1[n.id] < a0[n.id]) w += n.owner === NEUTRAL ? 0.5 : 1;
+  const E = g.holder;
+  if (E >= 0 && E !== team) {
+    const Y = own(E), b1 = gateHops(Y, as(E, true)), b0 = gateHops(Y, as(E, false));
+    for (const n of nodes) if (n.owner !== E && b0[n.id] > b1[n.id]) w += n.owner === team ? 1 : 0.5;
+    for (const t of G.troops) if (t.team === E && t.path.length) { let p = t.home; for (const v of t.path) { if ((p === g.a && v === g.b) || (p === g.b && v === g.a)) { w += 0.1; break; } p = v; } }
+  }
+  return w;
 }
 function nestHelp(v) {                              // the help base v would call now (the AI's cost of a bite)
   const N = G.nest, nodes = G.nodes; if (N.calls[v] != null && G.t - N.calls[v] < N.cool) return 0;
@@ -2667,7 +2767,7 @@ function aiSpend(team) {
 
 // ---- routing & commands ----
 function routeTable(team, target) {
-  const nodes = G.nodes, N = nodes.length;
+  const nodes = G.nodes, N = nodes.length, GQ = G.gates;
   const dist = new Float64Array(N).fill(Infinity), next = new Int32Array(N).fill(-1), done = new Uint8Array(N);
   dist[target] = 0;
   for (;;) {
@@ -2677,7 +2777,7 @@ function routeTable(team, target) {
     done[u] = 1;
     if (u !== target && nodes[u].owner !== team) continue; // can't route through it
     for (const v of nodes[u].adj) {
-      if (done[v]) continue;
+      if (done[v] || (GQ && !passable(u, v, team))) continue;      // 50.7.10: nor through a gate shut to it
       const nd = dist[u] + Math.hypot(nodes[u].x - nodes[v].x, nodes[u].y - nodes[v].y);
       if (nd < dist[v]) { dist[v] = nd; next[v] = u; }
     }
@@ -2749,6 +2849,7 @@ function nearestOwned(team, from) {
     if (u !== from && nodes[u].owner === team) return u;
     done[u] = 1;
     for (const v of nodes[u].adj) {
+      if (G.gates && !passable(u, v, team)) continue;      // 50.7.10
       const nd = dist[u] + Math.hypot(nodes[u].x - nodes[v].x, nodes[u].y - nodes[v].y);
       if (nd < dist[v]) dist[v] = nd;
     }
@@ -2823,6 +2924,8 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
     }
   }
   const enemyAt = v => { let s = 0; for (let k = 0; k < 6; k++) if (k !== ti) s += P6[v * 6 + k]; return s; };
+  const GQ = G.gates, GD = (GQ && D.gate) || null, GLV = {}; if (GQ) for (const g of GQ.list) GLV[g.lever] = g;      // 50.7.10: the gate rule (GD: the rival's lever terms)
+  const pas = GQ ? ((u, v) => passable(u, v, team)) : (() => true);
   const NS = G.nest, defAt = NS && NS.aware ? (v => enemyAt(v) + (nodes[v].owner === NEUTRAL ? nestHelp(v) * S.st[0] * (NS.awareK != null ? NS.awareK : 1) : 0)) : enemyAt;      // 50.7.1
   // smart rivals keep a garrison at the base that enemy troops are walking up to, so an attack elsewhere does not strip it.
   // Only moving enemy troops count, only against the nearest of our bases, and the reserve is picked once so every command agrees on it.
@@ -2961,7 +3064,7 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
       const tFall = n.hp / HW[n.id].rate, tArr = gatherRadius(rt, Math.min(Math.max(4, en), reach * 0.9)) / S.sp[ti];
       if (tArr > tFall) continue;
     }
-    const sc = 2.5 + en / (my + 1) + (1 - n.hp / n.maxHp) * 1.5 + (DF ? (T.dcom && T.dcom.node === n.id ? DF.stick : 0) - n.id * 1e-4 : G.rng() * .3) - (viaWarn ? 1 : 0);
+    const sc = 2.5 + en / (my + 1) + (1 - n.hp / n.maxHp) * 1.5 + (GD && GLV[n.id] ? GD.def || 0 : 0) + (DF ? (T.dcom && T.dcom.node === n.id ? DF.stick : 0) - n.id * 1e-4 : G.rng() * .3) - (viaWarn ? 1 : 0);
     let fr = Math.min(1, Math.max(.4, (en * 1.3 - my) / reach));
     if (viaWarn && appr < WN.real * armyTot) fr = Math.min(fr, Math.max(0.05, WN.cap * armyTot / reach));   // a small force never pulls more than its share of the army; a force as big as the army is a real attack
     if (!best || sc > best.sc) best = { sc, node: n.id, frac: fr, kind: 'def', R: DEF_R, warn: viaWarn };
@@ -2995,7 +3098,7 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
   if (!best) {
     const front = new Set();
     for (const n of nodes) if (n.owner === team || mine[n.id] > 0)
-      for (const v of n.adj) if (nodes[v].owner !== team) front.add(v);
+      for (const v of n.adj) if (nodes[v].owner !== team && pas(n.id, v)) front.add(v);      // 50.7.10: not across a shut gate
     if (bAllow && !tNeu && !PCT) {                      // BOUNTY: what is really in reach decides who this colour may hit (not in a truce: neutral bases only)
       const near = new Set(); let neu = false;
       for (const v of front) { const o = nodes[v].owner; if (o < 0) neu = true; else near.add(o); }
@@ -3022,6 +3125,8 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
         for (let i = 0; i < q.length; i++) for (const u of nodes[q[i]].adj) if (awayHop[u] === 99) { awayHop[u] = awayHop[q[i]] + 1; q.push(u); }
       }
     }
+    let LH = null;      // 50.7.10: road steps to the nearest lever it doesn't hold (bases on the way count extra: GD.toward)
+    if (GD && GD.toward) { const L = GQ.list.filter(g => nodes[g.lever].owner !== team).map(g => g.lever); if (L.length) LH = gateHops(L, pas); }
     for (const v of front) {
       const o = nodes[v].owner;
       if (bAllow && o >= 0 && !bAllow[o]) continue;   // BOUNTY: only the allowed colours (and neutrals) are targets
@@ -3048,6 +3153,7 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
       if (hopCrown && hopCrown[v] >= 0) sc += 1.6 * Math.max(0, 1 - hopCrown[v] / 7);                         // and heads for it: bases on the way count extra
       if (far) sc += AW.bonus;
       if (NS && v === NS.heart && o !== team && def < armyAll4) sc += NS.bonus;      // 50.7.1: the Heart, once its cost is under the army
+      if (GD) { if (GLV[v]) sc += (GD.lever || 0) + (GD.behind || 0) * gateWorth(team, GLV[v]); else if (LH && LH[v] < 3) sc += GD.toward * (1 - LH[v] / 3); }      // 50.7.10: a lever (and what its gate opens and shuts), or a base on the way to one
       if (o === NEUTRAL) sc += 0.6;
       else {
         if (bPrey >= 0 && o === bPrey) sc += 2.0;   // BOUNTY: the crown (or its challenger) is the prize
@@ -3076,10 +3182,10 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
   if (lastStand || G.rng() < 0.4) {
     let wv = -1, wd = Infinity;
     for (const n of nodes) if (n.owner === team)
-      for (const v of n.adj) if (nodes[v].owner !== team) { const d = enemyAt(v); if (d < wd) { wd = d; wv = v; } }
+      for (const v of n.adj) if (nodes[v].owner !== team && pas(n.id, v)) { const d = enemyAt(v); if (d < wd) { wd = d; wv = v; } }
     if (wv >= 0) {
       let stage = -1, sm = -1;
-      for (const u of nodes[wv].adj) if (nodes[u].owner === team && mine[u] > sm) { sm = mine[u]; stage = u; }
+      for (const u of nodes[wv].adj) if (nodes[u].owner === team && mine[u] > sm && pas(u, wv)) { sm = mine[u]; stage = u; }
       let total = 0; for (let i = 0; i < N; i++) total += mine[i];
       if (stage >= 0 && mine[stage] < total * 0.5) command(team, stage, lastStand ? 0.9 : 0.6, null, 520);
     }
@@ -3105,7 +3211,7 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
       const need = Math.max(5, def * D.margin + 3);
       if (committed[v] >= need * 0.8) continue;
       let src = -1, sb = 0;
-      for (const u of nv.adj) { if (nodes[u].owner !== team) continue; const av = idleAt[u]; if (av > sb) { sb = av; src = u; } }
+      for (const u of nv.adj) { if (nodes[u].owner !== team || !pas(u, v)) continue; const av = idleAt[u]; if (av > sb) { sb = av; src = u; } }      // 50.7.10: not across a shut gate
       if (src < 0 || sb < need) continue;
       if (SL && (need > armyAll * SL.cap || enemyAt(src) >= 1 || idleAt[src] - need < SL.keep || (T.warn && T.warn.v === src && G.t < T.warn.until))) continue;   // the source must be quiet, keep a few at home, and not be the base being guarded
       const f1 = t => !t.path.length && t.home === src && holdFilter(t); f1.src = src;      // 50.7.4: a one-base send (M8 copies it as one)
@@ -3136,7 +3242,7 @@ function aiThink(team, full) {      // 50.7.4: full: a whole turn even for a def
     if (n.owner !== team) continue;
     for (const v of n.adj) {
       const o = nodes[v].owner;
-      if (o === team || v === T.target || (v === T.avoid && G.t < T.avoidUntil)) continue;
+      if (o === team || v === T.target || (v === T.avoid && G.t < T.avoidUntil) || !pas(n.id, v)) continue;      // 50.7.10
       if (bAllow && o >= 0 && !bAllow[o]) continue;
       if (ZN && !ZN.has(v)) continue;
       const def = defAt(v), avail = idleStr * 0.65;
@@ -3933,8 +4039,8 @@ function pickNode(px, py) {
 }
 function reachable(n) {
   if (n.owner === PLAYER) return true;
-  for (const v of n.adj) if (G.nodes[v].owner === PLAYER) return true;
-  for (const t of G.troops) if (t.team === PLAYER && n.adj.includes(t.home)) return true;
+  for (const v of n.adj) if (G.nodes[v].owner === PLAYER && passable(n.id, v, PLAYER)) return true;      // 50.7.10: not across a shut gate
+  for (const t of G.troops) if (t.team === PLAYER && n.adj.includes(t.home) && passable(n.id, t.home, PLAYER)) return true;
   return false;
 }
 
@@ -4747,6 +4853,120 @@ function pxEchoRings() {      // 50.7.4: the copy rings on Pixel's grid
   x.globalAlpha = 1;
 }
 const echoLockShown = (i, L) => !!(G.echo && i === ECHO_RIVAL && G.echo.lockCopy != null && G.echo.lockCopy === L);      // 50.7.4: the rival's lock shows while it is a copy of yours
+/*STYLE:G1*/
+// 50.7.10 (Tier 3 level 2): the gates, a general slot: every look draws them the same way, after its road pass (Pixel on its grid: pxGates). A gate's
+// road gets two rails beside it, so a gate bridge never looks like a plain one. At its middle stand two posts: shut (its lever neutral), a bar joins
+// them across the road in the look's ink; open, two bars swing back along the road in the holder's colour (the mark colour slot). Shut and open differ
+// by shape, not only colour. The gate and its lever carry the same numeral (I, II), drawn as strokes on a plate (no font). A change of hands pulses at
+// the gate and at its lever; troops stopped short of a gate get a halt mark at the base they stopped at; a lever's card (press and hold) lights its gate.
+const gateLight = () => isSand() || isInk();      // a light ground: dark ink on a pale plate
+const gateInk = () => gateLight() ? '#231c15' : '#f2f2f2', gatePlate = () => gateLight() ? '#f1e9d8' : '#0a0c10';
+function gateGeo(g) {      // a gate's road: its ends, direction (u), normal (n, turned away from the map's middle) and middle
+  const A = G.nodes[g.a], B = G.nodes[g.b], L = Math.hypot(B.x - A.x, B.y - A.y) || 1, ux = (B.x - A.x) / L, uy = (B.y - A.y) / L, mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+  let nx = -uy, ny = ux; if (nx * (mx - W / 2) + ny * (my - H / 2) < 0) { nx = -nx; ny = -ny; }
+  return { A, B, L, ux, uy, nx, ny, mx, my };
+}
+const gateAway = n => { const dx = n.x - W / 2, dy = n.y - H / 2, d = Math.hypot(dx, dy) || 1; return [dx / d, dy / d]; };      // a lever's numeral sits on its outer side
+function gateNumeral(x, y, id, s, a) {      // I or II as strokes on a plate; s: the strokes' height in world units
+  const n = id === 'II' ? 2 : 1, gap = s * 0.45, w = (n - 1) * gap, pw = w + s * 1.05, ph = s * 1.55, ink = gateInk();
+  ctx.globalAlpha = a; ctx.setLineDash([]); ctx.lineCap = 'butt';
+  ctx.fillStyle = gatePlate(); ctx.fillRect(x - pw / 2, y - ph / 2, pw, ph);
+  ctx.strokeStyle = hexA(ink, 0.55); ctx.lineWidth = s * 0.09; ctx.strokeRect(x - pw / 2, y - ph / 2, pw, ph);
+  ctx.strokeStyle = ink; ctx.lineWidth = s * (HC ? 0.24 : 0.2); ctx.beginPath();
+  for (let i = 0; i < n; i++) { const cx = x - w / 2 + i * gap; ctx.moveTo(cx, y - s / 2); ctx.lineTo(cx, y + s / 2); }
+  const e = w / 2 + s * 0.27; ctx.moveTo(x - e, y - s / 2); ctx.lineTo(x + e, y - s / 2); ctx.moveTo(x - e, y + s / 2); ctx.lineTo(x + e, y + s / 2);
+  ctx.stroke(); ctx.globalAlpha = 1;
+}
+function gateBar(x, y, ux, uy, nx, ny, P, open, col, w, lw) {      // the mark itself: two posts P off the road's line; shut: a bar across; open: two bars back along the road
+  const ink = gateInk(), halo = gatePlate();
+  ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.beginPath();
+  if (open) for (const sg of [1, -1]) { const px = x + nx * P * sg, py = y + ny * P * sg; ctx.moveTo(px, py); ctx.lineTo(px - ux * P * 1.5 * sg, py - uy * P * 1.5 * sg); }
+  else { ctx.moveTo(x + nx * P, y + ny * P); ctx.lineTo(x - nx * P, y - ny * P); }
+  ctx.strokeStyle = halo; ctx.lineWidth = lw + w * 1.4; ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke();
+  ctx.fillStyle = halo; for (const sg of [1, -1]) ctx.fillRect(x + nx * P * sg - w * 1.25, y + ny * P * sg - w * 1.25, w * 2.5, w * 2.5);
+  ctx.fillStyle = ink; for (const sg of [1, -1]) ctx.fillRect(x + nx * P * sg - w * 0.8, y + ny * P * sg - w * 0.8, w * 1.6, w * 1.6);
+}
+const gateCol = h => h >= 0 ? markCol(colorOf(h)) : gateInk();
+const gateHeld = () => infoNode && G.gates ? G.gates.list.find(g => g.lever === infoNode.id) : null;      // a lever's card is open (press and hold, on the brief's map or in a match): its gate lights
+function drawGates(now) {      // under the bases and troops: the rails, and the gates themselves
+  const Q = G.gates, k = 1 / V.s, ink = gateInk(), lit = gateHeld();
+  ctx.save();
+  for (const g of Q.list) {
+    const o = gateGeo(g), r = Math.max(6, 3.4 * k), in0 = 30, rl = Math.max(1.1, 1.0 * k) * (HC ? 1.4 : 1);
+    if (Math.max(o.A.x, o.B.x) + 40 < VIS.x0 || Math.min(o.A.x, o.B.x) - 40 > VIS.x1 || Math.max(o.A.y, o.B.y) + 40 < VIS.y0 || Math.min(o.A.y, o.B.y) - 40 > VIS.y1) continue;
+    if (g === lit) { const p = reduceMotion ? 1 : 0.65 + 0.35 * Math.sin(now * 6); ctx.setLineDash([]); ctx.lineCap = 'round'; ctx.strokeStyle = hexA(gateCol(g.holder) === ink ? ink : colorOf(g.holder), 0.28 * p); ctx.lineWidth = r * 2.6; ctx.beginPath(); ctx.moveTo(o.A.x, o.A.y); ctx.lineTo(o.B.x, o.B.y); ctx.stroke(); }
+    ctx.setLineDash([]); ctx.lineCap = 'butt'; ctx.strokeStyle = hexA(ink, HC ? 0.8 : 0.5); ctx.lineWidth = rl; ctx.beginPath();
+    for (const sg of [1, -1]) { ctx.moveTo(o.A.x + o.ux * in0 + o.nx * r * sg, o.A.y + o.uy * in0 + o.ny * r * sg); ctx.lineTo(o.B.x - o.ux * in0 + o.nx * r * sg, o.B.y - o.uy * in0 + o.ny * r * sg); }
+    ctx.stroke();
+    const P = Math.max(10, 7 * k), w = Math.max(1.8, 1.3 * k), lw = Math.max(3.6, 2.8 * k) * (HC ? 1.25 : 1);
+    gateBar(o.mx, o.my, o.ux, o.uy, o.nx, o.ny, P, g.holder >= 0, gateCol(g.holder), w, lw);
+  }
+  ctx.restore();
+}
+function drawGateTop(now) {      // over everything on the map: the numerals, the pulses, the halt marks
+  const Q = G.gates, k = 1 / V.s, s = Math.max(10, 8.5 * k), lit = gateHeld();
+  ctx.save();
+  for (const g of Q.list) {
+    const o = gateGeo(g), P = Math.max(10, 7 * k), d = P + s * 1.5;
+    if (inV(o.mx, o.my)) gateNumeral(o.mx + o.nx * d, o.my + o.ny * d, g.id, s, 1);
+    const L = G.nodes[g.lever], [ax, ay] = gateAway(L), dl = Math.max(30, 17 * k) + s * 0.6;
+    if (inV(L.x, L.y)) gateNumeral(L.x + ax * dl, L.y + ay * dl, g.id, s, 1);
+    if (g === lit && inV(L.x, L.y)) { const p = reduceMotion ? 1 : 0.6 + 0.4 * Math.sin(now * 6); ctx.globalAlpha = p; ctx.strokeStyle = gateInk(); ctx.lineWidth = Math.max(1.5, 1.2 * k); ctx.setLineDash([]); ctx.beginPath(); ctx.arc(o.mx, o.my, P * 2.6, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
+  }
+  for (const c of Q.cues) {
+    const age = G.t - c.b; if (age < 0) continue;
+    const g = Q.list.find(x => x.id === c.g); if (!g) continue;
+    if (c.k === 'gate' || c.k === 'lever') {      // a change of hands: a ring widens at the gate (and at its lever)
+      if (age > 1.1) continue;
+      const o = gateGeo(g), at = c.k === 'gate' ? [o.mx, o.my] : [G.nodes[g.lever].x, G.nodes[g.lever].y], p = age / 1.1;
+      if (!inV(at[0], at[1])) continue;
+      ctx.globalAlpha = 1 - p; ctx.strokeStyle = gateCol(c.c); ctx.lineWidth = Math.max(2, 1.8 * k) * (HC ? 1.3 : 1); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(at[0], at[1], (reduceMotion ? 30 : 16 + 44 * p) * Math.max(1, k * 0.6), 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+    } else if (c.k === 'stop') {      // troops stopped short: a halt mark (a little shut gate) blinks on the base's side toward the gate
+      if (age > 1.5) continue;
+      const n = G.nodes[c.v]; if (!inV(n.x, n.y)) continue;
+      const o = gateGeo(g), tx = (n.id === g.a || n.id === g.b) ? (n.id === g.a ? o.ux : -o.ux) : o.mx - n.x, ty = (n.id === g.a || n.id === g.b) ? (n.id === g.a ? o.uy : -o.uy) : o.my - n.y, tl = Math.hypot(tx, ty) || 1;
+      const ux = tx / tl, uy = ty / tl, D = Math.max(30, 16 * k), x = n.x + ux * D, y = n.y + uy * D;
+      if (!reduceMotion && Math.floor(age / 0.25) % 2 === 1) continue;
+      gateBar(x, y, ux, uy, -uy, ux, Math.max(7, 4 * k), false, markCol(colorOf(c.c)), Math.max(1.4, 1 * k), Math.max(2.8, 2.2 * k) * (HC ? 1.25 : 1));
+    }
+  }
+  ctx.restore();
+}
+function gateLockPaused(L) {      // your lock is across a shut gate: no base of yours has a way there now, so lock-on waits (its marker dims)
+  const c = gateLockPaused.c; if (c && c.L === L && c.st === G.step && c.G === G) return c.v;
+  const rt = routeTable(PLAYER, L); let v = true; for (const n of G.nodes) if (n.owner === PLAYER && rt.dist[n.id] < Infinity) { v = false; break; }
+  gateLockPaused.c = { L, st: G.step, G, v }; return v;
+}
+function pxGates(top) {      // 50.7.10: the gates on Pixel's grid: rails as dots; posts, bars, numerals and cues in whole grid pixels (top: the numerals and cues)
+  const x = PX.x, Q = G.gates, ink = gateLight() ? '#231c15' : '#f2f2f2';
+  const rect = (X, Y, w, h) => x.rect(Math.round(X), Math.round(Y), w, h);
+  const num = (X, Y, id) => { const n = id === 'II' ? 2 : 1, w = n === 2 ? 5 : 3; x.fillStyle = gatePlate(); x.fillRect(Math.round(X - w / 2) - 1, Math.round(Y) - 4, w + 2, 9); x.fillStyle = ink; x.beginPath(); rect(X - w / 2, Y - 3, w, 1); rect(X - w / 2, Y + 3, w, 1); if (n === 1) rect(X - 0.5, Y - 2, 1, 5); else { rect(X - w / 2 + 1, Y - 2, 1, 5); rect(X + w / 2 - 2, Y - 2, 1, 5); } x.fill(); };
+  for (const g of Q.list) {
+    const o = gateGeo(g); pxp(o.mx, o.my); const cx = PXX, cy = PXY;
+    if (!top) {
+      x.fillStyle = ink; x.globalAlpha = HC ? 0.85 : 0.55; x.beginPath();
+      for (const sg of [1, -1]) pxWorldDots(o.A.x + o.ux * 30 + o.nx * 7 * sg, o.A.y + o.uy * 30 + o.ny * 7 * sg, o.B.x - o.ux * 30 + o.nx * 7 * sg, o.B.y - o.uy * 30 + o.ny * 7 * sg, 2, 0);
+      x.fill(); x.globalAlpha = 1;
+      const v = V.rot ? [o.ny, -o.nx] : [o.nx, o.ny], uu = V.rot ? [o.uy, -o.ux] : [o.ux, o.uy], P = 4;      // on the grid, turned with the view
+      x.fillStyle = gatePlate(); x.fillRect(cx - P - 2, cy - P - 2, 2 * P + 5, 2 * P + 5);
+      x.fillStyle = g.holder >= 0 ? colorOf(g.holder) : ink; x.beginPath();
+      if (g.holder >= 0) for (const sg of [1, -1]) for (let i = 0; i <= 5; i++) rect(cx + v[0] * P * sg - uu[0] * i * sg, cy + v[1] * P * sg - uu[1] * i * sg, 1, 1);
+      else for (let i = -P; i <= P; i++) rect(cx + v[0] * i, cy + v[1] * i, 2, 2);
+      x.fill(); x.fillStyle = ink; x.beginPath(); for (const sg of [1, -1]) rect(cx + v[0] * P * sg - 1, cy + v[1] * P * sg - 1, 2, 2); x.fill();
+      continue;
+    }
+    const v = V.rot ? [o.ny, -o.nx] : [o.nx, o.ny]; num(cx + v[0] * 10, cy + v[1] * 10, g.id);
+    const L = G.nodes[g.lever], a = gateAway(L), av = V.rot ? [a[1], -a[0]] : a; pxp(L.x, L.y); num(PXX + av[0] * 17, PXY + av[1] * 17, g.id);
+  }
+  if (!top) return;
+  for (const c of Q.cues) {
+    const age = G.t - c.b, g = Q.list.find(q => q.id === c.g); if (!g || age < 0) continue;
+    if ((c.k === 'gate' || c.k === 'lever') && age < 1.1) { const o = gateGeo(g), n = G.nodes[g.lever]; c.k === 'gate' ? pxp(o.mx, o.my) : pxp(n.x, n.y); x.globalAlpha = Math.ceil((1 - age / 1.1) * 4) / 4; x.fillStyle = c.c >= 0 ? colorOf(c.c) : ink; x.beginPath(); pxRing(PXX, PXY, reduceMotion ? 12 : 8 + Math.round(14 * age / 1.1), 1); x.fill(); x.globalAlpha = 1; }
+    else if (c.k === 'stop' && age < 1.5 && (reduceMotion || Math.floor(age / 0.25) % 2 === 0)) { const n = G.nodes[c.v]; pxp(n.x, n.y); x.fillStyle = colorOf(c.c); x.beginPath(); rect(PXX - 4, PXY - 16, 9, 2); rect(PXX - 5, PXY - 17, 2, 4); rect(PXX + 4, PXY - 17, 2, 4); x.fill(); }
+  }
+}
 function drawArrows(now) {            // off-screen pointers: your bases under attack (filled) and your lock-on target (outline)
   arrowHits = [];
   if (mode !== 'play' || watching || cam.z <= 1.01) return;
@@ -5127,6 +5347,7 @@ function draw(now) {
   }
   if (coach && coach.route) drawCoachRoute(now);      // 50.4.2: the lesson's out-of-reach moment
   if (G.hunt && G.hunt.fence) drawHuntFence(now);      // 50.5.9: Manhunt's sleeper's fence
+  if (G.gates) drawGates(now);      // 50.7.10: the gates (a general slot)
 
   if (selCheck() && selValid()) {
     const sn = G.nodes[selBase];
@@ -5149,8 +5370,8 @@ function draw(now) {
     const L = G.lock[i];
     if (L == null || !(mode === 'play' || mode === 'paused' || mode === 'ending') || !G.teams[i].alive) continue;
     if (!watching && i !== PLAYER && !echoLockShown(i, L)) continue;      // 50.7.4: and the rival's copy of your lock (M8)
-    const n = nodes[L];
-    ctx.save(); ctx.translate(n.x, n.y); ctx.rotate(Math.PI / 4 + (reduceMotion ? 0 : now * 0.7) + i * 0.3);
+    const n = nodes[L], dim = !!G.gates && i === PLAYER && gateLockPaused(L);      // 50.7.10: a lock across a shut gate waits: dimmed, and still
+    ctx.save(); if (dim) ctx.globalAlpha = 0.35; ctx.translate(n.x, n.y); ctx.rotate(Math.PI / 4 + (reduceMotion || dim ? 0 : now * 0.7) + i * 0.3);
     ctx.strokeStyle = IN_ ? ikHex(TEAM_COLORS[i]) : TEAM_COLORS[i]; ctx.lineWidth = 1.6; ctx.setLineDash([6, 4]);
     ctx.strokeRect(-19, -19, 38, 38); ctx.restore();
   }
@@ -5408,6 +5629,7 @@ function draw(now) {
     }
     ctx.restore();
   }
+  if (G.gates) drawGateTop(now);      // 50.7.10: the gates' numerals, pulses and halt marks
   ctx.restore();
   if (NE_) drawNeonLift();
   if (OV) drawOverloadOverlay(now, dtD);
@@ -8920,7 +9142,8 @@ function pxMarkers(now, tk) {                         // send highlights, the ba
   for (let i = 0; i < 5; i++) {
     const L = G.lock[i];
     if (L == null || !(mode === 'play' || mode === 'paused') || !G.teams[i].alive || (!watching && i !== PLAYER && !echoLockShown(i, L))) continue;      // 50.7.4: and the rival's copied lock (M8)
-    pxp(nodes[L].x, nodes[L].y); x.fillStyle = TEAM_COLORS[i]; x.beginPath(); pxBox(PXX, PXY, 9 + (i % 2), 2, tk >> 1); x.fill();
+    const dim = !!G.gates && i === PLAYER && gateLockPaused(L); if (dim) x.globalAlpha = 0.4;      // 50.7.10
+    pxp(nodes[L].x, nodes[L].y); x.fillStyle = TEAM_COLORS[i]; x.beginPath(); pxBox(PXX, PXY, 9 + (i % 2), 2, dim ? 0 : tk >> 1); x.fill(); x.globalAlpha = 1;
   }
   if (G.echo && (mode === 'play' || mode === 'paused' || mode === 'ending')) pxEchoRings();      // 50.7.4: M8's copy rings
 }
@@ -9053,7 +9276,7 @@ function drawPixel(now) {
   x.fillStyle = '#000'; x.fillRect(0, 0, bw, bh);
   vfxFx(); stepParts();                               // keeps the other styles' effect state in step, should you switch mid-match
   updateVis();
-  pxGround(tk); pxEdges(tk); pxMarkers(now, tk); pxBases(now, tk); pxTroops(fogD); pxFx(now, fogD);
+  pxGround(tk); pxEdges(tk); if (G.gates) pxGates(false); pxMarkers(now, tk); pxBases(now, tk); pxTroops(fogD); pxFx(now, fogD); if (G.gates) pxGates(true);      // 50.7.10: the gates
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.beginPath(); ctx.rect(F.x * dpr, F.y * dpr, F.w * dpr, F.h * dpr); ctx.clip();
   ctx.imageSmoothingEnabled = false; ctx.drawImage(PX.cv, 0, 0, bw * P, bh * P); ctx.imageSmoothingEnabled = true;
@@ -9398,6 +9621,11 @@ function hud() {
   }
   if (G.nest && G.nest.sent > 0 && !G.nest.told) { G.nest.told = true; toast('Neutral help is on the way.', NEUTRAL_COLOR); }      // 50.7.1: the first help of the match (WC)
   if (G.nest && G.nest.strikeT != null && !G.nest.toldS) { G.nest.toldS = true; if (!watching && G.t - G.nest.strikeT < 3) toast('The neighbors want it back.', NEUTRAL_COLOR); }      // 50.7.3: the first strike-back at a base you took, once a match (WC)
+  if (G.scenarioId && !G.gateTold && !watching && !G.over) {      // 50.7.9: star 1's clock ran out, so stars 2 and 3 go too (any level whose star 1 is a clock). Once a match, only while fresh (WC's words)
+    const sc = SCENARIOS.find(x => x.id === G.scenarioId), g = sc ? sc.stars[0] : null;
+    if (!g || g.k !== 'time') G.gateTold = true;
+    else if (G.t > g.v) { G.gateTold = true; if (G.t - g.v < 3) toast('The first star is gone, and the other two go with it.', '#ffcd30'); }
+  }
   if (G.echo && mode === 'play' && !watching) {      // 50.7.4: M8's three notes, once a match each, only while fresh (WC's words)
     const E = G.echo, tl = E.told || (E.told = {}), c = TEAM_COLORS[ECHO_RIVAL], F = E.lastFail;
     if (F && !F.seen) { F.seen = 1; if (G.t - F.t < 3) { if (F.why === 'noTwin') { if (!tl.nt) { tl.nt = 1; toast(nameText("That base has no match, so {R} can't copy it."), c, ECHO_RIVAL); } } else if (!tl.f) { tl.f = 1; toast(nameText("{R} couldn't copy that one."), c, ECHO_RIVAL); } } }
@@ -12618,7 +12846,7 @@ const SCREEN_MODE = { scrClassic: 'classic', scrCustom: 'custom', scrSpectate: '
 // ---- tester notes: a short, plain-words list of what changed. Newest first, about three builds. TESTER_NOTES = false removes all of it. ----
 const TESTER_NOTES = true;
 const NEWS = [
-  { v: '50.7.5', t: 'Build 50.7', b: ['Tier 3 has two new levels, Hornet\'s Nest and Follow the Leader.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.', 'Pause a challenge level and tap Retry to start it again from the beginning.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
+  { v: '50.7.10', t: 'Build 50.7', b: ['Tier 3 has two new levels, Hornet\'s Nest and Crossed Keys.', 'Press and hold a base on a level\'s brief, or on the map behind Classic, Custom and Spectate, to see what it is, with the same card as in a match.', 'Pause a challenge level and tap Retry to start it again from the beginning.'] },     // 50.7.1: DC's draft, one line naming the level and nothing about it while it is sealed (WC rewrites before Build 51)
   { v: '50.6.0', t: 'Build 50.6', b: ['The six older Tier 3 and Tier 4 levels are retired, so Challenge Maps holds Tiers 1 and 2 for now. The tokens you earned on them stay yours, and new Tier 3 and Tier 4 levels are on the way.'] },     // 50.6.0: DC's draft (WC rewrites before Build 51); fold later 50.6.x items in
   { v: '50.5.9', t: 'Build 50.5', b: ['Tier 2 of Challenge Maps is three new levels, One Army, Truce and Manhunt.', 'In One Army every order sends your full army, in Truce nobody can fight until the neutral land runs out, and in Manhunt both rivals hunt only you.', 'Manhunt plays in Black Iron + Hollow.', 'Save and quit works again in Black Iron on maps with islands, rivers or rings.'] },     // 50.5.9: DC's draft. 50.7.3: WC's text, Henry's yes (Nov 5)
   { v: '50.4.2', t: 'Build 50.4', b: ['The minimap is gone. The map button now shows the whole map in one tap, and a second tap takes you back to where you were.', 'You can zoom in further than before, and changing the HUD size or turning your phone no longer changes your zoom.', 'The Guided match is rebuilt from scratch. It\'s one short match on a map of its own that teaches each idea the moment you need it.'] },
@@ -13702,7 +13930,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.7.8 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.7.10 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -13736,7 +13964,7 @@ function xlTick() {
 function xlSave() { XL.saved = performance.now(); try { if (XL.log) localStorage.setItem('ice-xlog-cur', JSON.stringify(XL.log)); } catch (_) {} }
 function xlFinish() {
   if (watching || !XL.log || XL.g !== G) return;
-  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null, echo: G.echo ? { orders: G.echo.orders, echoes: Object.assign({}, G.echo.echoes), fail: Object.assign({}, G.echo.fail), failLog: G.echo.failLog.slice(), toward: G.echo.toward, idleTurns: G.echo.idleTurns.slice(), lostAt: G.echo.lostAt.slice(), redHomeAt: G.echo.redHomeAt, youRedHomeAt: G.ownAt && G.ownAt[G.homes[ECHO_RIVAL]] != null ? +G.ownAt[G.homes[ECHO_RIVAL]].toFixed(1) : null, spineAt: Object.assign({}, G.echo.spineAt), redLost: G.echo.redLost, spared: G.echo.spared, capped: G.echo.capped.slice() } : null };
+  xlSnap(); XL.log.result = { result: G.result, t: +G.t.toFixed(2), step: G.step, bases: G.teams.map(T => T.bases), kills: G.teams.map(T => T.kills), peak: G.peak, orders: G._orders | 0, reason: G.endReason, losses: G.playerLosses, hill: G.teams.map(T => +T.hill.toFixed(1)), truceEnd: G.truce && G.truce.end != null ? +G.truce.end.toFixed(1) : null, wakeAt: G.hunt && G.hunt.wakeAt != null ? +G.hunt.wakeAt.toFixed(1) : null, wakeBy: G.hunt ? G.hunt.wakeBy : null, homeLost: G.homeLost != null ? +G.homeLost.toFixed(1) : null, outs: G.log.filter(e => e.k === 'out').map(e => [e.b, e.a, +e.t.toFixed(1)]), helpCalls: G.nest ? G.nest.helpCalls.slice() : null, helpSent: G.nest ? G.nest.sent : null, netLost: G.nest ? G.nest.netLost : null, netLostAll: G.nest ? G.nest.netLostAll : null, netTook: G.nest ? G.nest.netTook.slice() : null, xpNet: +(G.teams[PLAYER].xpNet || 0).toFixed(1), xpAll: +(G.teams[PLAYER].xpAll || 0).toFixed(1), struck: G.nest ? (G.nest.struck || 0) : null, heartAt: G.nest && G.nest.heartAt != null ? +G.nest.heartAt.toFixed(1) : null, heartBy: G.nest ? G.nest.heartBy : null, youHeartAt: G.nest && G.ownAt && G.ownAt[G.nest.heart] != null ? +G.ownAt[G.nest.heart].toFixed(1) : null, echo: G.echo ? { orders: G.echo.orders, echoes: Object.assign({}, G.echo.echoes), fail: Object.assign({}, G.echo.fail), failLog: G.echo.failLog.slice(), toward: G.echo.toward, idleTurns: G.echo.idleTurns.slice(), lostAt: G.echo.lostAt.slice(), redHomeAt: G.echo.redHomeAt, youRedHomeAt: G.ownAt && G.ownAt[G.homes[ECHO_RIVAL]] != null ? +G.ownAt[G.homes[ECHO_RIVAL]].toFixed(1) : null, spineAt: Object.assign({}, G.echo.spineAt), redLost: G.echo.redLost, spared: G.echo.spared, capped: G.echo.capped.slice() } : null, gates: G.gates ? { ev: G.gates.ev.slice(), cross: G.gates.cross.slice(), stops: G.gates.stops.slice(), held: JSON.parse(JSON.stringify(G.gates.held)), leverAt: Object.assign({}, G.gates.leverAt), forgeAt: G.gates.forgeAt.slice(), lostAt: G.gates.lostAt.slice() } : null };
   xlSave();
 }
 function xlPre(n, from) {
@@ -14911,4 +15139,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.7.8, from source sha256 003760c1ff5d15bc -->
+<!-- Aiced build 50.7.10, from source sha256 6a584835d38c83ed -->

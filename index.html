@@ -814,7 +814,7 @@ body:has(#menu.shopOn:not([hidden])) #hud { visibility: hidden; }     /* Styles 
       <p class="newhere" id="newHere" hidden>New here? Check <b>How to Play</b>.</p>
       <p class="qualnote" id="qualNote" hidden></p>
     </div>
-    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.7 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
+    <div class="ver"><span class="bw"><span class="build" id="buildNo">Build 50.7.8 LOGGER</span><button class="newsBtn" id="newsBtn" data-go="scrNews" aria-label="What's new in this build"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg><i id="newsDot" hidden></i></button></span></div>
     <div class="homeR">
       <button id="bPlay" class="primary big" data-go="scrPlay">Play</button>
       <button class="ghost big2 shopbtn" id="bShop" data-go="scrShop">Shop<i id="shopDot"></i></button>
@@ -13003,6 +13003,7 @@ function goalState(g, P) {
     case 'netlost': { const k = G.nest ? G.nest.netLost : 0; return k >= g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: `${k} lost · under ${g.v}` }; }      // 50.7.1 (WC's words)
     case 'bases': return { s: P.bases >= g.v ? 'ok' : 'pending', n: `${P.bases}/${g.v}` };
     case 'ko': return G.teams.some(T => T.i !== PLAYER && T.active && !T.alive) ? { s: 'ok', n: '' } : { s: 'pending', n: '' };
+    case 'truceko': { const T = G.truce; if (!T || T.end == null) return { s: 'pending', n: '' }; if (starMet(g)) return { s: 'ok', n: '' }; const left = T.end + g.v - G.t; return left < 0 ? { s: 'fail', n: 'missed' } : { s: 'pending', n: fmt(left) + ' left' }; }      // 50.7.8: Truce's star 3 (it showed open until the match ended)
     case 'hillcap': { let h = 0; for (const T of G.teams) if (T.i !== PLAYER && T.active) h = Math.max(h, T.hill); return h >= g.v ? { s: 'fail', n: 'missed' } : { s: 'pending', n: `${Math.floor(h)}/${g.v} s` }; }
   }
   return { s: 'pending', n: '' };
@@ -13701,7 +13702,7 @@ function xlOwners() { return G.nodes.map(n => n.owner === NEUTRAL ? '-' : n.owne
 function xlNew() {
   XL.g = G; XL.lastSnap = -999; XL.saved = performance.now();
   XL.log = {
-    build: 'Build 50.7.7 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
+    build: 'Build 50.7.8 LOGGER', landLen: G.land ? +landLen(G.land.outline).toFixed(2) : null, crown: G.crown, kothTarget: G.kothTarget, kothRival: G.kothRival, resumedAt: G.t > 1 ? +G.t.toFixed(1) : 0, started: new Date().toISOString(), ua: navigator.userAgent,
     view: [innerWidth, innerHeight, devicePixelRatio], quality: quality, qualFix: qualFix,
     opts: window.__xlOpts || null, seed: G.seed, size: G.sizeName, diff: G.diffName, shape: G.shape, mods: G.mods,
     teams: G.teams.map(T => ({ i: T.i, active: !!T.active, style: T.style && T.style.name })),
@@ -14910,4 +14911,4 @@ if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWor
 </script>
 </body>
 </html>
-<!-- Aiced build 50.7.7, from source sha256 ef99c852fa066c77 -->
+<!-- Aiced build 50.7.8, from source sha256 003760c1ff5d15bc -->
